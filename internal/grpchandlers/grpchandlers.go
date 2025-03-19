@@ -9,8 +9,8 @@ import (
 )
 
 type GameServicer interface {
-	AddGame(ctx context.Context, game gamev4.Game) (gameId uint64, err error)
-	GetGame(ctx context.Context, gameTitle string) (game gamev4.Game, err error)
+	AddGame(ctx context.Context, game *gamev4.Game) (gameId uint64, err error)
+	GetGame(ctx context.Context, gameTitle string) (game *gamev4.Game, err error)
 	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []gamev4.Game, err error)
 }
 
