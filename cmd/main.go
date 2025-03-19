@@ -1,10 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
+	"net"
 	"os"
 
 	"github.com/sariya23/game_service/internal/config"
+	"github.com/sariya23/game_service/internal/grpchandlers"
+	gameservice "github.com/sariya23/game_service/internal/service/game"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -15,4 +20,15 @@ func main() {
 		slog.Int("grpc port", cfg.GrpcServerPort),
 		slog.Int("htpp port", cfg.HttpServerPort),
 	)
+	grpcServer := grpc.NewServer()
+	gameService := gameservice.NewGameService(log)
+	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GrpcServerPort))
+	if err != nil {
+		panic(fmt.Sprintf("%v", err))
+	}
+
+	if err := grpcServer.Serve(listener); err != nil {
+		panic(fmt.Sprintf("%s", err))
+	}
 }
