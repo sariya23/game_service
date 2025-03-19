@@ -82,4 +82,19 @@ func TestAddGame(t *testing.T) {
 		require.Equal(t, codes.InvalidArgument, s.Code())
 		require.Equal(t, expectedGameID, resp.GetGameId())
 	})
+	t.Run("Не указано поле Release Year", func(t *testing.T) {
+		game := gamev4.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		expectedGameID := uint64(0)
+		req := gamev4.AddGameRequest{Game: &game}
+		resp, err := srv.AddGame(context.Background(), &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, expectedGameID, resp.GetGameId())
+	})
 }
