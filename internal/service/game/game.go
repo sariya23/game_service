@@ -21,7 +21,7 @@ func NewGameService(log *slog.Logger) *GameService {
 func (gameService *GameService) AddGame(
 	ctx context.Context,
 	game domain.Game,
-) (domain.Game, error) {
+) (int64, error) {
 	panic("impl me")
 }
 
