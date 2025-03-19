@@ -12,6 +12,12 @@ type GameService struct {
 	log *slog.Logger
 }
 
+func NewGameService(log *slog.Logger) *GameService {
+	return &GameService{
+		log: log,
+	}
+}
+
 func (gameService *GameService) AddGame(
 	ctx context.Context,
 	game domain.Game,
