@@ -3,13 +3,12 @@ package grpchandlers
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/sariya23/game_service/internal/model"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/genproto/googleapis/type/date"
 )
 
 type mockGameServicer struct {
@@ -40,7 +39,7 @@ func TestAddGame(t *testing.T) {
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
 			Description: "test",
-			ReleaseYear: timestamppb.New(time.Date(2016, time.March, 16, 0, 0, 0, 0, time.UTC)),
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}

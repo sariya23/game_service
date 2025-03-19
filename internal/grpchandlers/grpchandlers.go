@@ -6,6 +6,8 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type GameServicer interface {
@@ -27,7 +29,16 @@ func (srvApi *serverAPI) AddGame(
 	ctx context.Context,
 	request *gamev4.AddGameRequest,
 ) (*gamev4.AddGameResponse, error) {
-	panic("impl me")
+	if request.Game.Title == "" {
+		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Title is required field")
+	}
+	if request.Game.Description == "" {
+		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Description is required field")
+	}
+	if request.Game.ReleaseYear == nil {
+		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Release year is required field")
+	}
+	return &gamev4.AddGameResponse{}, nil
 }
 
 func (srvApi *serverAPI) GetGame(
