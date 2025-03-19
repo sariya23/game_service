@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/outerror"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -47,7 +48,7 @@ func TestAddGame(t *testing.T) {
 		}
 		expectedGameID := uint64(1)
 		req := gamev4.AddGameRequest{Game: &game}
-		mockGameService.On("AddGame", mock.Anything, &game).Return(expectedGameID, nil)
+		mockGameService.On("AddGame", mock.Anything, &game).Return(expectedGameID, nil).Once()
 		resp, err := srv.AddGame(context.Background(), &req)
 		require.NoError(t, err)
 		require.GreaterOrEqual(t, resp.GetGameId(), uint64(0))
@@ -95,6 +96,23 @@ func TestAddGame(t *testing.T) {
 		resp, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, expectedGameID, resp.GetGameId())
+	})
+	t.Run("Игра уже существует", func(t *testing.T) {
+		game := gamev4.Game{
+			Title:       "Dark Souls 3",
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		expectedGameID := uint64(0)
+		req := gamev4.AddGameRequest{Game: &game}
+		mockGameService.On("AddGame", mock.Anything, &game).Return(expectedGameID, outerror.ErrGameAlreadyExist).Once()
+		resp, err := srv.AddGame(context.Background(), &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.AlreadyExists, s.Code())
 		require.Equal(t, expectedGameID, resp.GetGameId())
 	})
 }

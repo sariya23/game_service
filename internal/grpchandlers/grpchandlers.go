@@ -2,8 +2,10 @@ package grpchandlers
 
 import (
 	"context"
+	"errors"
 
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/outerror"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -38,7 +40,12 @@ func (srvApi *serverAPI) AddGame(
 	if request.Game.ReleaseYear == nil {
 		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Release year is required field")
 	}
-	gameID, _ := srvApi.gameServicer.AddGame(ctx, request.Game)
+	gameID, err := srvApi.gameServicer.AddGame(ctx, request.Game)
+	if err != nil {
+		if errors.Is(err, outerror.ErrGameAlreadyExist) {
+			return &gamev4.AddGameResponse{}, status.Error(codes.AlreadyExists, "Game with this title already exist")
+		}
+	}
 	return &gamev4.AddGameResponse{GameId: gameID}, nil
 }
 
