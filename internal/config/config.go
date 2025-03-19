@@ -13,8 +13,6 @@ type Config struct {
 	GrpcServerPort       int    `env:"GRPC_SERVER_PORT"`
 	HttpServerPort       int    `env:"HTTP_SERVER_PORT"`
 	ServerTimeoutSeconds int    `env:"SERVER_TIMEOUT_SECONDS"`
-	JWTSecret            string `env:"JWT_SECRET"`
-	TokenTTL             int    `env:"TOKEN_TTL"`
 	PostgresURL          string `env:"POSTGRES_URL"`
 	PostgresDBName       string `env:"POSTGRES_DB"`
 	PostgresUsername     string `env:"POSTGRES_USERNAME"`
