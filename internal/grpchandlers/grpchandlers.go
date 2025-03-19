@@ -12,7 +12,7 @@ import (
 type GameServicer interface {
 	AddGame(ctx context.Context, game domain.Game) (gameId uint64, err error)
 	GetGame(ctx context.Context, gameTitle string) (game domain.Game, err error)
-	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit int32) (games []domain.Game, err error)
+	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []domain.Game, err error)
 }
 
 type serverAPI struct {

@@ -34,7 +34,8 @@ func (gameService *GameService) GetGame(
 
 func (gameService *GameService) GetTopGames(
 	ctx context.Context,
-	gameFilters model.GameFilters, limit int32,
+	gameFilters model.GameFilters,
+	limit uint32,
 ) ([]domain.Game, error) {
 	panic("impl me")
 }
