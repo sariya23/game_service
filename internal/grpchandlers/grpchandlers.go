@@ -32,13 +32,13 @@ func (srvApi *serverAPI) AddGame(
 	request *gamev4.AddGameRequest,
 ) (*gamev4.AddGameResponse, error) {
 	if request.Game.Title == "" {
-		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Title is required field")
+		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.TitleRequiredMessage)
 	}
 	if request.Game.Description == "" {
-		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Description is required field")
+		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.DescriptionRequiredMessage)
 	}
 	if request.Game.ReleaseYear == nil {
-		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Release year is required field")
+		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.ReleaseYearRequiredMessage)
 	}
 	gameID, err := srvApi.gameServicer.AddGame(ctx, request.Game)
 	if err != nil {

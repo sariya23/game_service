@@ -66,6 +66,7 @@ func TestAddGame(t *testing.T) {
 		resp, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, outerror.TitleRequiredMessage, s.Message())
 		require.Equal(t, expectedGameID, resp.GetGameId())
 	})
 	t.Run("Не указано поле Description", func(t *testing.T) {
@@ -81,6 +82,7 @@ func TestAddGame(t *testing.T) {
 		resp, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, outerror.DescriptionRequiredMessage, s.Message())
 		require.Equal(t, expectedGameID, resp.GetGameId())
 	})
 	t.Run("Не указано поле Release Year", func(t *testing.T) {
@@ -96,6 +98,7 @@ func TestAddGame(t *testing.T) {
 		resp, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, outerror.ReleaseYearRequiredMessage, s.Message())
 		require.Equal(t, expectedGameID, resp.GetGameId())
 	})
 	t.Run("Игра уже существует", func(t *testing.T) {
