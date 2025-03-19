@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type mockGameServicer struct {
@@ -43,11 +45,26 @@ func TestAddGame(t *testing.T) {
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
-		expcetedGameId := uint64(1)
+		expectedGameID := uint64(1)
 		req := gamev4.AddGameRequest{Game: &game}
-		mockGameService.On("AddGame", mock.Anything, &game).Return(expcetedGameId, nil)
+		mockGameService.On("AddGame", mock.Anything, &game).Return(expectedGameID, nil)
 		resp, err := srv.AddGame(context.Background(), &req)
 		require.NoError(t, err)
 		require.GreaterOrEqual(t, resp.GetGameId(), uint64(0))
+	})
+	t.Run("Не указано поле Title", func(t *testing.T) {
+		game := gamev4.Game{
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		expectedGameID := uint64(0)
+		req := gamev4.AddGameRequest{Game: &game}
+		resp, err := srv.AddGame(context.Background(), &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, expectedGameID, resp.GetGameId())
 	})
 }
