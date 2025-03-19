@@ -38,7 +38,8 @@ func (srvApi *serverAPI) AddGame(
 	if request.Game.ReleaseYear == nil {
 		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, "Release year is required field")
 	}
-	return &gamev4.AddGameResponse{}, nil
+	gameID, _ := srvApi.gameServicer.AddGame(ctx, request.Game)
+	return &gamev4.AddGameResponse{GameId: gameID}, nil
 }
 
 func (srvApi *serverAPI) GetGame(

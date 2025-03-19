@@ -45,9 +45,9 @@ func TestAddGame(t *testing.T) {
 		}
 		expcetedGameId := uint64(1)
 		req := gamev4.AddGameRequest{Game: &game}
-		mockGameService.On("AddGame", &game).Return(expcetedGameId, nil)
+		mockGameService.On("AddGame", mock.Anything, &game).Return(expcetedGameId, nil)
 		resp, err := srv.AddGame(context.Background(), &req)
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, resp.GetGameId(), 0)
+		require.GreaterOrEqual(t, resp.GetGameId(), uint64(0))
 	})
 }
