@@ -4,15 +4,14 @@ import (
 	"context"
 
 	"github.com/sariya23/game_service/internal/model"
-	"github.com/sariya23/game_service/internal/model/domain"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"google.golang.org/grpc"
 )
 
 type GameServicer interface {
-	AddGame(ctx context.Context, game domain.Game) (gameId uint64, err error)
-	GetGame(ctx context.Context, gameTitle string) (game domain.Game, err error)
-	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []domain.Game, err error)
+	AddGame(ctx context.Context, game gamev4.Game) (gameId uint64, err error)
+	GetGame(ctx context.Context, gameTitle string) (game gamev4.Game, err error)
+	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []gamev4.Game, err error)
 }
 
 type serverAPI struct {

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/sariya23/game_service/internal/model"
-	"github.com/sariya23/game_service/internal/model/domain"
+	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
 type GameService struct {
@@ -20,7 +20,7 @@ func NewGameService(log *slog.Logger) *GameService {
 
 func (gameService *GameService) AddGame(
 	ctx context.Context,
-	game domain.Game,
+	game gamev4.Game,
 ) (uint64, error) {
 	panic("impl me")
 }
@@ -28,7 +28,7 @@ func (gameService *GameService) AddGame(
 func (gameService *GameService) GetGame(
 	ctx context.Context,
 	gameTitle string,
-) (domain.Game, error) {
+) (gamev4.Game, error) {
 	panic("impl me")
 }
 
@@ -36,6 +36,6 @@ func (gameService *GameService) GetTopGames(
 	ctx context.Context,
 	gameFilters model.GameFilters,
 	limit uint32,
-) ([]domain.Game, error) {
+) ([]gamev4.Game, error) {
 	panic("impl me")
 }
