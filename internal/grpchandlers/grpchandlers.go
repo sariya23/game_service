@@ -10,7 +10,7 @@ import (
 
 type GameFilters struct {
 	ReleaseYear string
-	Genre       string
+	Genre       []string
 	Tags        []string
 }
 
@@ -27,4 +27,25 @@ type serverAPI struct {
 
 func RegisterGrpcHandlers(grpcServer *grpc.Server, gameServicer GameServicer) {
 	gamev4.RegisterGameServiceServer(grpcServer, &serverAPI{gameServicer: gameServicer})
+}
+
+func (srvApi *serverAPI) AddGame(
+	ctx context.Context,
+	request *gamev4.AddGameRequest,
+) (*gamev4.AddGameResponse, error) {
+	panic("impl me")
+}
+
+func (srvApi *serverAPI) GetGame(
+	ctx context.Context,
+	request *gamev4.GetGameRequest,
+) (*gamev4.GetGameResponse, error) {
+	panic("impl me")
+}
+
+func (srvApi *serverAPI) GetTopGames(
+	ctx context.Context,
+	request *gamev4.GetTopGamesRequest,
+) (*gamev4.GetTopGamesResponse, error) {
+	panic("impl me")
 }
