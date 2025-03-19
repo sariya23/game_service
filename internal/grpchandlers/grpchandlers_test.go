@@ -22,7 +22,7 @@ func (m *mockAuther) GetGame(ctx context.Context, gameTitle string) (domain.Game
 	return args.Get(0).(domain.Game), args.Error(1)
 }
 
-func (m *mockAuther) GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit int32) ([]domain.Game, error) {
+func (m *mockAuther) GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) ([]domain.Game, error) {
 	args := m.Called(ctx, gameFilters, limit)
 	return args.Get(0).([]domain.Game), args.Error(1)
 
