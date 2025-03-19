@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/sariya23/game_service/internal/config"
+)
 
 func main() {
-	fmt.Println("OK")
+	cfg := config.MustLoad()
+	fmt.Println(cfg)
 }
