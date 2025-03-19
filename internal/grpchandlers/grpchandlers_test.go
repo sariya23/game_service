@@ -12,9 +12,9 @@ type mockAuther struct {
 	mock.Mock
 }
 
-func (m *mockAuther) AddGame(ctx context.Context, game domain.Game) (int64, error) {
+func (m *mockAuther) AddGame(ctx context.Context, game domain.Game) (uint64, error) {
 	args := m.Called(ctx, game)
-	return args.Get(0).(int64), args.Error(1)
+	return args.Get(0).(uint64), args.Error(1)
 }
 
 func (m *mockAuther) GetGame(ctx context.Context, gameTitle string) (domain.Game, error) {

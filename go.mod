@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/sariya23/proto_api_games/v4 v4.0.4
+	github.com/sariya23/proto_api_games/v4 v4.0.5
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/grpc v1.71.0
 )
