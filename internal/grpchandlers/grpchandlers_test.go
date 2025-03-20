@@ -24,8 +24,8 @@ func (m *mockGameServicer) AddGame(ctx context.Context, game *gamev4.Game) (uint
 	return args.Get(0).(uint64), args.Error(1)
 }
 
-func (m *mockGameServicer) GetGame(ctx context.Context, gameTitle string) (*gamev4.Game, error) {
-	args := m.Called(ctx, gameTitle)
+func (m *mockGameServicer) GetGame(ctx context.Context, gameID uint64) (*gamev4.Game, error) {
+	args := m.Called(ctx, gameID)
 	return args.Get(0).(*gamev4.Game), args.Error(1)
 }
 

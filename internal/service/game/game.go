@@ -27,7 +27,7 @@ func (gameService *GameService) AddGame(
 
 func (gameService *GameService) GetGame(
 	ctx context.Context,
-	gameTitle string,
+	gameID uint64,
 ) (*gamev4.Game, error) {
 	panic("impl me")
 }
