@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrGameAlreadyExist = errors.New("game with this title already exist")
+	ErrGameNotFound     = errors.New("game not found")
 )
 
 var (
@@ -12,4 +13,5 @@ var (
 	ReleaseYearRequiredMessage = "Release Year is required field"
 	InternalMessage            = "Internal error"
 	GameAlreadyExistMessage    = "Game already exist"
+	GameNotFoundMessage        = "Game not found"
 )

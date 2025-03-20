@@ -55,7 +55,13 @@ func (srvApi *serverAPI) GetGame(
 	ctx context.Context,
 	request *gamev4.GetGameRequest,
 ) (*gamev4.GetGameResponse, error) {
-	panic("impl me")
+	game, err := srvApi.gameServicer.GetGame(ctx, request.GetGameId())
+	if err != nil {
+		if errors.Is(err, outerror.ErrGameNotFound) {
+			return &gamev4.GetGameResponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
+		}
+	}
+	return &gamev4.GetGameResponse{Game: game}, nil
 }
 
 func (srvApi *serverAPI) GetTopGames(
