@@ -159,4 +159,21 @@ func TestGetGame(t *testing.T) {
 		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
 		require.Nil(t, resp.GetGame())
 	})
+	t.Run("Успешное получение игры", func(t *testing.T) {
+		gameID := uint64(2)
+		expectedGame := &gamev4.Game{
+			Title:       "Dark Souls 3",
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		req := gamev4.GetGameRequest{GameId: gameID}
+
+		mockGameService.On("GetGame", mock.Anything, gameID).Return(expectedGame, nil).Once()
+		resp, err := srv.GetGame(context.Background(), &req)
+		require.NoError(t, err)
+		require.Equal(t, expectedGame, resp.GetGame())
+	})
 }
