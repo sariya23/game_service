@@ -176,4 +176,16 @@ func TestGetGame(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedGame, resp.GetGame())
 	})
+	t.Run("Internal ошибка", func(t *testing.T) {
+		gameID := uint64(2)
+		expectedGame := &gamev4.Game{}
+		req := gamev4.GetGameRequest{GameId: gameID}
+
+		mockGameService.On("GetGame", mock.Anything, gameID).Return(expectedGame, errors.New("some error")).Once()
+		resp, err := srv.GetGame(context.Background(), &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.Internal, s.Code())
+		require.Equal(t, outerror.InternalMessage, s.Message())
+		require.Nil(t, resp.GetGame())
+	})
 }
