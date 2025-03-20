@@ -2,6 +2,7 @@ package grpchandlers
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/sariya23/game_service/internal/model"
@@ -116,6 +117,24 @@ func TestAddGame(t *testing.T) {
 		resp, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.AlreadyExists, s.Code())
+		require.Equal(t, outerror.GameAlreadyExistMessage, s.Message())
+		require.Equal(t, expectedGameID, resp.GetGameId())
+	})
+	t.Run("Internal ошибка", func(t *testing.T) {
+		game := gamev4.Game{
+			Title:       "Dark Souls 3",
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		expectedGameID := uint64(0)
+		req := gamev4.AddGameRequest{Game: &game}
+		mockGameService.On("AddGame", mock.Anything, &game).Return(expectedGameID, errors.New("some error")).Once()
+		resp, err := srv.AddGame(context.Background(), &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.Internal, s.Code())
 		require.Equal(t, expectedGameID, resp.GetGameId())
 	})
 }
