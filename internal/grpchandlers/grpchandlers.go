@@ -15,7 +15,7 @@ import (
 type GameServicer interface {
 	AddGame(ctx context.Context, game *gamev4.Game) (gameId uint64, err error)
 	GetGame(ctx context.Context, gameID uint64) (game *gamev4.GameWithRating, err error)
-	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []gamev4.GameWithRating, err error)
+	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []*gamev4.GameWithRating, err error)
 	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *gamev4.Game, err error)
 }
 
@@ -69,7 +69,18 @@ func (srvApi *serverAPI) GetTopGames(
 	ctx context.Context,
 	request *gamev4.GetTopGamesRequest,
 ) (*gamev4.GetTopGamesResponse, error) {
-	panic("impl me")
+	games, err := srvApi.gameServicer.GetTopGames(
+		ctx,
+		model.GameFilters{
+			ReleaseYear: request.GetYear(),
+			Genre:       request.Genres,
+			Tags:        request.GetGenres()},
+		request.GetLimit(),
+	)
+	if err != nil {
+		return &gamev4.GetTopGamesResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
+	}
+	return &gamev4.GetTopGamesResponse{Games: games}, nil
 }
 
 func (srvAPI *serverAPI) DeleteGame(
