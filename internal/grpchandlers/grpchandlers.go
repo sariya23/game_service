@@ -14,8 +14,8 @@ import (
 
 type GameServicer interface {
 	AddGame(ctx context.Context, game *gamev4.Game) (gameId uint64, err error)
-	GetGame(ctx context.Context, gameID uint64) (game *gamev4.Game, err error)
-	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []gamev4.Game, err error)
+	GetGame(ctx context.Context, gameID uint64) (game *gamev4.GameWithRating, err error)
+	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []gamev4.GameWithRating, err error)
 	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *gamev4.Game, err error)
 }
 
