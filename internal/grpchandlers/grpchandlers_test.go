@@ -29,9 +29,9 @@ func (m *mockGameServicer) GetGame(ctx context.Context, gameID uint64) (*gamev4.
 	return args.Get(0).(*gamev4.GameWithRating), args.Error(1)
 }
 
-func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) ([]gamev4.GameWithRating, error) {
+func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) ([]*gamev4.GameWithRating, error) {
 	args := m.Called(ctx, gameFilters, limit)
-	return args.Get(0).([]gamev4.GameWithRating), args.Error(1)
+	return args.Get(0).([]*gamev4.GameWithRating), args.Error(1)
 
 }
 

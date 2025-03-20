@@ -36,7 +36,7 @@ func (gameService *GameService) GetTopGames(
 	ctx context.Context,
 	gameFilters model.GameFilters,
 	limit uint32,
-) ([]gamev4.GameWithRating, error) {
+) ([]*gamev4.GameWithRating, error) {
 	panic("impl me")
 }
 
