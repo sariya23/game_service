@@ -28,7 +28,7 @@ func (gameService *GameService) AddGame(
 func (gameService *GameService) GetGame(
 	ctx context.Context,
 	gameID uint64,
-) (*gamev4.Game, error) {
+) (*gamev4.GameWithRating, error) {
 	panic("impl me")
 }
 
@@ -36,7 +36,7 @@ func (gameService *GameService) GetTopGames(
 	ctx context.Context,
 	gameFilters model.GameFilters,
 	limit uint32,
-) ([]gamev4.Game, error) {
+) ([]gamev4.GameWithRating, error) {
 	panic("impl me")
 }
 

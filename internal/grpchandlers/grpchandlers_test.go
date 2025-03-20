@@ -24,14 +24,14 @@ func (m *mockGameServicer) AddGame(ctx context.Context, game *gamev4.Game) (uint
 	return args.Get(0).(uint64), args.Error(1)
 }
 
-func (m *mockGameServicer) GetGame(ctx context.Context, gameID uint64) (*gamev4.Game, error) {
+func (m *mockGameServicer) GetGame(ctx context.Context, gameID uint64) (*gamev4.GameWithRating, error) {
 	args := m.Called(ctx, gameID)
-	return args.Get(0).(*gamev4.Game), args.Error(1)
+	return args.Get(0).(*gamev4.GameWithRating), args.Error(1)
 }
 
-func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) ([]gamev4.Game, error) {
+func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) ([]gamev4.GameWithRating, error) {
 	args := m.Called(ctx, gameFilters, limit)
-	return args.Get(0).([]gamev4.Game), args.Error(1)
+	return args.Get(0).([]gamev4.GameWithRating), args.Error(1)
 
 }
 
@@ -149,7 +149,7 @@ func TestGetGame(t *testing.T) {
 	srv := serverAPI{gameServicer: mockGameService}
 	t.Run("Игра не найдена", func(t *testing.T) {
 		gameID := uint64(2)
-		expectedGame := &gamev4.Game{}
+		expectedGame := &gamev4.GameWithRating{}
 		req := gamev4.GetGameRequest{GameId: gameID}
 
 		mockGameService.On("GetGame", mock.Anything, gameID).Return(expectedGame, outerror.ErrGameNotFound).Once()
@@ -161,13 +161,16 @@ func TestGetGame(t *testing.T) {
 	})
 	t.Run("Успешное получение игры", func(t *testing.T) {
 		gameID := uint64(2)
-		expectedGame := &gamev4.Game{
-			Title:       "Dark Souls 3",
-			Genres:      []string{"Action RPG", "Dark Fantasy"},
-			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImage:  []byte("qwe"),
-			Tags:        []string{"Hard"},
+		expectedGame := &gamev4.GameWithRating{
+			Game: &gamev4.Game{
+				Title:       "Dark Souls 3",
+				Genres:      []string{"Action RPG", "Dark Fantasy"},
+				Description: "test",
+				ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+				CoverImage:  []byte("qwe"),
+				Tags:        []string{"Hard"},
+			},
+			Rating: 5.0,
 		}
 		req := gamev4.GetGameRequest{GameId: gameID}
 
@@ -178,7 +181,7 @@ func TestGetGame(t *testing.T) {
 	})
 	t.Run("Internal ошибка", func(t *testing.T) {
 		gameID := uint64(2)
-		expectedGame := &gamev4.Game{}
+		expectedGame := &gamev4.GameWithRating{}
 		req := gamev4.GetGameRequest{GameId: gameID}
 
 		mockGameService.On("GetGame", mock.Anything, gameID).Return(expectedGame, errors.New("some error")).Once()
