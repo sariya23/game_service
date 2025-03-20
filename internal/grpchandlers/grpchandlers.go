@@ -60,6 +60,7 @@ func (srvApi *serverAPI) GetGame(
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			return &gamev4.GetGameResponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
 		}
+		return &gamev4.GetGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
 	return &gamev4.GetGameResponse{Game: game}, nil
 }
