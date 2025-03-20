@@ -39,3 +39,10 @@ func (gameService *GameService) GetTopGames(
 ) ([]gamev4.Game, error) {
 	panic("impl me")
 }
+
+func (gameService *GameService) DeleteGame(
+	ctx context.Context,
+	gameID uint64,
+) (*gamev4.Game, error) {
+	panic("empl me")
+}

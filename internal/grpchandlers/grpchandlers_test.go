@@ -35,6 +35,11 @@ func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters model.Ga
 
 }
 
+func (m *mockGameServicer) DeleteGame(ctx context.Context, gameID uint64) (*gamev4.Game, error) {
+	args := m.Called(ctx, gameID)
+	return args.Get(0).(*gamev4.Game), args.Error(1)
+}
+
 func TestAddGame(t *testing.T) {
 	mockGameService := new(mockGameServicer)
 	srv := serverAPI{gameServicer: mockGameService}
