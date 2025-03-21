@@ -17,6 +17,6 @@ func MustNewConnection(log *slog.Logger) PostgreSQL {
 	}
 }
 
-func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (gamev4.GameWithRating, error) {
+func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (gamev4.Game, error) {
 	panic("impl me")
 }

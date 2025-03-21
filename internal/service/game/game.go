@@ -16,7 +16,7 @@ type KafkaProducer interface {
 }
 
 type GameProvider interface {
-	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game gamev4.GameWithRating, err error)
+	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game gamev4.Game, err error)
 }
 
 type GameService struct {
