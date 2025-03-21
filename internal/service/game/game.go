@@ -12,15 +12,21 @@ type KafkaProducer interface {
 	SendMessage(message string) error
 }
 
+type GameProvider interface {
+	GetGame(ctx context.Context, gameID uint64) (game gamev4.GameWithRating, err error)
+}
+
 type GameService struct {
 	log           *slog.Logger
 	kafkaProducer KafkaProducer
+	gameProvider  GameProvider
 }
 
-func NewGameService(log *slog.Logger, kafkaProducer KafkaProducer) *GameService {
+func NewGameService(log *slog.Logger, kafkaProducer KafkaProducer, gameProvider GameProvider) *GameService {
 	return &GameService{
 		log:           log,
 		kafkaProducer: kafkaProducer,
+		gameProvider:  gameProvider,
 	}
 }
 
