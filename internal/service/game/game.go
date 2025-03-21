@@ -8,8 +8,13 @@ import (
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
+type KafkaProducer interface {
+	SendMessage(message string) error
+}
+
 type GameService struct {
-	log *slog.Logger
+	log           *slog.Logger
+	kafkaProducer KafkaProducer
 }
 
 func NewGameService(log *slog.Logger) *GameService {
