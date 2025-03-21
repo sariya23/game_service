@@ -8,6 +8,7 @@ import (
 
 	"github.com/sariya23/game_service/internal/config"
 	"github.com/sariya23/game_service/internal/grpchandlers"
+	"github.com/sariya23/game_service/internal/lib/kafka"
 	gameservice "github.com/sariya23/game_service/internal/service/game"
 	"google.golang.org/grpc"
 )
@@ -21,7 +22,8 @@ func main() {
 		slog.Int("htpp port", cfg.HttpServerPort),
 	)
 	grpcServer := grpc.NewServer()
-	gameService := gameservice.NewGameService(log)
+	kafkaProducer := kafka.MustNewKafkaProducer([]string{""}, "qwe")
+	gameService := gameservice.NewGameService(log, kafkaProducer)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GrpcServerPort))
 	if err != nil {

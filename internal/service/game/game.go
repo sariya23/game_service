@@ -17,9 +17,10 @@ type GameService struct {
 	kafkaProducer KafkaProducer
 }
 
-func NewGameService(log *slog.Logger) *GameService {
+func NewGameService(log *slog.Logger, kafkaProducer KafkaProducer) *GameService {
 	return &GameService{
-		log: log,
+		log:           log,
+		kafkaProducer: kafkaProducer,
 	}
 }
 
