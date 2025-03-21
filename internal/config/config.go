@@ -17,6 +17,11 @@ type Config struct {
 	PostgresDBName       string `env:"POSTGRES_DB"`
 	PostgresUsername     string `env:"POSTGRES_USERNAME"`
 	PostgresPassword     string `env:"POSTRGRES_PASSWORD"`
+	SmtpHost             string `env:"SMTP_HOST"`
+	SmtpPort             int    `env:"SMTP_PORT"`
+	EmailUser            string `env:"EMAIL_USER"`
+	EmailPassword        string `env:"EMAIL_PASSWORD"`
+	AdminEmail           string `env:"ADMIN_EMAIl"`
 }
 
 // MustLoad - загрузка данных из .env в конфиг.
