@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 
 	"github.com/sariya23/game_service/internal/model"
@@ -19,17 +20,29 @@ type GameProvider interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game gamev4.Game, err error)
 }
 
+type S3Storager interface {
+	Save(ctx context.Context, data io.Reader, key string) error
+	Get(ctx context.Context, bucket, key string) io.Reader
+}
+
 type GameService struct {
 	log           *slog.Logger
 	kafkaProducer KafkaProducer
 	gameProvider  GameProvider
+	s3Storager    S3Storager
 }
 
-func NewGameService(log *slog.Logger, kafkaProducer KafkaProducer, gameProvider GameProvider) *GameService {
+func NewGameService(
+	log *slog.Logger,
+	kafkaProducer KafkaProducer,
+	gameProvider GameProvider,
+	s3Storager S3Storager,
+) *GameService {
 	return &GameService{
 		log:           log,
 		kafkaProducer: kafkaProducer,
 		gameProvider:  gameProvider,
+		s3Storager:    s3Storager,
 	}
 }
 

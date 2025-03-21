@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"context"
 	"io"
 	"log/slog"
 )
@@ -15,10 +16,10 @@ func NewS3Storage(log *slog.Logger) *S3Storage {
 	}
 }
 
-func (s3 S3Storage) Save(data io.Reader, key string) error {
+func (s3 S3Storage) Save(ctx context.Context, data io.Reader, key string) error {
 	panic("impl me")
 }
 
-func (s3 S3Storage) Get(buket, key string) io.Reader {
+func (s3 S3Storage) Get(ctx context.Context, bucket, key string) io.Reader {
 	panic("impl me")
 }
