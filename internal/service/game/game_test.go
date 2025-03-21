@@ -2,6 +2,7 @@ package gameservice
 
 import (
 	"context"
+	"io"
 	"testing"
 
 	"github.com/sariya23/game_service/internal/lib/mockslog"
@@ -30,10 +31,25 @@ func (m *mockKafkaProducer) SendMessage(message string) error {
 	return args.Error(0)
 }
 
+type mockS3Storager struct {
+	mock.Mock
+}
+
+func (m *mockS3Storager) Save(ctx context.Context, data io.Reader, key string) error {
+	args := m.Called(ctx, data, key)
+	return args.Error(0)
+}
+
+func (m *mockS3Storager) Get(ctx context.Context, bucket, key string) io.Reader {
+	args := m.Called(ctx, bucket, key)
+	return args.Get(0).(io.Reader)
+}
+
 func TestAddGame(t *testing.T) {
 	gameProviderMock := new(mockGameProvider)
 	kafkaMock := new(mockKafkaProducer)
-	gameService := NewGameService(mockslog.NewDiscardLogger(), kafkaMock, gameProviderMock)
+	s3Mock := new(mockS3Storager)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), kafkaMock, gameProviderMock, s3Mock)
 	t.Run("Нельзя добавить игру, так как она уже есть в БД", func(t *testing.T) {
 		expectedError := outerror.ErrGameAlreadyExist
 		game := gamev4.Game{
