@@ -10,6 +10,7 @@ import (
 	"github.com/sariya23/game_service/internal/grpchandlers"
 	"github.com/sariya23/game_service/internal/lib/kafka"
 	gameservice "github.com/sariya23/game_service/internal/service/game"
+	"github.com/sariya23/game_service/internal/storage/postgresql"
 	"google.golang.org/grpc"
 )
 
@@ -23,7 +24,8 @@ func main() {
 	)
 	grpcServer := grpc.NewServer()
 	kafkaProducer := kafka.MustNewKafkaProducer([]string{""}, "qwe")
-	gameService := gameservice.NewGameService(log, kafkaProducer)
+	db := postgresql.MustNewConnection(log)
+	gameService := gameservice.NewGameService(log, kafkaProducer, db)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GrpcServerPort))
 	if err != nil {
