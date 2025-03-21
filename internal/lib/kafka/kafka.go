@@ -7,6 +7,7 @@ import (
 )
 
 type KafkaProducer struct {
+	topic    string
 	producer sarama.SyncProducer
 }
 
@@ -20,5 +21,9 @@ func MustNewKafkaProducer(brokers []string, topic string) *KafkaProducer {
 	if err != nil {
 		panic(fmt.Sprintf("cannot connect to kafka; err = %v", err))
 	}
-	return &KafkaProducer{producer: producer}
+	return &KafkaProducer{producer: producer, topic: topic}
+}
+
+func (kafka *KafkaProducer) SendMessage(message string) error {
+	panic("impl me")
 }
