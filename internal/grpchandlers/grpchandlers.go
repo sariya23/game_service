@@ -88,5 +88,12 @@ func (srvAPI *serverAPI) DeleteGame(
 	ctx context.Context,
 	request *gamev4.DeleteGameRequest,
 ) (*gamev4.DeleteGameResponse, error) {
-	panic("impl me")
+	game, err := srvAPI.gameServicer.DeleteGame(ctx, request.GetGameId())
+	if err != nil {
+		if errors.Is(err, outerror.ErrGameNotFound) {
+			return &gamev4.DeleteGameResponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
+		}
+		return &gamev4.DeleteGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
+	}
+	return &gamev4.DeleteGameResponse{Game: game}, nil
 }
