@@ -57,7 +57,7 @@ func TestAddGame(t *testing.T) {
 			Description: "test",
 			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(gamev4.Game{}, expectedError)
+		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(game, nil)
 
 		gameID, err := gameService.AddGame(context.Background(), &game)
 		require.ErrorIs(t, err, expectedError)

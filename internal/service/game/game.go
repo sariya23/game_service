@@ -2,7 +2,6 @@ package gameservice
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -53,11 +52,9 @@ func (gameService *GameService) AddGame(
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
 	_, err := gameService.gameProvider.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year)
-	if err != nil {
-		if errors.Is(err, outerror.ErrGameAlreadyExist) {
-			log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
-			return 0, outerror.ErrGameAlreadyExist
-		}
+	if err == nil {
+		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
+		return 0, outerror.ErrGameAlreadyExist
 	}
 	return 0, nil
 }
