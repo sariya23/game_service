@@ -68,7 +68,7 @@ func (gameService *GameService) AddGame(
 	}
 	_, err = gameService.gameSaver.SaveGame(ctx, gameToAdd)
 	if err != nil {
-		log.Error(fmt.Sprintf("cannot start transaction to save game", gameToAdd))
+		log.Error("cannot start transaction to save game")
 		return uint64(0), outerror.ErrCannotStartGameTransaction
 	}
 	return uint64(1), nil
