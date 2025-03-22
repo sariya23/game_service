@@ -21,7 +21,7 @@ type GameProvider interface {
 }
 
 type GameSaver interface {
-	SaveGame(ctx context.Context, game *gamev4.Game) postgresql.GameTransaction
+	SaveGame(ctx context.Context, game *gamev4.Game) (*postgresql.GameTransaction, error)
 }
 
 type S3Storager interface {
@@ -66,7 +66,12 @@ func (gameService *GameService) AddGame(
 	} else {
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 	}
-	return 0, nil
+	_, err = gameService.gameSaver.SaveGame(ctx, gameToAdd)
+	if err != nil {
+		log.Error(fmt.Sprintf("cannot save game = %v in PENDING status", gameToAdd))
+		return uint64(0), outerror.ErrCannotPendingGame
+	}
+	return uint64(1), nil
 }
 
 func (gameService *GameService) GetGame(

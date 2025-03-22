@@ -2,6 +2,7 @@ package gameservice
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
@@ -45,9 +46,14 @@ type mockGameSaver struct {
 	mock.Mock
 }
 
-func (m *mockGameSaver) SaveGame(ctx context.Context, game *gamev4.Game) postgresql.GameTransaction {
+func (m *mockGameSaver) SaveGame(ctx context.Context, game *gamev4.Game) (*postgresql.GameTransaction, error) {
 	args := m.Called(ctx, game)
-	return args.Get(0).(postgresql.GameTransaction)
+
+	if args.Get(0) != nil {
+		return args.Get(0).(*postgresql.GameTransaction), args.Error(1)
+	}
+
+	return nil, args.Error(1)
 }
 
 func (m *mockS3Storager) Get(ctx context.Context, bucket, key string) io.Reader {
@@ -68,10 +74,22 @@ func TestAddGame(t *testing.T) {
 			Description: "test",
 			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(game, nil)
+		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(game, nil).Once()
 
 		gameID, err := gameService.AddGame(context.Background(), &game)
 		require.ErrorIs(t, err, expectedError)
 		require.Equal(t, gameID, uint64(0))
+	})
+	t.Run("Не удалось сохранить в статусе PENDING", func(t *testing.T) {
+		game := gamev4.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+		}
+		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(game, outerror.ErrGameAlreadyExist).Once()
+		gameSaverMock.On("SaveGame", mock.Anything, &game).Return(nil, errors.New("some error"))
+		gameID, err := gameService.AddGame(context.Background(), &game)
+		require.ErrorIs(t, err, outerror.ErrCannotPendingGame)
+		require.Equal(t, uint64(0), gameID)
 	})
 }
