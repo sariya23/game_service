@@ -11,7 +11,15 @@ type PostgreSQL struct {
 	log *slog.Logger
 }
 
-type SagaSaveGameTransactioner struct {
+type GameTransaction struct {
+}
+
+func (gt GameTransaction) Approve() {
+	panic("impl me")
+}
+
+func (gt GameTransaction) Reject() {
+	panic("impl me")
 }
 
 func MustNewConnection(log *slog.Logger) PostgreSQL {
@@ -21,5 +29,9 @@ func MustNewConnection(log *slog.Logger) PostgreSQL {
 }
 
 func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (gamev4.Game, error) {
+	panic("impl me")
+}
+
+func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.Game) GameTransaction {
 	panic("impl me")
 }
