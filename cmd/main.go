@@ -27,7 +27,7 @@ func main() {
 	kafkaProducer := kafka.MustNewKafkaProducer([]string{""}, "qwe")
 	db := postgresql.MustNewConnection(log)
 	s3Client := s3.NewS3Storage(log)
-	gameService := gameservice.NewGameService(log, kafkaProducer, db, s3Client)
+	gameService := gameservice.NewGameService(log, kafkaProducer, db, s3Client, db)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GrpcServerPort))
 	if err != nil {

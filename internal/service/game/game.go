@@ -8,6 +8,7 @@ import (
 
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
+	"github.com/sariya23/game_service/internal/storage/postgresql"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
@@ -19,13 +20,8 @@ type GameProvider interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game gamev4.Game, err error)
 }
 
-type SagaSaveGameTransactioner interface {
-	Reject()
-	Approve()
-}
-
 type GameSaver interface {
-	SaveGame(ctx context.Context, game *gamev4.Game) *SagaSaveGameTransactioner
+	SaveGame(ctx context.Context, game *gamev4.Game) postgresql.GameTransaction
 }
 
 type S3Storager interface {
@@ -38,6 +34,7 @@ type GameService struct {
 	kafkaProducer KafkaProducer
 	gameProvider  GameProvider
 	s3Storager    S3Storager
+	gameSaver     GameSaver
 }
 
 func NewGameService(
@@ -45,12 +42,14 @@ func NewGameService(
 	kafkaProducer KafkaProducer,
 	gameProvider GameProvider,
 	s3Storager S3Storager,
+	gameSaver GameSaver,
 ) *GameService {
 	return &GameService{
 		log:           log,
 		kafkaProducer: kafkaProducer,
 		gameProvider:  gameProvider,
 		s3Storager:    s3Storager,
+		gameSaver:     gameSaver,
 	}
 }
 
