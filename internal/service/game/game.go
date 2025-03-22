@@ -69,7 +69,7 @@ func (gameService *GameService) AddGame(
 	_, err = gameService.gameSaver.SaveGame(ctx, gameToAdd)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game = %v in PENDING status", gameToAdd))
-		return uint64(0), outerror.ErrCannotPendingGame
+		return uint64(0), outerror.ErrCannotStartGameTransaction
 	}
 	return uint64(1), nil
 }

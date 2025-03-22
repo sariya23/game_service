@@ -80,7 +80,7 @@ func TestAddGame(t *testing.T) {
 		require.ErrorIs(t, err, expectedError)
 		require.Equal(t, gameID, uint64(0))
 	})
-	t.Run("Не удалось сохранить в статусе PENDING", func(t *testing.T) {
+	t.Run("Не удалось начать транзакцию", func(t *testing.T) {
 		game := gamev4.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
@@ -89,7 +89,7 @@ func TestAddGame(t *testing.T) {
 		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(game, outerror.ErrGameAlreadyExist).Once()
 		gameSaverMock.On("SaveGame", mock.Anything, &game).Return(nil, errors.New("some error"))
 		gameID, err := gameService.AddGame(context.Background(), &game)
-		require.ErrorIs(t, err, outerror.ErrCannotPendingGame)
+		require.ErrorIs(t, err, outerror.ErrCannotStartGameTransaction)
 		require.Equal(t, uint64(0), gameID)
 	})
 }
