@@ -14,11 +14,11 @@ type PostgreSQL struct {
 type GameTransaction struct {
 }
 
-func (gt GameTransaction) Approve() {
+func (gt GameTransaction) Approve() error {
 	panic("impl me")
 }
 
-func (gt GameTransaction) Reject() {
+func (gt GameTransaction) Reject() error {
 	panic("impl me")
 }
 
