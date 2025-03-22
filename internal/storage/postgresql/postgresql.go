@@ -11,6 +11,9 @@ type PostgreSQL struct {
 	log *slog.Logger
 }
 
+type SagaSaveGameTransactioner struct {
+}
+
 func MustNewConnection(log *slog.Logger) PostgreSQL {
 	return PostgreSQL{
 		log: log,

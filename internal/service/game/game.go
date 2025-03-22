@@ -19,6 +19,15 @@ type GameProvider interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game gamev4.Game, err error)
 }
 
+type SagaSaveGameTransactioner interface {
+	Reject()
+	Approve()
+}
+
+type GameSaver interface {
+	SaveGame(ctx context.Context, game *gamev4.Game) *SagaSaveGameTransactioner
+}
+
 type S3Storager interface {
 	Save(ctx context.Context, data io.Reader, key string) error
 	Get(ctx context.Context, bucket, key string) io.Reader
