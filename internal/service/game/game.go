@@ -55,6 +55,8 @@ func (gameService *GameService) AddGame(
 	if err == nil {
 		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 		return 0, outerror.ErrGameAlreadyExist
+	} else {
+		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 	}
 	return 0, nil
 }
