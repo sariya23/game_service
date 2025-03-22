@@ -3,8 +3,9 @@ package outerror
 import "errors"
 
 var (
-	ErrGameAlreadyExist = errors.New("game with this title already exist")
-	ErrGameNotFound     = errors.New("game not found")
+	ErrGameAlreadyExist  = errors.New("game with this title already exist")
+	ErrGameNotFound      = errors.New("game not found")
+	ErrCannotPendingGame = errors.New("cannot pending game")
 )
 
 var (

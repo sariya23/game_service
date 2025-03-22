@@ -32,6 +32,6 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 	panic("impl me")
 }
 
-func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.Game) GameTransaction {
+func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.Game) (*GameTransaction, error) {
 	panic("impl me")
 }
