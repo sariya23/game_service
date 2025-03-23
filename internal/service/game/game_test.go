@@ -38,9 +38,14 @@ type mockS3Storager struct {
 	mock.Mock
 }
 
-func (m *mockS3Storager) Save(ctx context.Context, data io.Reader, key string) (string, error) {
+func (m *mockS3Storager) Save(ctx context.Context, data io.Reader, key string) error {
 	args := m.Called(ctx, data, key)
-	return args.String(0), args.Error(1)
+	return args.Error(0)
+}
+
+func (m *mockS3Storager) Get(ctx context.Context, bucket, key string) io.Reader {
+	args := m.Called(ctx, bucket, key)
+	return args.Get(0).(io.Reader)
 }
 
 type mockGameSaver struct {
@@ -55,11 +60,6 @@ func (m *mockGameSaver) SaveGame(ctx context.Context, game domain.Game) (*postgr
 	}
 
 	return nil, args.Error(1)
-}
-
-func (m *mockS3Storager) Get(ctx context.Context, bucket, key string) io.Reader {
-	args := m.Called(ctx, bucket, key)
-	return args.Get(0).(io.Reader)
 }
 
 func TestAddGame(t *testing.T) {

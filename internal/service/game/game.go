@@ -1,6 +1,7 @@
 package gameservice
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -27,7 +28,7 @@ type GameSaver interface {
 }
 
 type S3Storager interface {
-	Save(ctx context.Context, data io.Reader, key string) (string, error)
+	Save(ctx context.Context, data io.Reader, key string) error
 	Get(ctx context.Context, bucket, key string) io.Reader
 }
 
@@ -77,12 +78,31 @@ func (gameService *GameService) AddGame(
 	}
 	imageURL := s3.GetImageURL(game.Title)
 	game.ImageCoverURL = imageURL
-	_, err = gameService.gameSaver.SaveGame(ctx, game)
+	tr, err := gameService.gameSaver.SaveGame(ctx, game)
 	if err != nil {
 		log.Error("cannot start transaction to save game")
 		return uint64(0), outerror.ErrCannotStartGameTransaction
 	}
 	log.Info("game save with PENDING status")
+	if len(gameToAdd.GetCoverImage()) != 0 {
+		errSave := gameService.s3Storager.Save(
+			ctx,
+			bytes.NewReader(gameToAdd.CoverImage),
+			fmt.Sprintf("%s_%d_image", game.Title, game.ReleaseYear.Year),
+		)
+		if errSave != nil {
+			log.Error(fmt.Sprintf("cannot save game cover image in s3; err = %v", err))
+			errTr := tr.Reject()
+			if errTr != nil {
+				log.Error(fmt.Sprintf("cannot reject transaction; err = %v", err))
+				return 0, errTr
+			}
+			log.Info("transaction successfully rejected")
+			return 0, errSave
+		}
+		log.Info("image successfully saved in s3")
+	}
+
 	return uint64(1), nil
 }
 
