@@ -37,9 +37,9 @@ type mockS3Storager struct {
 	mock.Mock
 }
 
-func (m *mockS3Storager) Save(ctx context.Context, data io.Reader, key string) error {
+func (m *mockS3Storager) Save(ctx context.Context, data io.Reader, key string) (string, error) {
 	args := m.Called(ctx, data, key)
-	return args.Error(0)
+	return args.String(0), args.Error(1)
 }
 
 type mockGameSaver struct {
