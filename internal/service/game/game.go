@@ -3,6 +3,7 @@ package gameservice
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -66,8 +67,9 @@ func (gameService *GameService) AddGame(
 	if err == nil {
 		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 		return 0, outerror.ErrGameAlreadyExist
-	} else {
+	} else if !errors.Is(err, outerror.ErrGameNotFound) {
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
+		return 0, err
 	}
 	game := domain.Game{
 		Title:       gameToAdd.GetTitle(),
