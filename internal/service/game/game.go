@@ -7,8 +7,10 @@ import (
 	"log/slog"
 
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/domain"
 	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
+	"github.com/sariya23/game_service/internal/storage/s3"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
@@ -17,11 +19,11 @@ type KafkaProducer interface {
 }
 
 type GameProvider interface {
-	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game gamev4.Game, err error)
+	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game domain.Game, err error)
 }
 
 type GameSaver interface {
-	SaveGame(ctx context.Context, game *gamev4.Game) (*postgresql.GameTransaction, error)
+	SaveGame(ctx context.Context, game domain.Game) (*postgresql.GameTransaction, error)
 }
 
 type S3Storager interface {
@@ -66,7 +68,16 @@ func (gameService *GameService) AddGame(
 	} else {
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 	}
-	_, err = gameService.gameSaver.SaveGame(ctx, gameToAdd)
+	game := domain.Game{
+		Title:       gameToAdd.GetTitle(),
+		Description: gameToAdd.GetDescription(),
+		ReleaseYear: gameToAdd.GetReleaseYear(),
+		Tags:        gameToAdd.GetTags(),
+		Genres:      gameToAdd.GetGenres(),
+	}
+	imageURL := s3.GetImageURL(game.Title)
+	game.ImageCoverURL = imageURL
+	_, err = gameService.gameSaver.SaveGame(ctx, game)
 	if err != nil {
 		log.Error("cannot start transaction to save game")
 		return uint64(0), outerror.ErrCannotStartGameTransaction
