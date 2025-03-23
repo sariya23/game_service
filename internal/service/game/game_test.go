@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/sariya23/game_service/internal/lib/mockslog"
+	"github.com/sariya23/game_service/internal/model/domain"
 	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
@@ -19,9 +20,9 @@ type mockGameProvider struct {
 	mock.Mock
 }
 
-func (m *mockGameProvider) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (gamev4.Game, error) {
+func (m *mockGameProvider) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (domain.Game, error) {
 	args := m.Called(ctx, title, releaseYear)
-	return args.Get(0).(gamev4.Game), args.Error(1)
+	return args.Get(0).(domain.Game), args.Error(1)
 }
 
 type mockKafkaProducer struct {
@@ -46,7 +47,7 @@ type mockGameSaver struct {
 	mock.Mock
 }
 
-func (m *mockGameSaver) SaveGame(ctx context.Context, game *gamev4.Game) (*postgresql.GameTransaction, error) {
+func (m *mockGameSaver) SaveGame(ctx context.Context, game domain.Game) (*postgresql.GameTransaction, error) {
 	args := m.Called(ctx, game)
 
 	if args.Get(0) != nil {
@@ -69,26 +70,36 @@ func TestAddGame(t *testing.T) {
 	gameService := NewGameService(mockslog.NewDiscardLogger(), kafkaMock, gameProviderMock, s3Mock, gameSaverMock)
 	t.Run("Нельзя добавить игру, так как она уже есть в БД", func(t *testing.T) {
 		expectedError := outerror.ErrGameAlreadyExist
-		game := gamev4.Game{
+		gameToAdd := gamev4.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
 			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(game, nil).Once()
+		domainGame := domain.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+		}
+		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.ReleaseYear.Year).Return(domainGame, nil).Once()
 
-		gameID, err := gameService.AddGame(context.Background(), &game)
+		gameID, err := gameService.AddGame(context.Background(), &gameToAdd)
 		require.ErrorIs(t, err, expectedError)
 		require.Equal(t, gameID, uint64(0))
 	})
 	t.Run("Не удалось начать транзакцию", func(t *testing.T) {
-		game := gamev4.Game{
+		gameToAdd := gamev4.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
 			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, game.Title, game.ReleaseYear.Year).Return(game, outerror.ErrGameAlreadyExist).Once()
-		gameSaverMock.On("SaveGame", mock.Anything, &game).Return(nil, errors.New("some error"))
-		gameID, err := gameService.AddGame(context.Background(), &game)
+		domainGame := domain.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+		}
+		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.ReleaseYear.Year).Return(domainGame, outerror.ErrGameAlreadyExist).Once()
+		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(nil, errors.New("some error"))
+		gameID, err := gameService.AddGame(context.Background(), &gameToAdd)
 		require.ErrorIs(t, err, outerror.ErrCannotStartGameTransaction)
 		require.Equal(t, uint64(0), gameID)
 	})

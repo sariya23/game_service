@@ -23,3 +23,7 @@ func (s3 S3Storage) Save(ctx context.Context, data io.Reader, key string) (strin
 func (s3 S3Storage) Get(ctx context.Context, bucket, key string) io.Reader {
 	panic("impl me")
 }
+
+func GetImageURL(key string) string {
+	return ""
+}
