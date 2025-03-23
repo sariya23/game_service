@@ -1,6 +1,7 @@
 package gameservice
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -66,7 +67,16 @@ func (gameService *GameService) AddGame(
 	} else {
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 	}
+	_, err = gameService.s3Storager.Save(
+		ctx,
+		bytes.NewReader(gameToAdd.CoverImage),
+		fmt.Sprintf("%s_%d_image", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year),
+	)
+	if err != nil {
+		log.Error(fmt.Sprintf("Cannot save game cover image in S3; err = %v", err))
+		return 0, err
 
+	}
 	_, err = gameService.gameSaver.SaveGame(ctx, gameToAdd)
 	if err != nil {
 		log.Error("cannot start transaction to save game")
