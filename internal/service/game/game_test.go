@@ -97,7 +97,7 @@ func TestAddGame(t *testing.T) {
 			Description: "test",
 			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.ReleaseYear.Year).Return(domainGame, outerror.ErrGameAlreadyExist).Once()
+		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.ReleaseYear.Year).Return(domain.Game{}, outerror.ErrGameNotFound).Once()
 		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(nil, errors.New("some error"))
 		gameID, err := gameService.AddGame(context.Background(), &gameToAdd)
 		require.ErrorIs(t, err, outerror.ErrCannotStartGameTransaction)
