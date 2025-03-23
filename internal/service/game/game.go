@@ -25,7 +25,7 @@ type GameSaver interface {
 }
 
 type S3Storager interface {
-	Save(ctx context.Context, data io.Reader, key string) error
+	Save(ctx context.Context, data io.Reader, key string) (string, error)
 	Get(ctx context.Context, bucket, key string) io.Reader
 }
 
@@ -66,11 +66,13 @@ func (gameService *GameService) AddGame(
 	} else {
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 	}
+
 	_, err = gameService.gameSaver.SaveGame(ctx, gameToAdd)
 	if err != nil {
 		log.Error("cannot start transaction to save game")
 		return uint64(0), outerror.ErrCannotStartGameTransaction
 	}
+	log.Info("game save with UPLOAD status")
 	return uint64(1), nil
 }
 

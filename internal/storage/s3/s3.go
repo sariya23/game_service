@@ -16,7 +16,7 @@ func NewS3Storage(log *slog.Logger) *S3Storage {
 	}
 }
 
-func (s3 S3Storage) Save(ctx context.Context, data io.Reader, key string) error {
+func (s3 S3Storage) Save(ctx context.Context, data io.Reader, key string) (string, error) {
 	panic("impl me")
 }
 
