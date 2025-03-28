@@ -9,7 +9,6 @@ import (
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/model/domain"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/game_service/internal/storage/postgresql"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -52,14 +51,10 @@ type mockGameSaver struct {
 	mock.Mock
 }
 
-func (m *mockGameSaver) SaveGame(ctx context.Context, game domain.Game) (*postgresql.GameTransaction, error) {
+func (m *mockGameSaver) SaveGame(ctx context.Context, game domain.Game) (uint64, error) {
 	args := m.Called(ctx, game)
 
-	if args.Get(0) != nil {
-		return args.Get(0).(*postgresql.GameTransaction), args.Error(1)
-	}
-
-	return nil, args.Error(1)
+	return args.Get(0).(uint64), args.Error(1)
 }
 
 func TestAddGame(t *testing.T) {

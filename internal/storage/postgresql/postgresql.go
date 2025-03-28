@@ -11,17 +11,6 @@ type PostgreSQL struct {
 	log *slog.Logger
 }
 
-type GameTransaction struct {
-}
-
-func (gt GameTransaction) Approve() error {
-	panic("impl me")
-}
-
-func (gt GameTransaction) Reject() error {
-	panic("impl me")
-}
-
 func MustNewConnection(log *slog.Logger) PostgreSQL {
 	return PostgreSQL{
 		log: log,
@@ -32,6 +21,6 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 	panic("impl me")
 }
 
-func (postgresql PostgreSQL) SaveGame(ctx context.Context, game domain.Game) (*GameTransaction, error) {
+func (postgresql PostgreSQL) SaveGame(ctx context.Context, game domain.Game) (uint64, error) {
 	panic("impl me")
 }
