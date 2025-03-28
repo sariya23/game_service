@@ -11,7 +11,6 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/domain"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/game_service/internal/storage/postgresql"
 	"github.com/sariya23/game_service/internal/storage/s3"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
@@ -25,7 +24,7 @@ type GameProvider interface {
 }
 
 type GameSaver interface {
-	SaveGame(ctx context.Context, game domain.Game) (*postgresql.GameTransaction, error)
+	SaveGame(ctx context.Context, game domain.Game) (uint64, error)
 }
 
 type S3Storager interface {
@@ -80,7 +79,7 @@ func (gameService *GameService) AddGame(
 	}
 	imageURL := s3.GetImageURL(game.Title)
 	game.ImageCoverURL = imageURL
-	tr, err := gameService.gameSaver.SaveGame(ctx, game)
+	gameID, err := gameService.gameSaver.SaveGame(ctx, game)
 	if err != nil {
 		log.Error("cannot start transaction to save game")
 		return uint64(0), outerror.ErrCannotStartGameTransaction
@@ -94,18 +93,11 @@ func (gameService *GameService) AddGame(
 		)
 		if errSave != nil {
 			log.Error(fmt.Sprintf("cannot save game cover image in s3; err = %v", err))
-			errTr := tr.Reject()
-			if errTr != nil {
-				log.Error(fmt.Sprintf("cannot reject transaction; err = %v", err))
-				return 0, errTr
-			}
-			log.Info("transaction successfully rejected")
-			return 0, errSave
 		}
 		log.Info("image successfully saved in s3")
 	}
 
-	return uint64(1), nil
+	return gameID, nil
 }
 
 func (gameService *GameService) GetGame(
