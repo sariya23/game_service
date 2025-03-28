@@ -93,10 +93,10 @@ func (gameService *GameService) AddGame(
 	}
 	gameID, err := gameService.gameSaver.SaveGame(ctx, game)
 	if err != nil {
-		log.Error("cannot save game")
+		log.Error(fmt.Sprintf("cannot save game: err = %v", err))
 		return uint64(0), err
 	}
-	log.Info("game save with PENDING status")
+	log.Info("game save successfully")
 
 	return gameID, nil
 }
