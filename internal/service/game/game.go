@@ -81,8 +81,8 @@ func (gameService *GameService) AddGame(
 	game.ImageCoverURL = imageURL
 	gameID, err := gameService.gameSaver.SaveGame(ctx, game)
 	if err != nil {
-		log.Error("cannot start transaction to save game")
-		return uint64(0), outerror.ErrCannotStartGameTransaction
+		log.Error("cannot save game")
+		return uint64(0), err
 	}
 	log.Info("game save with PENDING status")
 	if len(gameToAdd.GetCoverImage()) != 0 {

@@ -81,7 +81,7 @@ func TestAddGame(t *testing.T) {
 		require.ErrorIs(t, err, expectedError)
 		require.Equal(t, gameID, uint64(0))
 	})
-	t.Run("Не удалось начать транзакцию", func(t *testing.T) {
+	t.Run("Не удалось сохранить игру", func(t *testing.T) {
 		gameToAdd := gamev4.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
@@ -92,10 +92,11 @@ func TestAddGame(t *testing.T) {
 			Description: "test",
 			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
+		expectedErr := errors.New("some error")
 		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.ReleaseYear.Year).Return(domain.Game{}, outerror.ErrGameNotFound).Once()
-		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(nil, errors.New("some error"))
+		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(uint64(0), expectedErr)
 		gameID, err := gameService.AddGame(context.Background(), &gameToAdd)
-		require.ErrorIs(t, err, outerror.ErrCannotStartGameTransaction)
+		require.ErrorIs(t, err, expectedErr)
 		require.Equal(t, uint64(0), gameID)
 	})
 }
