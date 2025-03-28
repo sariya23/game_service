@@ -11,7 +11,6 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/domain"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/game_service/internal/storage/s3"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
@@ -70,26 +69,28 @@ func (gameService *GameService) AddGame(
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 		return 0, err
 	}
+	var imageURL string
 	if len(gameToAdd.GetCoverImage()) != 0 {
-		_, errSave := gameService.s3Storager.Save(
+		imageURL, err = gameService.s3Storager.Save(
 			ctx,
 			bytes.NewReader(gameToAdd.CoverImage),
 			fmt.Sprintf("%s_%d_image", gameToAdd.Title, gameToAdd.ReleaseYear.Year),
 		)
-		if errSave != nil {
+		if err != nil {
 			log.Error(fmt.Sprintf("cannot save game cover image in s3; err = %v", err))
+		} else {
+			log.Info("image successfully saved in s3")
 		}
-		log.Info("image successfully saved in s3")
 	}
+	log.Info("no image data in game")
 	game := domain.Game{
-		Title:       gameToAdd.GetTitle(),
-		Description: gameToAdd.GetDescription(),
-		ReleaseYear: gameToAdd.GetReleaseYear(),
-		Tags:        gameToAdd.GetTags(),
-		Genres:      gameToAdd.GetGenres(),
+		Title:         gameToAdd.GetTitle(),
+		Description:   gameToAdd.GetDescription(),
+		ReleaseYear:   gameToAdd.GetReleaseYear(),
+		Tags:          gameToAdd.GetTags(),
+		Genres:        gameToAdd.GetGenres(),
+		ImageCoverURL: imageURL,
 	}
-	imageURL := s3.GetImageURL(game.Title)
-	game.ImageCoverURL = imageURL
 	gameID, err := gameService.gameSaver.SaveGame(ctx, game)
 	if err != nil {
 		log.Error("cannot save game")
