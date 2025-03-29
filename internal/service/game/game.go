@@ -68,6 +68,7 @@ func (gameService *GameService) AddGame(
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
 		return nil, err
 	}
+	var errSaveImage error
 	var imageURL string
 	if len(gameToAdd.GetCoverImage()) != 0 {
 		imageURL, err = gameService.s3Storager.Save(
@@ -77,6 +78,7 @@ func (gameService *GameService) AddGame(
 		)
 		if err != nil {
 			log.Error(fmt.Sprintf("cannot save game cover image in s3; err = %v", err))
+			errSaveImage = outerror.ErrCannotSaveGameImage
 		} else {
 			log.Info("image successfully saved in s3")
 		}
@@ -92,7 +94,7 @@ func (gameService *GameService) AddGame(
 	}
 	savedGame, err := gameService.gameSaver.SaveGame(ctx, &game)
 	if err != nil {
-		log.Error(fmt.Sprintf("cannot save game: err = %v", err))
+		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
 		return nil, err
 	}
 	log.Info("game save successfully")
