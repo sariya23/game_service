@@ -45,6 +45,8 @@ func (srvApi *serverAPI) AddGame(
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameAlreadyExist) {
 			return &gamev4.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
+		} else if errors.Is(err, outerror.ErrCannotSaveGameImage) {
+			return &gamev4.AddGameResponse{Game: savedGame}, nil
 		}
 		return &gamev4.AddGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
