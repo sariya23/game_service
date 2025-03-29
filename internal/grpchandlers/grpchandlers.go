@@ -13,10 +13,10 @@ import (
 )
 
 type GameServicer interface {
-	AddGame(ctx context.Context, game *gamev4.Game) (gameId uint64, err error)
-	GetGame(ctx context.Context, gameID uint64) (game *gamev4.GameWithRating, err error)
-	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []*gamev4.GameWithRating, err error)
-	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *gamev4.Game, err error)
+	AddGame(ctx context.Context, game *gamev4.GameRequest) (savedGame *gamev4.DomainGame, err error)
+	GetGame(ctx context.Context, gameID uint64) (game *gamev4.DomainGame, err error)
+	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []*gamev4.DomainGame, err error)
+	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *gamev4.DomainGame, err error)
 }
 
 type serverAPI struct {
@@ -41,14 +41,18 @@ func (srvApi *serverAPI) AddGame(
 	if request.Game.ReleaseYear == nil {
 		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.ReleaseYearRequiredMessage)
 	}
-	gameID, err := srvApi.gameServicer.AddGame(ctx, request.Game)
+	savedGame, err := srvApi.gameServicer.AddGame(ctx, request.Game)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameAlreadyExist) {
 			return &gamev4.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
 		}
 		return &gamev4.AddGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
-	return &gamev4.AddGameResponse{GameId: gameID}, nil
+	response := gamev4.AddGameResponse{
+		Game: savedGame,
+	}
+
+	return &response, nil
 }
 
 func (srvApi *serverAPI) GetGame(

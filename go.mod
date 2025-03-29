@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/IBM/sarama v1.45.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/sariya23/proto_api_games/v4 v4.0.14
+	github.com/sariya23/proto_api_games/v4 v4.0.18
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto v0.0.0-20250313205543-e70fdf4c4cb4
 	google.golang.org/grpc v1.71.0
