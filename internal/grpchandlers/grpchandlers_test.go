@@ -153,6 +153,29 @@ func TestAddGameHandler(t *testing.T) {
 		require.Equal(t, codes.Internal, s.Code())
 		require.Nil(t, resp.GetGame())
 	})
+	t.Run("Игра сохранена, но без обложки", func(t *testing.T) {
+		game := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		expectedGame := &gamev4.DomainGame{
+			Title:         "Dark Souls 3",
+			Genres:        []string{"Action RPG", "Dark Fantasy"},
+			Description:   "test",
+			ReleaseYear:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImageUrl: "http://",
+			Tags:          []string{"Hard"},
+		}
+		req := gamev4.AddGameRequest{Game: game}
+		mockGameService.On("AddGame", mock.Anything, game).Return(expectedGame, outerror.ErrCannotSaveGameImage)
+		resp, err := srv.AddGame(context.Background(), &req)
+		require.Equal(t, expectedGame, resp.GetGame())
+		require.NoError(t, err)
+	})
 }
 
 func TestGetGameHandler(t *testing.T) {
