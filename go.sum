@@ -67,8 +67,8 @@ github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 h1:N/ElC8H3+5X
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
-github.com/sariya23/proto_api_games/v4 v4.0.14 h1:PZm+u38bCeUknWtDuT3op81bF7TaAI5BgtMXF9kXJ28=
-github.com/sariya23/proto_api_games/v4 v4.0.14/go.mod h1:3t1BXvyTbBEDj/4Y/XliQTDcIMJ71E30JTlw7MwlV9g=
+github.com/sariya23/proto_api_games/v4 v4.0.18 h1:5+Pg6KqlK815tvNk9f0WAWvnTGfGKBAE2UBse5cNjsI=
+github.com/sariya23/proto_api_games/v4 v4.0.18/go.mod h1:3t1BXvyTbBEDj/4Y/XliQTDcIMJ71E30JTlw7MwlV9g=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
