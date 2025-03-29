@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 )
@@ -24,6 +25,6 @@ func (s3 S3Storage) Get(ctx context.Context, bucket, key string) io.Reader {
 	panic("impl me")
 }
 
-func GetImageURL(key string) string {
-	return ""
+func CreateGameKey(gameTitle string, gameReleaseYear int) string {
+	return fmt.Sprintf("%s_%d_image", gameTitle, gameReleaseYear)
 }

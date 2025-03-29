@@ -1,6 +1,7 @@
 package gameservice
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/outerror"
+	"github.com/sariya23/game_service/internal/storage/s3"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -97,10 +99,45 @@ func TestAddGame(t *testing.T) {
 			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
 		expectedErr := errors.New("some error")
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.ReleaseYear.Year).Return(nil, outerror.ErrGameNotFound).Once()
-		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(nil, expectedErr)
+		gameProviderMock.On(
+			"GetGameByTitleAndReleaseYear",
+			mock.Anything,
+			gameToAdd.Title,
+			gameToAdd.ReleaseYear.Year,
+		).Return(nil, outerror.ErrGameNotFound).Once()
+		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(nil, expectedErr).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedErr)
 		require.Nil(t, savedGame)
+	})
+	t.Run("Игра сохранена, но не удалось сохранить обложку в S3", func(t *testing.T) {
+		gameToAdd := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+		}
+		domainGame := &gamev4.DomainGame{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+		}
+		expectedErr := outerror.ErrCannotSaveGameImage
+		gameProviderMock.On(
+			"GetGameByTitleAndReleaseYear",
+			mock.Anything,
+			gameToAdd.Title,
+			gameToAdd.ReleaseYear.Year,
+		).Return(nil, outerror.ErrGameNotFound).Once()
+		s3Mock.On(
+			"Save",
+			mock.Anything,
+			bytes.NewReader(gameToAdd.GetCoverImage()),
+			s3.CreateGameKey(gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+		).Return("", expectedErr).Once()
+		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(domainGame, nil).Once()
+		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.Equal(t, domainGame, savedGame)
+		require.ErrorIs(t, err, expectedErr)
 	})
 }
