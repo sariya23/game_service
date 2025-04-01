@@ -58,8 +58,8 @@ type mockEmailAlerter struct {
 	mock.Mock
 }
 
-func (m *mockEmailAlerter) SendMessage(to string, subject string, body string) error {
-	args := m.Called(to, subject, body)
+func (m *mockEmailAlerter) SendMessage(subject string, body string) error {
+	args := m.Called(subject, body)
 
 	return args.Error(0)
 }
