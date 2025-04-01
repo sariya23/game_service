@@ -31,12 +31,17 @@ type S3Storager interface {
 	Get(ctx context.Context, bucket, key string) io.Reader
 }
 
+type EmailAlerter interface {
+	SendMessage(to string, subject string, body string) error
+}
+
 type GameService struct {
 	log           *slog.Logger
 	kafkaProducer KafkaProducer
 	gameProvider  GameProvider
 	s3Storager    S3Storager
 	gameSaver     GameSaver
+	mailer        EmailAlerter
 }
 
 func NewGameService(
@@ -45,6 +50,8 @@ func NewGameService(
 	gameProvider GameProvider,
 	s3Storager S3Storager,
 	gameSaver GameSaver,
+	mailer EmailAlerter,
+
 ) *GameService {
 	return &GameService{
 		log:           log,
@@ -52,6 +59,7 @@ func NewGameService(
 		gameProvider:  gameProvider,
 		s3Storager:    s3Storager,
 		gameSaver:     gameSaver,
+		mailer:        mailer,
 	}
 }
 
