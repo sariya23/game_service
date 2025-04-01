@@ -14,10 +14,6 @@ import (
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
-type KafkaProducer interface {
-	SendMessage(message string) error
-}
-
 type GameProvider interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game *gamev4.DomainGame, err error)
 }
@@ -36,17 +32,15 @@ type EmailAlerter interface {
 }
 
 type GameService struct {
-	log           *slog.Logger
-	kafkaProducer KafkaProducer
-	gameProvider  GameProvider
-	s3Storager    S3Storager
-	gameSaver     GameSaver
-	mailer        EmailAlerter
+	log          *slog.Logger
+	gameProvider GameProvider
+	s3Storager   S3Storager
+	gameSaver    GameSaver
+	mailer       EmailAlerter
 }
 
 func NewGameService(
 	log *slog.Logger,
-	kafkaProducer KafkaProducer,
 	gameProvider GameProvider,
 	s3Storager S3Storager,
 	gameSaver GameSaver,
@@ -54,12 +48,11 @@ func NewGameService(
 
 ) *GameService {
 	return &GameService{
-		log:           log,
-		kafkaProducer: kafkaProducer,
-		gameProvider:  gameProvider,
-		s3Storager:    s3Storager,
-		gameSaver:     gameSaver,
-		mailer:        mailer,
+		log:          log,
+		gameProvider: gameProvider,
+		s3Storager:   s3Storager,
+		gameSaver:    gameSaver,
+		mailer:       mailer,
 	}
 }
 
