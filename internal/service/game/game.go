@@ -80,10 +80,10 @@ func (gameService *GameService) AddGame(
 			gameKey,
 		)
 		if err != nil {
-			log.Error(fmt.Sprintf("cannot save game cover image in s3; err = %v", err))
+			log.Error(fmt.Sprintf("cannot save game cover image (title=%s) in s3; err = %v", gameKey, err))
 			errSaveImage = outerror.ErrCannotSaveGameImage
 		} else {
-			log.Info("image successfully saved in s3")
+			log.Info(fmt.Sprintf("image successfully saved in s3 with key=%s", gameKey))
 		}
 	}
 	log.Info("no image data in game")
