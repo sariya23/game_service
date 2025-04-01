@@ -13,9 +13,9 @@ func NewDialer(smtpHost string, smtpPort int, user string, Password string) *Ema
 	}
 }
 
-func (dialer *EmailDialer) SendMessage(from string, to string, subject string, body string) error {
+func (dialer *EmailDialer) SendMessage(to string, subject string, body string) error {
 	message := gomail.NewMessage()
-	message.SetHeader("From", from)
+	message.SetHeader("From", dialer.dialer.Username)
 	message.SetHeader("To", to)
 	message.SetHeader("Subject", subject)
 	message.SetBody("text/plain", body)

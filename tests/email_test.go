@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package tests
 
 import (
@@ -12,8 +9,8 @@ import (
 )
 
 func TestSendMessage(t *testing.T) {
-	cfg := config.MustLoadByPath("../../../config/local.env")
+	cfg := config.MustLoadByPath("../config/local.env")
 	sender := email.NewDialer(cfg.SmtpHost, cfg.SmtpPort, cfg.EmailUser, cfg.EmailPassword)
-	err := sender.SendMessage(cfg.EmailUser, cfg.AdminEmail, "Alert", "Hello")
+	err := sender.SendMessage(cfg.AdminEmail, "Alert", "Hello")
 	require.NoError(t, err)
 }
