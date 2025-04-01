@@ -26,7 +26,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	db := postgresql.MustNewConnection(log)
 	s3Client := s3.NewS3Storage(log)
-	mailer := email.NewDialer(cfg.SmtpHost, cfg.SmtpPort, cfg.EmailUser, cfg.EmailPassword)
+	mailer := email.NewDialer(cfg.SmtpHost, cfg.SmtpPort, cfg.EmailUser, cfg.EmailPassword, cfg.AdminEmail)
 	gameService := gameservice.NewGameService(log, db, s3Client, db, mailer)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GrpcServerPort))

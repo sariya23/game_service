@@ -28,7 +28,7 @@ type S3Storager interface {
 }
 
 type EmailAlerter interface {
-	SendMessage(to string, subject string, body string) error
+	SendMessage(subject string, body string) error
 }
 
 type GameService struct {
@@ -101,7 +101,13 @@ func (gameService *GameService) AddGame(
 		return nil, err
 	}
 	log.Info("game save successfully")
-
+	err = gameService.mailer.SendMessage(
+		"Добавлена игра",
+		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.GetReleaseYear().Year),
+	)
+	if err != nil {
+		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))
+	}
 	return savedGame, errSaveImage
 }
 
