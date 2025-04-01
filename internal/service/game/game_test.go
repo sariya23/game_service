@@ -63,12 +63,23 @@ func (m *mockGameSaver) SaveGame(ctx context.Context, game *gamev4.DomainGame) (
 	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
 }
 
+type mockEmailAlerter struct {
+	mock.Mock
+}
+
+func (m *mockEmailAlerter) SendMessage(to string, subject string, body string) error {
+	args := m.Called(to, subject, body)
+
+	return args.Error(0)
+}
+
 func TestAddGame(t *testing.T) {
 	gameProviderMock := new(mockGameProvider)
 	gameSaverMock := new(mockGameSaver)
 	kafkaMock := new(mockKafkaProducer)
 	s3Mock := new(mockS3Storager)
-	gameService := NewGameService(mockslog.NewDiscardLogger(), kafkaMock, gameProviderMock, s3Mock, gameSaverMock)
+	mailerMock := new(mockEmailAlerter)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), kafkaMock, gameProviderMock, s3Mock, gameSaverMock, mailerMock)
 	t.Run("Нельзя добавить игру, так как она уже есть в БД", func(t *testing.T) {
 		expectedError := outerror.ErrGameAlreadyExist
 		gameToAdd := &gamev4.GameRequest{
