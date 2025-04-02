@@ -16,6 +16,7 @@ import (
 
 type GameProvider interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game *gamev4.DomainGame, err error)
+	GetGameByID(ctx context.Context, gameID uint64) (game *gamev4.DomainGame, err error)
 }
 
 type GameSaver interface {
