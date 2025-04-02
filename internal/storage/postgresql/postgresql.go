@@ -21,6 +21,10 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 	panic("impl me")
 }
 
+func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
+	panic("impl me")
+}
+
 func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.DomainGame) (*gamev4.DomainGame, error) {
 	panic("impl me")
 }

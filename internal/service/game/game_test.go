@@ -28,6 +28,14 @@ func (m *mockGameProvider) GetGameByTitleAndReleaseYear(ctx context.Context, tit
 	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
 }
 
+func (m *mockGameProvider) GetGameByID(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
+	args := m.Called(ctx, gameID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
+}
+
 type mockS3Storager struct {
 	mock.Mock
 }
@@ -136,9 +144,26 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 			s3.CreateGameKey(gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
 		).Return("", expectedErr).Once()
+		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(domainGame, nil).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.Equal(t, domainGame, savedGame)
 		require.ErrorIs(t, err, expectedErr)
+	})
+}
+
+func TestGetGame(t *testing.T) {
+	gameProviderMock := new(mockGameProvider)
+	gameSaverMock := new(mockGameSaver)
+	s3Mock := new(mockS3Storager)
+	mailerMock := new(mockEmailAlerter)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock)
+	t.Run("Игра не найдена", func(t *testing.T) {
+		gameID := uint64(1)
+		expectedError := outerror.ErrGameNotFound
+		gameProviderMock.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
+		game, err := gameService.GetGame(context.Background(), gameID)
+		require.ErrorIs(t, err, expectedError)
+		require.Nil(t, game)
 	})
 }
