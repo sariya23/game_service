@@ -150,6 +150,37 @@ func TestAddGame(t *testing.T) {
 		require.Equal(t, domainGame, savedGame)
 		require.ErrorIs(t, err, expectedErr)
 	})
+	t.Run("Сохранение игры без ошибок", func(t *testing.T) {
+		gameToAdd := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+		}
+		domainGame := &gamev4.DomainGame{
+			Title:         "Dark Souls 3",
+			Description:   "test",
+			ReleaseYear:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImageUrl: "qwe",
+		}
+		gameProviderMock.On(
+			"GetGameByTitleAndReleaseYear",
+			mock.Anything,
+			gameToAdd.Title,
+			gameToAdd.ReleaseYear.Year,
+		).Return(nil, outerror.ErrGameNotFound).Once()
+		s3Mock.On(
+			"Save",
+			mock.Anything,
+			bytes.NewReader(gameToAdd.GetCoverImage()),
+			s3.CreateGameKey(gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+		).Return("qwe", nil).Once()
+		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
+		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(domainGame, nil).Once()
+		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.Equal(t, domainGame, savedGame)
+		require.NoError(t, err)
+	})
 }
 
 func TestGetGame(t *testing.T) {
