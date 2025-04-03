@@ -116,7 +116,16 @@ func (gameService *GameService) GetGame(
 	ctx context.Context,
 	gameID uint64,
 ) (*gamev4.DomainGame, error) {
-	panic("impl me")
+	const operationPlace = "gameservice.GetGame"
+	log := gameService.log.With("operationPlace", operationPlace)
+	_, err := gameService.gameProvider.GetGameByID(ctx, gameID)
+	if err != nil {
+		if errors.Is(err, outerror.ErrGameNotFound) {
+			log.Warn(fmt.Sprintf("game with id=%d not found", gameID))
+			return nil, outerror.ErrGameNotFound
+		}
+	}
+	return nil, nil
 }
 
 func (gameService *GameService) GetTopGames(
