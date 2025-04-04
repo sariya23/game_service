@@ -118,7 +118,7 @@ func (gameService *GameService) GetGame(
 ) (*gamev4.DomainGame, error) {
 	const operationPlace = "gameservice.GetGame"
 	log := gameService.log.With("operationPlace", operationPlace)
-	_, err := gameService.gameProvider.GetGameByID(ctx, gameID)
+	game, err := gameService.gameProvider.GetGameByID(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			log.Warn(fmt.Sprintf("game with id=%d not found", gameID))
@@ -127,7 +127,7 @@ func (gameService *GameService) GetGame(
 		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
 		return nil, err
 	}
-	return nil, nil
+	return game, nil
 }
 
 func (gameService *GameService) GetTopGames(
