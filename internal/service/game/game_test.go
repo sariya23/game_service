@@ -205,4 +205,19 @@ func TestGetGame(t *testing.T) {
 		require.ErrorIs(t, err, expectedError)
 		require.Nil(t, game)
 	})
+	t.Run("Успешное получение игры", func(t *testing.T) {
+		gameID := uint64(1)
+		expectedGame := &gamev4.DomainGame{
+			Title:       "Dark Souls 3",
+			Genres:      []string{"Hard"},
+			Description: "qwe",
+			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			Tags:        []string{"asd"},
+			ID:          2,
+		}
+		gameProviderMock.On("GetGameByID", mock.Anything, gameID).Return(expectedGame, nil).Once()
+		game, err := gameService.GetGame(context.Background(), gameID)
+		require.NoError(t, err)
+		require.Equal(t, expectedGame, game)
+	})
 }
