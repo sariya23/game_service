@@ -66,10 +66,10 @@ func (gameService *GameService) AddGame(
 	_, err := gameService.gameProvider.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year)
 	if err == nil {
 		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
-		return nil, outerror.ErrGameAlreadyExist
+		return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameAlreadyExist)
 	} else if !errors.Is(err, outerror.ErrGameNotFound) {
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
-		return nil, err
+		return nil, fmt.Errorf("%s:%w", operationPlace, err)
 	}
 	var errSaveImage error
 	var imageURL string
@@ -99,7 +99,7 @@ func (gameService *GameService) AddGame(
 	savedGame, err := gameService.gameSaver.SaveGame(ctx, &game)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	log.Info("game save successfully")
 	err = gameService.mailer.SendMessage(
@@ -122,10 +122,10 @@ func (gameService *GameService) GetGame(
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			log.Warn(fmt.Sprintf("game with id=%d not found", gameID))
-			return nil, outerror.ErrGameNotFound
+			return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameNotFound)
 		}
 		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return game, nil
 }
