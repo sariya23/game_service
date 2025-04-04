@@ -197,4 +197,12 @@ func TestGetGame(t *testing.T) {
 		require.ErrorIs(t, err, expectedError)
 		require.Nil(t, game)
 	})
+	t.Run("Internal ошибка", func(t *testing.T) {
+		gameID := uint64(1)
+		expectedError := errors.New("some error")
+		gameProviderMock.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
+		game, err := gameService.GetGame(context.Background(), gameID)
+		require.ErrorIs(t, err, expectedError)
+		require.Nil(t, game)
+	})
 }

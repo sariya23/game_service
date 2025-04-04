@@ -124,6 +124,8 @@ func (gameService *GameService) GetGame(
 			log.Warn(fmt.Sprintf("game with id=%d not found", gameID))
 			return nil, outerror.ErrGameNotFound
 		}
+		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
+		return nil, err
 	}
 	return nil, nil
 }
