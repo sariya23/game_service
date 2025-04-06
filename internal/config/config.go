@@ -22,6 +22,11 @@ type Config struct {
 	EmailUser            string `env:"EMAIL_USER"`
 	EmailPassword        string `env:"EMAIL_PASSWORD"`
 	AdminEmail           string `env:"ADMIN_EMAIl"`
+	AccessKeyMinio       string `env:"ACCESS_KEY_MINIO"`
+	SecretMinio          string `env:"SECRET_MINIO"`
+	MinioPort            int    `env:"MINIO_PORT"`
+	MinioHost            string `env:"MINIO_HOST"`
+	MinioBucket          string `env:"MINIO_BUCKET"`
 }
 
 // MustLoad - загрузка данных из .env в конфиг.
