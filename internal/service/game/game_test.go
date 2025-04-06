@@ -40,14 +40,14 @@ type mockS3Storager struct {
 	mock.Mock
 }
 
-func (m *mockS3Storager) Save(ctx context.Context, data io.Reader, key string) (string, error) {
-	args := m.Called(ctx, data, key)
+func (m *mockS3Storager) SaveObject(ctx context.Context, name string, data io.Reader) (string, error) {
+	args := m.Called(ctx, name, data)
 	return args.Get(0).(string), args.Error(1)
 }
 
-func (m *mockS3Storager) Get(ctx context.Context, bucket, key string) io.Reader {
-	args := m.Called(ctx, bucket, key)
-	return args.Get(0).(io.Reader)
+func (m *mockS3Storager) GetObject(ctx context.Context, name string) (io.Reader, error) {
+	args := m.Called(ctx, name)
+	return args.Get(0).(io.Reader), args.Error(1)
 }
 
 type mockGameSaver struct {
@@ -139,10 +139,10 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.ReleaseYear.Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		s3Mock.On(
-			"Save",
+			"SaveObject",
 			mock.Anything,
-			bytes.NewReader(gameToAdd.GetCoverImage()),
 			s3.CreateGameKey(gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedErr).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(domainGame, nil).Once()
@@ -170,10 +170,10 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.ReleaseYear.Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		s3Mock.On(
-			"Save",
+			"SaveObject",
 			mock.Anything,
-			bytes.NewReader(gameToAdd.GetCoverImage()),
 			s3.CreateGameKey(gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(domainGame, nil).Once()

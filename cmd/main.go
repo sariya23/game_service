@@ -11,7 +11,7 @@ import (
 	"github.com/sariya23/game_service/internal/lib/email"
 	gameservice "github.com/sariya23/game_service/internal/service/game"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
-	"github.com/sariya23/game_service/internal/storage/s3"
+	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	"google.golang.org/grpc"
 )
 
@@ -25,7 +25,7 @@ func main() {
 	)
 	grpcServer := grpc.NewServer()
 	db := postgresql.MustNewConnection(log)
-	s3Client := s3.NewS3Storage(log)
+	s3Client := minioclient.NewMinioClient(log, cfg.MinioBucket)
 	mailer := email.NewDialer(cfg.SmtpHost, cfg.SmtpPort, cfg.EmailUser, cfg.EmailPassword, cfg.AdminEmail)
 	gameService := gameservice.NewGameService(log, db, s3Client, db, mailer)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
