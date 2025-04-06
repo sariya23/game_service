@@ -10,7 +10,6 @@ import (
 
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/game_service/internal/storage/s3"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
@@ -74,7 +73,7 @@ func (gameService *GameService) AddGame(
 	var errSaveImage error
 	var imageURL string
 	if len(gameToAdd.GetCoverImage()) != 0 {
-		gameKey := s3.CreateGameKey(gameToAdd.GetTitle(), int(gameToAdd.GetReleaseYear().Year))
+		gameKey := fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseYear().Year))
 		imageURL, err = gameService.s3Storager.SaveObject(
 			ctx,
 			gameKey,

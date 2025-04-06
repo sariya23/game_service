@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"testing"
 
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/game_service/internal/storage/s3"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -141,7 +141,7 @@ func TestAddGame(t *testing.T) {
 		s3Mock.On(
 			"SaveObject",
 			mock.Anything,
-			s3.CreateGameKey(gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedErr).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
@@ -172,7 +172,7 @@ func TestAddGame(t *testing.T) {
 		s3Mock.On(
 			"SaveObject",
 			mock.Anything,
-			s3.CreateGameKey(gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
