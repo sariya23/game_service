@@ -24,8 +24,8 @@ type GameSaver interface {
 }
 
 type S3Storager interface {
-	Save(ctx context.Context, data io.Reader, key string) (url string, err error)
-	Get(ctx context.Context, bucket, key string) io.Reader
+	SaveObject(ctx context.Context, name string, data io.Reader) (string, error)
+	GetObject(ctx context.Context, name string) (io.Reader, error)
 }
 
 type EmailAlerter interface {
@@ -75,10 +75,10 @@ func (gameService *GameService) AddGame(
 	var imageURL string
 	if len(gameToAdd.GetCoverImage()) != 0 {
 		gameKey := s3.CreateGameKey(gameToAdd.GetTitle(), int(gameToAdd.GetReleaseYear().Year))
-		imageURL, err = gameService.s3Storager.Save(
+		imageURL, err = gameService.s3Storager.SaveObject(
 			ctx,
-			bytes.NewReader(gameToAdd.GetCoverImage()),
 			gameKey,
+			bytes.NewReader(gameToAdd.GetCoverImage()),
 		)
 		if err != nil {
 			log.Error(fmt.Sprintf("cannot save game cover image (title=%s) in s3; err = %v", gameKey, err))
