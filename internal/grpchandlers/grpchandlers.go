@@ -79,7 +79,7 @@ func (srvApi *serverAPI) GetTopGames(
 		ctx,
 		model.GameFilters{
 			ReleaseYear: request.GetYear(),
-			Genre:       request.GetGenres(),
+			Genres:      request.GetGenres(),
 			Tags:        request.GetTags(),
 		},
 		request.GetLimit(),
