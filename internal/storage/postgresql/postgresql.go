@@ -29,7 +29,7 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.DomainGa
 	panic("impl me")
 }
 
-func (postgresql PostgreSQL) GetTopGames(ctx context.Context, releaseYear string, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
+func (postgresql PostgreSQL) GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
 	panic("impl me")
 }
 

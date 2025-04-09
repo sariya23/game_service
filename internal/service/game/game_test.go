@@ -36,7 +36,7 @@ func (m *mockGameProvider) GetGameByID(ctx context.Context, gameID uint64) (*gam
 	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
 }
 
-func (m *mockGameProvider) GetTopGames(ctx context.Context, releaseYear string, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
+func (m *mockGameProvider) GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
 	args := m.Called(ctx, releaseYear, tags, genres, limit)
 	return args.Get(0).([]*gamev4.DomainGame), args.Error(1)
 }

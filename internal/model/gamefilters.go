@@ -1,7 +1,7 @@
 package model
 
 type GameFilters struct {
-	ReleaseYear string
+	ReleaseYear int32
 	Genres      []string
 	Tags        []string
 }

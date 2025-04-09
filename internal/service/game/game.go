@@ -17,7 +17,7 @@ import (
 type GameProvider interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game *gamev4.DomainGame, err error)
 	GetGameByID(ctx context.Context, gameID uint64) (game *gamev4.DomainGame, err error)
-	GetTopGames(ctx context.Context, releaseYear string, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error)
+	GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error)
 }
 
 type GameSaver interface {
@@ -146,8 +146,8 @@ func (gameService *GameService) GetTopGames(
 ) ([]*gamev4.DomainGame, error) {
 	const operationPlace = "gameservice.GetTopGames"
 	log := gameService.log.With("operationPlace", operationPlace)
-	if gameFilters.ReleaseYear == "" {
-		gameFilters.ReleaseYear = fmt.Sprint(time.Now().Year())
+	if gameFilters.ReleaseYear == 0 {
+		gameFilters.ReleaseYear = int32(time.Now().Year())
 	}
 	games, err := gameService.gameProvider.GetTopGames(ctx, gameFilters.ReleaseYear, gameFilters.Tags, gameFilters.Tags, limit)
 	if err != nil {
