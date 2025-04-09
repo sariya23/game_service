@@ -33,6 +33,6 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, releaseYear string
 	panic("impl me")
 }
 
-func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) error {
+func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
 	panic("impl me")
 }

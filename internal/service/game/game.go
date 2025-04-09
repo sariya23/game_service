@@ -25,7 +25,7 @@ type GameSaver interface {
 }
 
 type GameDeleter interface {
-	DaleteGame(ctx context.Context, gameID uint64) error
+	DaleteGame(ctx context.Context, gameID uint64) (deletedGame *gamev4.DomainGame, err error)
 }
 
 type S3Storager interface {
