@@ -57,7 +57,7 @@ func TestAddGameHandler(t *testing.T) {
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
@@ -65,7 +65,7 @@ func TestAddGameHandler(t *testing.T) {
 			Title:         "Dark Souls 3",
 			Genres:        []string{"Action RPG", "Dark Fantasy"},
 			Description:   "test",
-			ReleaseYear:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImageUrl: "http://",
 			Tags:          []string{"Hard"},
 		}
@@ -79,7 +79,7 @@ func TestAddGameHandler(t *testing.T) {
 		game := &gamev4.GameRequest{
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
@@ -94,7 +94,7 @@ func TestAddGameHandler(t *testing.T) {
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
@@ -125,7 +125,7 @@ func TestAddGameHandler(t *testing.T) {
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
@@ -142,7 +142,7 @@ func TestAddGameHandler(t *testing.T) {
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
@@ -158,7 +158,7 @@ func TestAddGameHandler(t *testing.T) {
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
@@ -166,7 +166,7 @@ func TestAddGameHandler(t *testing.T) {
 			Title:         "Dark Souls 3",
 			Genres:        []string{"Action RPG", "Dark Fantasy"},
 			Description:   "test",
-			ReleaseYear:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImageUrl: "http://",
 			Tags:          []string{"Hard"},
 		}
@@ -198,7 +198,7 @@ func TestGetGameHandler(t *testing.T) {
 			Title:         "Dark Souls 3",
 			Genres:        []string{"Action RPG", "Dark Fantasy"},
 			Description:   "test",
-			ReleaseYear:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImageUrl: "https://",
 			Tags:          []string{"Hard"},
 			Rating:        5.0,
