@@ -72,18 +72,18 @@ func (gameService *GameService) AddGame(
 ) (*gamev4.DomainGame, error) {
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
-	_, err := gameService.gameProvider.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year)
+	_, err := gameService.gameProvider.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year)
 	if err == nil {
-		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
+		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year))
 		return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameAlreadyExist)
 	} else if !errors.Is(err, outerror.ErrGameNotFound) {
-		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseYear().Year))
+		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year))
 		return nil, fmt.Errorf("%s:%w", operationPlace, err)
 	}
 	var errSaveImage error
 	var imageURL string
 	if len(gameToAdd.GetCoverImage()) != 0 {
-		gameKey := fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseYear().Year))
+		gameKey := fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year))
 		imageURL, err = gameService.s3Storager.SaveObject(
 			ctx,
 			gameKey,
@@ -100,7 +100,7 @@ func (gameService *GameService) AddGame(
 	game := gamev4.DomainGame{
 		Title:         gameToAdd.GetTitle(),
 		Description:   gameToAdd.GetDescription(),
-		ReleaseYear:   gameToAdd.GetReleaseYear(),
+		ReleaseDate:   gameToAdd.GetReleaseDate(),
 		Tags:          gameToAdd.GetTags(),
 		Genres:        gameToAdd.GetGenres(),
 		CoverImageUrl: imageURL,
@@ -113,7 +113,7 @@ func (gameService *GameService) AddGame(
 	log.Info("game save successfully")
 	err = gameService.mailer.SendMessage(
 		"Добавлена игра",
-		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.GetReleaseYear().Year),
+		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.GetReleaseDate().Year),
 	)
 	if err != nil {
 		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))

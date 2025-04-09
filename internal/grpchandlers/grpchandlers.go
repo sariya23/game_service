@@ -38,7 +38,7 @@ func (srvApi *serverAPI) AddGame(
 	if request.Game.Description == "" {
 		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.DescriptionRequiredMessage)
 	}
-	if request.Game.ReleaseYear == nil {
+	if request.Game.ReleaseDate == nil {
 		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.ReleaseYearRequiredMessage)
 	}
 	savedGame, err := srvApi.gameServicer.AddGame(ctx, request.Game)

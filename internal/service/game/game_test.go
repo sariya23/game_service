@@ -106,14 +106,14 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
 		domainGame := &gamev4.DomainGame{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.ReleaseYear.Year).Return(domainGame, nil).Once()
+		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.GetReleaseDate().Year).Return(domainGame, nil).Once()
 
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
@@ -123,19 +123,19 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
 		domainGame := &gamev4.DomainGame{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
 		expectedErr := errors.New("some error")
 		gameProviderMock.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
 			gameToAdd.Title,
-			gameToAdd.ReleaseYear.Year,
+			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(nil, expectedErr).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
@@ -146,25 +146,25 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 		}
 		domainGame := &gamev4.DomainGame{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
 		expectedErr := outerror.ErrCannotSaveGameImage
 		gameProviderMock.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
 			gameToAdd.Title,
-			gameToAdd.ReleaseYear.Year,
+			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		s3Mock.On(
 			"SaveObject",
 			mock.Anything,
-			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedErr).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
@@ -177,25 +177,25 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 		}
 		domainGame := &gamev4.DomainGame{
 			Title:         "Dark Souls 3",
 			Description:   "test",
-			ReleaseYear:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImageUrl: "qwe",
 		}
 		gameProviderMock.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
 			gameToAdd.Title,
-			gameToAdd.ReleaseYear.Year,
+			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		s3Mock.On(
 			"SaveObject",
 			mock.Anything,
-			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseYear().Year)),
+			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
@@ -235,7 +235,7 @@ func TestGetGame(t *testing.T) {
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Hard"},
 			Description: "qwe",
-			ReleaseYear: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			Tags:        []string{"asd"},
 			ID:          2,
 		}
