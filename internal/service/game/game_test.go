@@ -86,9 +86,12 @@ type mockGameDeleter struct {
 	mock.Mock
 }
 
-func (m *mockGameDeleter) DaleteGame(ctx context.Context, gameID uint64) error {
+func (m *mockGameDeleter) DaleteGame(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
 	args := m.Called(ctx, gameID)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
 }
 
 func TestAddGame(t *testing.T) {
