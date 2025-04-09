@@ -24,6 +24,10 @@ type GameSaver interface {
 	SaveGame(ctx context.Context, game *gamev4.DomainGame) (savedGame *gamev4.DomainGame, err error)
 }
 
+type GameDeleter interface {
+	DaleteGame(ctx context.Context, gameID uint64) error
+}
+
 type S3Storager interface {
 	SaveObject(ctx context.Context, name string, data io.Reader) (string, error)
 	GetObject(ctx context.Context, name string) (io.Reader, error)
@@ -40,6 +44,7 @@ type GameService struct {
 	s3Storager   S3Storager
 	gameSaver    GameSaver
 	mailer       EmailAlerter
+	gameDeleter  GameDeleter
 }
 
 func NewGameService(
@@ -48,6 +53,7 @@ func NewGameService(
 	s3Storager S3Storager,
 	gameSaver GameSaver,
 	mailer EmailAlerter,
+	gameDeleter GameDeleter,
 
 ) *GameService {
 	return &GameService{
@@ -56,6 +62,7 @@ func NewGameService(
 		s3Storager:   s3Storager,
 		gameSaver:    gameSaver,
 		mailer:       mailer,
+		gameDeleter:  gameDeleter,
 	}
 }
 

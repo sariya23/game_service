@@ -82,12 +82,22 @@ func (m *mockEmailAlerter) SendMessage(subject string, body string) error {
 	return args.Error(0)
 }
 
+type mockGameDeleter struct {
+	mock.Mock
+}
+
+func (m *mockGameDeleter) DaleteGame(ctx context.Context, gameID uint64) error {
+	args := m.Called(ctx, gameID)
+	return args.Error(0)
+}
+
 func TestAddGame(t *testing.T) {
 	gameProviderMock := new(mockGameProvider)
 	gameSaverMock := new(mockGameSaver)
+	gameDeleterMock := new(mockGameDeleter)
 	s3Mock := new(mockS3Storager)
 	mailerMock := new(mockEmailAlerter)
-	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock, gameDeleterMock)
 	t.Run("Нельзя добавить игру, так как она уже есть в БД", func(t *testing.T) {
 		expectedError := outerror.ErrGameAlreadyExist
 		gameToAdd := &gamev4.GameRequest{
@@ -198,7 +208,8 @@ func TestGetGame(t *testing.T) {
 	gameSaverMock := new(mockGameSaver)
 	s3Mock := new(mockS3Storager)
 	mailerMock := new(mockEmailAlerter)
-	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock)
+	gameDeleterMock := new(mockGameDeleter)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock, gameDeleterMock)
 	t.Run("Игра не найдена", func(t *testing.T) {
 		gameID := uint64(1)
 		expectedError := outerror.ErrGameNotFound
