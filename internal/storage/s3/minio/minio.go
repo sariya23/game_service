@@ -15,10 +15,14 @@ func NewMinioClient(log *slog.Logger, bucketName string) *Minio {
 	return &Minio{log: log, BucketName: bucketName}
 }
 
-func (m *Minio) SaveObject(ctx context.Context, name string, data io.Reader) (string, error) {
+func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (string, error) {
 	panic("impl me")
 }
 
-func (m *Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
+func (m Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
 	panic("impl me")
+}
+
+func (m Minio) DeleteObject(ctx context.Context, name string) error {
+	panic("imple me")
 }
