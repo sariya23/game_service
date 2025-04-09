@@ -32,3 +32,7 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.DomainGa
 func (postgresql PostgreSQL) GetTopGames(ctx context.Context, releaseYear string, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
 	panic("impl me")
 }
+
+func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) error {
+	panic("impl me")
+}
