@@ -27,6 +27,7 @@ type GameSaver interface {
 type S3Storager interface {
 	SaveObject(ctx context.Context, name string, data io.Reader) (string, error)
 	GetObject(ctx context.Context, name string) (io.Reader, error)
+	DeleteObject(ctx context.Context, name string) error
 }
 
 type EmailAlerter interface {

@@ -55,6 +55,11 @@ func (m *mockS3Storager) GetObject(ctx context.Context, name string) (io.Reader,
 	return args.Get(0).(io.Reader), args.Error(1)
 }
 
+func (m *mockS3Storager) DeleteObject(ctx context.Context, name string) error {
+	args := m.Called(ctx, name)
+	return args.Error(0)
+}
+
 type mockGameSaver struct {
 	mock.Mock
 }
