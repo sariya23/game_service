@@ -10,6 +10,7 @@ import (
 
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/outerror"
+	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -189,7 +190,7 @@ func TestAddGame(t *testing.T) {
 		gameProviderMock.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
-			gameToAdd.Title,
+			gameToAdd.GetTitle(),
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		s3Mock.On(
@@ -243,5 +244,29 @@ func TestGetGame(t *testing.T) {
 		game, err := gameService.GetGame(context.Background(), gameID)
 		require.NoError(t, err)
 		require.Equal(t, expectedGame, game)
+	})
+}
+
+func TestDeleteGame(t *testing.T) {
+	gameProviderMock := new(mockGameProvider)
+	gameSaverMock := new(mockGameSaver)
+	s3Mock := new(mockS3Storager)
+	mailerMock := new(mockEmailAlerter)
+	gameDeleterMock := new(mockGameDeleter)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock, gameDeleterMock)
+	t.Run("Успешное удаление игры", func(t *testing.T) {
+		gameID := uint64(4)
+		deletedGame := &gamev4.DomainGame{
+			Title:         "Dark Souls 3",
+			Description:   "test",
+			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImageUrl: "qwe",
+		}
+		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		s3Mock.On("DeleteObject", mock.Anything, minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))).Return(nil)
+
+		game, err := gameService.DeleteGame(context.Background(), gameID)
+		require.NoError(t, err)
+		require.Equal(t, deletedGame, game)
 	})
 }
