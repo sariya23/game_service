@@ -11,6 +11,7 @@ import (
 
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
+	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
@@ -83,7 +84,7 @@ func (gameService *GameService) AddGame(
 	var errSaveImage error
 	var imageURL string
 	if len(gameToAdd.GetCoverImage()) != 0 {
-		gameKey := fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year))
+		gameKey := minioclient.GameKey(gameToAdd.GetTitle(), int(gameToAdd.ReleaseDate.GetYear()))
 		imageURL, err = gameService.s3Storager.SaveObject(
 			ctx,
 			gameKey,
@@ -113,7 +114,7 @@ func (gameService *GameService) AddGame(
 	log.Info("game save successfully")
 	err = gameService.mailer.SendMessage(
 		"Добавлена игра",
-		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.GetReleaseDate().Year),
+		fmt.Sprintf("Добавлена игра %s %d года", savedGame.GetTitle(), savedGame.GetReleaseDate().Year),
 	)
 	if err != nil {
 		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))
@@ -161,5 +162,31 @@ func (gameService *GameService) DeleteGame(
 	ctx context.Context,
 	gameID uint64,
 ) (*gamev4.DomainGame, error) {
-	panic("empl me")
+	const operationPlace = "gameservice.DeleteGame"
+	log := gameService.log.With("operationPlace", operationPlace)
+	deletedGame, err := gameService.gameDeleter.DaleteGame(ctx, gameID)
+	if err != nil {
+		if errors.Is(err, outerror.ErrGameNotFound) {
+			log.Warn(fmt.Sprintf("game with id=%v not found", gameID))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
+		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	log.Info(fmt.Sprintf("game with id=%v deleted from DB", gameID))
+	gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.ReleaseDate.GetYear()))
+	err = gameService.s3Storager.DeleteObject(ctx, gameKey)
+	var errDeleteImage error
+	if err != nil {
+		if errors.Is(err, outerror.ErrImageNotFoundS3) {
+			log.Info("there is not image for game")
+		} else {
+			log.Error("cannot delete image from s3")
+			log.Info(fmt.Sprintf("game: %+v", deletedGame))
+			errDeleteImage = err
+		}
+	} else {
+		log.Info("image cover deleted from s3")
+	}
+	return deletedGame, errDeleteImage
 }

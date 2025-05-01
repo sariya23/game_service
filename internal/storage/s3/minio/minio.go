@@ -2,6 +2,7 @@ package minioclient
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 )
@@ -25,4 +26,8 @@ func (m Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
 
 func (m Minio) DeleteObject(ctx context.Context, name string) error {
 	panic("imple me")
+}
+
+func GameKey(gameTitle string, gameReleaseYear int) string {
+	return fmt.Sprintf("%s_%d", gameTitle, gameReleaseYear)
 }
