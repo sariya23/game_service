@@ -7,6 +7,7 @@ var (
 	ErrGameNotFound               = errors.New("game not found")
 	ErrCannotStartGameTransaction = errors.New("cannot start game transaction")
 	ErrCannotSaveGameImage        = errors.New("cannot save image in s3")
+	ErrImageNotFoundS3            = errors.New("game image not found in s3")
 )
 
 var (
