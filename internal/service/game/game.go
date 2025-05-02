@@ -183,8 +183,8 @@ func (gameService *GameService) DeleteGame(
 		} else {
 			log.Error("cannot delete image from s3")
 			log.Info(fmt.Sprintf("game: %+v", deletedGame))
-			errDeleteImage = err
 		}
+		errDeleteImage = err
 	} else {
 		log.Info("image cover deleted from s3")
 	}

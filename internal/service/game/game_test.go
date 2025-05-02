@@ -262,8 +262,9 @@ func TestDeleteGame(t *testing.T) {
 			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImageUrl: "qwe",
 		}
+		gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))
 		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
-		s3Mock.On("DeleteObject", mock.Anything, minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))).Return(nil)
+		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(nil).Once()
 
 		game, err := gameService.DeleteGame(context.Background(), gameID)
 		require.NoError(t, err)
@@ -275,5 +276,28 @@ func TestDeleteGame(t *testing.T) {
 		game, err := gameService.DeleteGame(context.Background(), gameID)
 		require.ErrorIs(t, err, outerror.ErrGameNotFound)
 		require.Nil(t, game)
+	})
+	t.Run("Неожиданная ошибка при удалении игры", func(t *testing.T) {
+		gameID := uint64(4)
+		someErr := errors.New("some err")
+		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(nil, someErr).Once()
+		game, err := gameService.DeleteGame(context.Background(), gameID)
+		require.ErrorIs(t, err, someErr)
+		require.Nil(t, game)
+	})
+	t.Run("У игры нет обложки в S3", func(t *testing.T) {
+		gameID := uint64(4)
+		deletedGame := &gamev4.DomainGame{
+			Title:         "Dark Souls 3",
+			Description:   "test",
+			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImageUrl: "qwe",
+		}
+		gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))
+		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(outerror.ErrImageNotFoundS3).Once()
+		game, err := gameService.DeleteGame(context.Background(), gameID)
+		require.Equal(t, deletedGame, game)
+		require.ErrorIs(t, err, outerror.ErrImageNotFoundS3)
 	})
 }
