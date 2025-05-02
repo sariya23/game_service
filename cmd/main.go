@@ -22,16 +22,16 @@ func main() {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
 	log.Info(
 		"starting game service",
-		slog.Int("grpc port", cfg.GrpcServerPort),
-		slog.Int("htpp port", cfg.HttpServerPort),
+		slog.Int("grpc port", cfg.Server.GrpcServerPort),
+		slog.Int("htpp port", cfg.Server.HttpServerPort),
 	)
 	grpcServer := grpc.NewServer()
 	db := postgresql.MustNewConnection(log)
-	s3Client := minioclient.MustPrepareMinio(ctx, log, cfg.MinioHost, cfg.MinioPort, cfg.MinioBucket, cfg.AccessKeyMinio, cfg.SecretMinio, false)
-	mailer := email.NewDialer(cfg.SmtpHost, cfg.SmtpPort, cfg.EmailUser, cfg.EmailPassword, cfg.AdminEmail)
+	s3Client := minioclient.MustPrepareMinio(ctx, log, cfg.Minio, false)
+	mailer := email.NewDialer(cfg.Email)
 	gameService := gameservice.NewGameService(log, db, s3Client, db, mailer, db)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GrpcServerPort))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.GrpcServerPort))
 	if err != nil {
 		panic(fmt.Sprintf("%v", err))
 	}
