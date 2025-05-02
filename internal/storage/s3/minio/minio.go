@@ -26,7 +26,7 @@ func MustPrepareMinio(
 	secretKey string,
 	useSSL bool,
 ) *Minio {
-	min, err := NewMinioClient(log, host, port, bucketName, accessKey, secretKey, useSSL)
+	min, err := newMinioClient(log, host, port, bucketName, accessKey, secretKey, useSSL)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +37,7 @@ func MustPrepareMinio(
 	return min
 }
 
-func NewMinioClient(
+func newMinioClient(
 	log *slog.Logger,
 	host string,
 	port int,
