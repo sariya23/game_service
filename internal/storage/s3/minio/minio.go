@@ -1,6 +1,7 @@
 package minioclient
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -81,7 +82,17 @@ func (m Minio) createBucket(ctx context.Context) error {
 }
 
 func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (string, error) {
-	panic("impl me")
+	const operationPlace = "miniclient.SaveObject"
+	log := m.log.With("operationPlace", operationPlace)
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(data)
+	info, err := m.client.PutObject(ctx, m.BucketName, name, data, int64(buf.Len()), minio.PutObjectOptions{})
+	if err != nil {
+		log.Error(fmt.Sprintf("cannot save object in s3; err=%v", err))
+		return "", fmt.Errorf("%s: %w", operationPlace, err)
+	}
+
+	return info.Key, nil
 }
 
 func (m Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
