@@ -269,4 +269,11 @@ func TestDeleteGame(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, deletedGame, game)
 	})
+	t.Run("Нет игры для удаления", func(t *testing.T) {
+		gameID := uint64(4)
+		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(nil, outerror.ErrGameNotFound).Once()
+		game, err := gameService.DeleteGame(context.Background(), gameID)
+		require.ErrorIs(t, err, outerror.ErrGameNotFound)
+		require.Nil(t, game)
+	})
 }
