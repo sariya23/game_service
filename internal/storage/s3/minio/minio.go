@@ -19,13 +19,13 @@ type Minio struct {
 func NewMinioClient(
 	log *slog.Logger,
 	host string,
-	port string,
+	port int,
 	bucketName string,
 	accessKey string,
 	secretKey string,
 	useSSL bool,
 ) *Minio {
-	client, err := minio.New(fmt.Sprintf("%s:%s", host, port), &minio.Options{
+	client, err := minio.New(fmt.Sprintf("%s:%d", host, port), &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
 		Secure: useSSL,
 	})

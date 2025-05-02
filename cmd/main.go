@@ -25,7 +25,7 @@ func main() {
 	)
 	grpcServer := grpc.NewServer()
 	db := postgresql.MustNewConnection(log)
-	s3Client := minioclient.NewMinioClient(log, cfg.MinioBucket)
+	s3Client := minioclient.NewMinioClient(log, cfg.MinioHost, cfg.MinioPort, cfg.MinioBucket, cfg.AccessKeyMinio, cfg.SecretMinio, false)
 	mailer := email.NewDialer(cfg.SmtpHost, cfg.SmtpPort, cfg.EmailUser, cfg.EmailPassword, cfg.AdminEmail)
 	gameService := gameservice.NewGameService(log, db, s3Client, db, mailer, db)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
