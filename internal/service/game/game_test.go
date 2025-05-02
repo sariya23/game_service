@@ -300,4 +300,20 @@ func TestDeleteGame(t *testing.T) {
 		require.Equal(t, deletedGame, game)
 		require.ErrorIs(t, err, outerror.ErrImageNotFoundS3)
 	})
+	t.Run("Не удалось удалить обложку из S3", func(t *testing.T) {
+		gameID := uint64(4)
+		deletedGame := &gamev4.DomainGame{
+			Title:         "Dark Souls 3",
+			Description:   "test",
+			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImageUrl: "qwe",
+		}
+		someErr := errors.New("some error")
+		gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))
+		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(someErr).Once()
+		game, err := gameService.DeleteGame(context.Background(), gameID)
+		require.Equal(t, deletedGame, game)
+		require.ErrorIs(t, err, someErr)
+	})
 }
