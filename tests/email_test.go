@@ -10,7 +10,7 @@ import (
 
 func TestSendMessage(t *testing.T) {
 	cfg := config.MustLoadByPath("../config/local.env")
-	sender := email.NewDialer(cfg.SmtpHost, cfg.SmtpPort, cfg.EmailUser, cfg.EmailPassword, cfg.AdminEmail)
+	sender := email.NewDialer(cfg.Email)
 	err := sender.SendMessage("Alert", "Hello")
 	require.NoError(t, err)
 }

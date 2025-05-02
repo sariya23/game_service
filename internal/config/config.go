@@ -8,25 +8,40 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-// Config - конфиг всего приложения.
 type Config struct {
-	GrpcServerPort       int    `env:"GRPC_SERVER_PORT"`
-	HttpServerPort       int    `env:"HTTP_SERVER_PORT"`
-	ServerTimeoutSeconds int    `env:"SERVER_TIMEOUT_SECONDS"`
-	PostgresURL          string `env:"POSTGRES_URL"`
-	PostgresDBName       string `env:"POSTGRES_DB"`
-	PostgresUsername     string `env:"POSTGRES_USERNAME"`
-	PostgresPassword     string `env:"POSTRGRES_PASSWORD"`
-	SmtpHost             string `env:"SMTP_HOST"`
-	SmtpPort             int    `env:"SMTP_PORT"`
-	EmailUser            string `env:"EMAIL_USER"`
-	EmailPassword        string `env:"EMAIL_PASSWORD"`
-	AdminEmail           string `env:"ADMIN_EMAIl"`
-	AccessKeyMinio       string `env:"ACCESS_KEY_MINIO"`
-	SecretMinio          string `env:"SECRET_MINIO"`
-	MinioPort            int    `env:"MINIO_PORT"`
-	MinioHost            string `env:"MINIO_HOST"`
-	MinioBucket          string `env:"MINIO_BUCKET"`
+	Server   *Server
+	Postgres *Postgres
+	Email    *Email
+	Minio    *Minio
+}
+
+type Server struct {
+	GrpcServerPort       int `env:"GRPC_SERVER_PORT"`
+	HttpServerPort       int `env:"HTTP_SERVER_PORT"`
+	ServerTimeoutSeconds int `env:"SERVER_TIMEOUT_SECONDS"`
+}
+
+type Postgres struct {
+	PostgresURL      string `env:"POSTGRES_URL"`
+	PostgresDBName   string `env:"POSTGRES_DB"`
+	PostgresUsername string `env:"POSTGRES_USERNAME"`
+	PostgresPassword string `env:"POSTRGRES_PASSWORD"`
+}
+
+type Email struct {
+	SmtpHost      string `env:"SMTP_HOST"`
+	SmtpPort      int    `env:"SMTP_PORT"`
+	EmailUser     string `env:"EMAIL_USER"`
+	EmailPassword string `env:"EMAIL_PASSWORD"`
+	AdminEmail    string `env:"ADMIN_EMAIl"`
+}
+
+type Minio struct {
+	AccessKeyMinio string `env:"ACCESS_KEY_MINIO"`
+	SecretMinio    string `env:"SECRET_MINIO"`
+	MinioPort      int    `env:"MINIO_PORT"`
+	MinioHost      string `env:"MINIO_HOST"`
+	MinioBucket    string `env:"MINIO_BUCKET"`
 }
 
 // MustLoad - загрузка данных из .env в конфиг.
@@ -35,10 +50,27 @@ func MustLoad() Config {
 	if configPath == "" {
 		panic("config path is not specified")
 	}
+	serverConfig := Server{}
+	postgresConfig := Postgres{}
+	emailConfig := Email{}
+	minioConfig := Minio{}
 	cfg := Config{}
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+	if err := cleanenv.ReadConfig(configPath, &serverConfig); err != nil {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
+	if err := cleanenv.ReadConfig(configPath, &postgresConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
+	if err := cleanenv.ReadConfig(configPath, &emailConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
+	if err := cleanenv.ReadConfig(configPath, &minioConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
+	cfg.Server = &serverConfig
+	cfg.Postgres = &postgresConfig
+	cfg.Email = &emailConfig
+	cfg.Minio = &minioConfig
 	return cfg
 }
 

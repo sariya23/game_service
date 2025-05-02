@@ -1,17 +1,20 @@
 package email
 
-import "gopkg.in/gomail.v2"
+import (
+	"github.com/sariya23/game_service/internal/config"
+	"gopkg.in/gomail.v2"
+)
 
 type EmailDialer struct {
 	dialer gomail.Dialer
 	To     string
 }
 
-func NewDialer(smtpHost string, smtpPort int, user string, Password string, to string) *EmailDialer {
-	dialer := gomail.NewDialer(smtpHost, smtpPort, user, Password)
+func NewDialer(dialerConfig *config.Email) *EmailDialer {
+	dialer := gomail.NewDialer(dialerConfig.SmtpHost, dialerConfig.SmtpPort, dialerConfig.EmailUser, dialerConfig.EmailPassword)
 	return &EmailDialer{
 		dialer: *dialer,
-		To:     to,
+		To:     dialerConfig.AdminEmail,
 	}
 }
 

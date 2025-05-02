@@ -8,6 +8,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/sariya23/game_service/internal/config"
 )
 
 type Minio struct {
@@ -19,14 +20,17 @@ type Minio struct {
 func MustPrepareMinio(
 	ctx context.Context,
 	log *slog.Logger,
-	host string,
-	port int,
-	bucketName string,
-	accessKey string,
-	secretKey string,
+	minioConfig *config.Minio,
 	useSSL bool,
 ) *Minio {
-	min, err := newMinioClient(log, host, port, bucketName, accessKey, secretKey, useSSL)
+	min, err := newMinioClient(log,
+		minioConfig.MinioHost,
+		minioConfig.MinioPort,
+		minioConfig.MinioBucket,
+		minioConfig.AccessKeyMinio,
+		minioConfig.SecretMinio,
+		useSSL,
+	)
 	if err != nil {
 		panic(err)
 	}
