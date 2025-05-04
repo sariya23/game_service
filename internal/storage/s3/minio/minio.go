@@ -82,7 +82,7 @@ func (m Minio) createBucket(ctx context.Context) error {
 }
 
 func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (string, error) {
-	const operationPlace = "miniclient.SaveObject"
+	const operationPlace = "minioclient.SaveObject"
 	log := m.log.With("operationPlace", operationPlace)
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
@@ -96,7 +96,14 @@ func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (str
 }
 
 func (m Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
-	panic("impl me")
+	const operationPlace = "minioclient.SaveObject"
+	log := m.log.With("operationPlace", operationPlace)
+	object, err := m.client.GetObject(ctx, m.BucketName, name, minio.GetObjectOptions{})
+	if err != nil {
+		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	return object, nil
 }
 
 func (m Minio) DeleteObject(ctx context.Context, name string) error {
