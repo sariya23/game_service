@@ -96,7 +96,7 @@ func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (str
 }
 
 func (m Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
-	const operationPlace = "minioclient.SaveObject"
+	const operationPlace = "minioclient.GetObject"
 	log := m.log.With("operationPlace", operationPlace)
 	object, err := m.client.GetObject(ctx, m.BucketName, name, minio.GetObjectOptions{})
 	if err != nil {
@@ -107,7 +107,14 @@ func (m Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
 }
 
 func (m Minio) DeleteObject(ctx context.Context, name string) error {
-	panic("imple me")
+	const operationPlace = "minioclient.GetObject"
+	log := m.log.With("operationPlace", operationPlace)
+	err := m.client.RemoveObject(ctx, m.BucketName, name, minio.RemoveObjectOptions{})
+	if err != nil {
+		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
+		return fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	return nil
 }
 
 func GameKey(gameTitle string, gameReleaseYear int) string {
