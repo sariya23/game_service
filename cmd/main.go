@@ -26,7 +26,7 @@ func main() {
 		slog.Int("htpp port", cfg.Server.HttpServerPort),
 	)
 	grpcServer := grpc.NewServer()
-	db := postgresql.MustNewConnection(log)
+	db := postgresql.MustNewConnection(ctx, log, cfg.Postgres.PostgresURL)
 	s3Client := minioclient.MustPrepareMinio(ctx, log, cfg.Minio, false)
 	mailer := email.NewDialer(cfg.Email)
 	gameService := gameservice.NewGameService(log, db, s3Client, db, mailer, db)
