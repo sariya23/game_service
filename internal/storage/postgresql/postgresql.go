@@ -20,6 +20,7 @@ type PostgreSQL struct {
 
 func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) PostgreSQL {
 	const opearationPlace = "postgresql.MustNewConnection"
+	log = log.With("operationPlace", opearationPlace)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*4)
 	defer cancel()
 	conn, err := pgxpool.New(ctx, dbURL)
@@ -32,6 +33,7 @@ func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) Post
 		log.Error(fmt.Sprintf("%s: db is unreachable: %v", opearationPlace, err))
 		panic(fmt.Sprintf("%s: db is unreachable: %v", opearationPlace, err))
 	}
+	log.Info("Postgres ready to get connections")
 	return PostgreSQL{log: log, connection: conn}
 }
 

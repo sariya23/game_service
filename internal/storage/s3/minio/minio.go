@@ -24,12 +24,14 @@ func MustPrepareMinio(
 	minioConfig *config.Minio,
 	useSSL bool,
 ) *Minio {
+	const operationPlace = "minioclient.MustPrepareMinio"
+	log = log.With("operationPlace", operationPlace)
 	min, err := newMinioClient(log,
 		minioConfig.MinioHost,
 		minioConfig.MinioPort,
 		minioConfig.MinioBucket,
-		minioConfig.AccessKeyMinio,
-		minioConfig.SecretMinio,
+		minioConfig.MinioUser,
+		minioConfig.MinioPassword,
 		useSSL,
 	)
 	if err != nil {
@@ -39,6 +41,7 @@ func MustPrepareMinio(
 	if err != nil {
 		panic(err)
 	}
+	log.Info("Minio prepeared")
 	return min
 }
 
@@ -52,6 +55,7 @@ func newMinioClient(
 	useSSL bool,
 ) (*Minio, error) {
 	const operationPlace = "minioclient.NewMinioClient"
+	log = log.With("operationPlace", operationPlace)
 	client, err := minio.New(fmt.Sprintf("%s:%d", host, port), &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
 		Secure: useSSL,
@@ -59,6 +63,7 @@ func newMinioClient(
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
+	log.Info("Minio client ready to get connections")
 	return &Minio{
 		log:        log,
 		client:     client,
@@ -78,6 +83,7 @@ func (m Minio) createBucket(ctx context.Context) error {
 		}
 		return fmt.Errorf("%s: %w", operationPlace, err)
 	}
+	log.Info("Bucket created")
 	return nil
 }
 

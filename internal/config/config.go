@@ -37,11 +37,11 @@ type Email struct {
 }
 
 type Minio struct {
-	AccessKeyMinio string `env:"ACCESS_KEY_MINIO"`
-	SecretMinio    string `env:"SECRET_MINIO"`
-	MinioPort      int    `env:"MINIO_PORT"`
-	MinioHost      string `env:"MINIO_HOST"`
-	MinioBucket    string `env:"MINIO_BUCKET"`
+	MinioUser     string `env:"MINIO_USER"`
+	MinioPassword string `env:"MINIO_PASSWORD"`
+	MinioPort     int    `env:"MINIO_PORT"`
+	MinioHost     string `env:"MINIO_HOST"`
+	MinioBucket   string `env:"MINIO_BUCKET"`
 }
 
 // MustLoad - загрузка данных из .env в конфиг.
