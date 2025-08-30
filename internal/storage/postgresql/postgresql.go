@@ -38,8 +38,92 @@ func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) Post
 }
 
 func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*gamev4.DomainGame, error) {
-	return nil, nil
+	const operationPlace = "postgresql.GetGameByTitleAndReleaseYear"
+	log := postgresql.log.With("operationPlace", operationPlace).With("title", title).With("releaseYear", releaseYear)
+	getGameQuery := fmt.Sprintf("select %s, %s, %s, %s, %s from game where %s=$1 and extract(year from %s)=$2",
+		gameGameIDFieldName,
+		gameTitleFieldName,
+		gameDescriptionFieldName,
+		gameReleaseDateFieldName,
+		gameImageURLFieldName,
+		gameTitleFieldName,
+		gameReleaseDateFieldName,
+	)
+	getGameGenresQuery := fmt.Sprintf(`
+	select %s 
+	from game join game_genre using(%s) join genre using(%s)
+	where %s=$1`,
+		genreGenreNameFieldName,
+		gameGenreGameIDFieldName,
+		genreGenreIDFieldName,
+		gameGameIDFieldName,
+	)
+	getGameTagsQuery := fmt.Sprintf(`
+	select %s 
+	from game join game_tag using(%s) join tag using(%s)
+	where %s=$1`,
+		tagTagNameFieldName,
+		gameTagGameIDFieldName,
+		tagTagIDFieldName,
+		gameGameIDFieldName,
+	)
+	var game gamev4.DomainGame
+	gameRow := postgresql.connection.QueryRow(ctx, getGameQuery, title, releaseYear)
+	err := gameRow.Scan(
+		&game.ID,
+		&game.Title,
+		&game.Description,
+		&game.ReleaseDate,
+		&game.CoverImageUrl,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Warn("No game with this data")
+			return nil, outerror.ErrGameNotFound
+		}
+		log.Error(fmt.Sprintf("cannot get game, unexpected error = %v", err))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	genreRows, err := postgresql.connection.Query(ctx, getGameGenresQuery, game.GetID())
+	if err != nil {
+		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err), slog.Uint64("gameID", game.GetID()))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	defer genreRows.Close()
+	for genreRows.Next() {
+		var gameGenreName string
+		err = genreRows.Scan(&gameGenreName)
+		if err != nil {
+			log.Error(fmt.Sprintf("Cannot scan game genres, uncaught error: %v", err), slog.Uint64("gameID", game.GetID()))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
+		game.Genres = append(game.Genres, gameGenreName)
+	}
+	if genreRows.Err() != nil {
+		log.Error(fmt.Sprintf("Uncaught error: %v", err), slog.Uint64("gameID", game.GetID()))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
 
+	tagRows, err := postgresql.connection.Query(ctx, getGameTagsQuery, game.GetID())
+	if err != nil {
+		log.Error(fmt.Sprintf("Cannot get tags, uncaught error: %v", err), slog.Uint64("gameID", game.GetID()))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	defer tagRows.Close()
+	for tagRows.Next() {
+		var gameTagName string
+		err = tagRows.Scan(&gameTagName)
+		if err != nil {
+			log.Error(fmt.Sprintf("Cannot scan game tags, uncaught error: %v", err), slog.Uint64("gameID", game.GetID()))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
+		game.Tags = append(game.Tags, gameTagName)
+	}
+	if tagRows.Err() != nil {
+		log.Error(fmt.Sprintf("Uncaught error: %v", err), slog.Uint64("gameID", game.GetID()))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	return &game, nil
 }
 
 func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
