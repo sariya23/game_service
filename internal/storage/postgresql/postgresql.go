@@ -38,7 +38,7 @@ func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) Post
 }
 
 func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*gamev4.DomainGame, error) {
-	panic("impl me")
+	return nil, nil
 
 }
 
@@ -215,9 +215,9 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.DomainGa
 }
 
 func (postgresql PostgreSQL) GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
-	panic("impl me")
+	return nil, nil
 }
 
 func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
-	panic("impl me")
+	return nil, nil
 }

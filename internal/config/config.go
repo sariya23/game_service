@@ -75,15 +75,32 @@ func MustLoad() Config {
 }
 
 // MustLoadByPath - загрузка конфига по пути.
-func MustLoadByPath(path string) Config {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		panic("config file does not exists: " + path)
+func MustLoadByPath(configPath string) Config {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		panic("config file does not exists: " + configPath)
 	}
 
+	serverConfig := Server{}
+	postgresConfig := Postgres{}
+	emailConfig := Email{}
+	minioConfig := Minio{}
 	cfg := Config{}
-	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
-		panic("cannot read config: " + err.Error())
+	if err := cleanenv.ReadConfig(configPath, &serverConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
+	if err := cleanenv.ReadConfig(configPath, &postgresConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
+	if err := cleanenv.ReadConfig(configPath, &emailConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
+	if err := cleanenv.ReadConfig(configPath, &minioConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
+	cfg.Server = &serverConfig
+	cfg.Postgres = &postgresConfig
+	cfg.Email = &emailConfig
+	cfg.Minio = &minioConfig
 	return cfg
 }
 
