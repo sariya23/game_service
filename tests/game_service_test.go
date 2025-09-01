@@ -36,6 +36,7 @@ func TestAddGame(t *testing.T) {
 				Tags:        []string{"Пиксельная графика"},
 				ReleaseDate: &date.Date{Year: 2024, Month: 3, Day: 2},
 				Description: "test",
+				CoverImage:  nil,
 			},
 		}
 		response, err := grpcClient.AddGame(ctx, &request)
