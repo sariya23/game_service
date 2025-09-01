@@ -20,20 +20,20 @@ type PostgreSQL struct {
 
 func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) PostgreSQL {
 	const opearationPlace = "postgresql.MustNewConnection"
-	log = log.With("operationPlace", opearationPlace)
+	localLog := log.With("operationPlace", opearationPlace)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*4)
 	defer cancel()
 	conn, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s: cannot connect to db with URL: %s, with error: %v", opearationPlace, dbURL, err))
+		localLog.Error(fmt.Sprintf("%s: cannot connect to db with URL: %s, with error: %v", opearationPlace, dbURL, err))
 		panic(fmt.Sprintf("%s: cannot connect to db with URL: %s, with error: %v", opearationPlace, dbURL, err))
 	}
 	err = conn.Ping(ctx)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s: db is unreachable: %v", opearationPlace, err))
+		localLog.Error(fmt.Sprintf("%s: db is unreachable: %v", opearationPlace, err))
 		panic(fmt.Sprintf("%s: db is unreachable: %v", opearationPlace, err))
 	}
-	log.Info("Postgres ready to get connections")
+	localLog.Info("Postgres ready to get connections")
 	return PostgreSQL{log: log, connection: conn}
 }
 
@@ -220,10 +220,11 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*g
 func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.DomainGame) (*gamev4.DomainGame, error) {
 	const operationPlace = "postgresql.SaveGame"
 	log := postgresql.log.With("operationPlace", operationPlace)
+	releaseDate := game.GetReleaseDate()
 	saveGameArgs := pgx.NamedArgs{
 		"title":        game.GetTitle(),
 		"description":  game.GetDescription(),
-		"release_date": game.GetReleaseDate(),
+		"release_date": time.Date(int(releaseDate.GetYear()), time.Month(releaseDate.GetMonth()), int(releaseDate.GetDay()), 0, 0, 0, 0, time.UTC),
 		"image_url":    game.GetCoverImageUrl(),
 	}
 	saveMainGameInfoQuery := fmt.Sprintf(`
@@ -232,8 +233,8 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.DomainGa
 		returning %s
 	`, gameTitleFieldName, gameDescriptionFieldName, gameReleaseDateFieldName, gameImageURLFieldName, gameGameIDFieldName)
 
-	getTagIdQuery := fmt.Sprintf("select genre_id from genre where %s=$1", genreGenreNameFieldName)
-	getGenreIdQuery := fmt.Sprintf("select tag_id from tag where %s=$1", tagTagNameFieldName)
+	getGenreIdQuery := fmt.Sprintf("select genre_id from genre where %s=$1", genreGenreNameFieldName)
+	getTagIdQuery := fmt.Sprintf("select tag_id from tag where %s=$1", tagTagNameFieldName)
 	addTagsForGameQuery := "insert into game_tag values ($1, $2)"
 	addGenresForGameQuery := "insert into game_genre values ($1, $2)"
 	genreIDs := make([]int, 0, len(game.GetGenres()))
@@ -294,6 +295,11 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *gamev4.DomainGa
 			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int("genreID", genreID), slog.Int("gameID", int(savedGameID)))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Error(fmt.Sprintf("cannot commit, err = %v", err))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return game, nil
 }
