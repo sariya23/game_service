@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"testing"
+	"time"
 
 	"github.com/sariya23/game_service/internal/lib/mockslog"
+	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
@@ -17,29 +19,45 @@ import (
 	"google.golang.org/genproto/googleapis/type/date"
 )
 
-type mockGameProvider struct {
+type mockGameReposiroy struct {
 	mock.Mock
 }
 
-func (m *mockGameProvider) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*gamev4.DomainGame, error) {
+func (m *mockGameReposiroy) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error) {
 	args := m.Called(ctx, title, releaseYear)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
+	return args.Get(0).(*model.Game), args.Error(1)
 }
 
-func (m *mockGameProvider) GetGameByID(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
+func (m *mockGameReposiroy) GetGameByID(ctx context.Context, gameID uint64) (*model.Game, error) {
 	args := m.Called(ctx, gameID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
+	return args.Get(0).(*model.Game), args.Error(1)
 }
 
-func (m *mockGameProvider) GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
+func (m *mockGameReposiroy) GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) ([]model.Game, error) {
 	args := m.Called(ctx, releaseYear, tags, genres, limit)
-	return args.Get(0).([]*gamev4.DomainGame), args.Error(1)
+	return args.Get(0).([]model.Game), args.Error(1)
+}
+
+func (m *mockGameReposiroy) SaveGame(ctx context.Context, game model.Game) (*model.Game, error) {
+	args := m.Called(ctx, game)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.Game), args.Error(1)
+}
+
+func (m *mockGameReposiroy) DaleteGame(ctx context.Context, gameID uint64) (*model.Game, error) {
+	args := m.Called(ctx, gameID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.Game), args.Error(1)
 }
 
 type mockS3Storager struct {
@@ -61,18 +79,6 @@ func (m *mockS3Storager) DeleteObject(ctx context.Context, name string) error {
 	return args.Error(0)
 }
 
-type mockGameSaver struct {
-	mock.Mock
-}
-
-func (m *mockGameSaver) SaveGame(ctx context.Context, game *gamev4.DomainGame) (*gamev4.DomainGame, error) {
-	args := m.Called(ctx, game)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
-}
-
 type mockEmailAlerter struct {
 	mock.Mock
 }
@@ -83,25 +89,31 @@ func (m *mockEmailAlerter) SendMessage(subject string, body string) error {
 	return args.Error(0)
 }
 
-type mockGameDeleter struct {
+type mockTagRepository struct {
 	mock.Mock
 }
 
-func (m *mockGameDeleter) DaleteGame(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
-	args := m.Called(ctx, gameID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*gamev4.DomainGame), args.Error(1)
+func (m *mockTagRepository) GetTags(ctx context.Context, tags []string) ([]model.Tag, error) {
+	args := m.Called(ctx, tags)
+	return args.Get(0).([]model.Tag), args.Error(1)
+}
+
+type mockGenreRepository struct {
+	mock.Mock
+}
+
+func (m *mockGenreRepository) GetGenres(ctx context.Context, genres []string) ([]model.Genre, error) {
+	args := m.Called(ctx, genres)
+	return args.Get(0).([]model.Genre), args.Error(1)
 }
 
 func TestAddGame(t *testing.T) {
-	gameProviderMock := new(mockGameProvider)
-	gameSaverMock := new(mockGameSaver)
-	gameDeleterMock := new(mockGameDeleter)
+	gameMockRepo := new(mockGameReposiroy)
+	tagMockRepo := new(mockTagRepository)
+	genreMockRepo := new(mockGenreRepository)
 	s3Mock := new(mockS3Storager)
 	mailerMock := new(mockEmailAlerter)
-	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock, gameDeleterMock)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 	t.Run("Нельзя добавить игру, так как она уже есть в БД", func(t *testing.T) {
 		expectedError := outerror.ErrGameAlreadyExist
 		gameToAdd := &gamev4.GameRequest{
@@ -109,12 +121,12 @@ func TestAddGame(t *testing.T) {
 			Description: "test",
 			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		domainGame := &gamev4.DomainGame{
+		game := &model.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
 		}
-		gameProviderMock.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.GetReleaseDate().Year).Return(domainGame, nil).Once()
+		gameMockRepo.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.GetReleaseDate().Year).Return(game, nil).Once()
 
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
@@ -126,19 +138,19 @@ func TestAddGame(t *testing.T) {
 			Description: "test",
 			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		domainGame := &gamev4.DomainGame{
+		game := &model.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
 		}
 		expectedErr := errors.New("some error")
-		gameProviderMock.On(
+		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
-			gameToAdd.Title,
+			gameToAdd.GetTitle(),
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
-		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(nil, expectedErr).Once()
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil, expectedErr).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedErr)
 		require.Nil(t, savedGame)
@@ -150,28 +162,28 @@ func TestAddGame(t *testing.T) {
 			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 		}
-		domainGame := &gamev4.DomainGame{
+		game := &model.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
 		}
 		expectedErr := outerror.ErrCannotSaveGameImage
-		gameProviderMock.On(
+		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
-			gameToAdd.Title,
+			gameToAdd.GetTitle(),
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		s3Mock.On(
 			"SaveObject",
 			mock.Anything,
-			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseDate().Year)),
+			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedErr).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(domainGame, nil).Once()
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(game, nil).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Equal(t, domainGame, savedGame)
+		require.Equal(t, game, savedGame)
 		require.ErrorIs(t, err, expectedErr)
 	})
 	t.Run("Сохранение игры без ошибок", func(t *testing.T) {
@@ -181,13 +193,13 @@ func TestAddGame(t *testing.T) {
 			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 		}
-		domainGame := &gamev4.DomainGame{
-			Title:         "Dark Souls 3",
-			Description:   "test",
-			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImageUrl: "qwe",
+		game := &model.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			ImageURL:    "qwe",
 		}
-		gameProviderMock.On(
+		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
 			gameToAdd.GetTitle(),
@@ -196,28 +208,28 @@ func TestAddGame(t *testing.T) {
 		s3Mock.On(
 			"SaveObject",
 			mock.Anything,
-			fmt.Sprintf("%s_%d", gameToAdd.Title, int(gameToAdd.GetReleaseDate().Year)),
+			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameSaverMock.On("SaveGame", mock.Anything, domainGame).Return(domainGame, nil).Once()
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(game, nil).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Equal(t, domainGame, savedGame)
+		require.Equal(t, game, savedGame)
 		require.NoError(t, err)
 	})
 }
 
 func TestGetGame(t *testing.T) {
-	gameProviderMock := new(mockGameProvider)
-	gameSaverMock := new(mockGameSaver)
+	gameMockRepo := new(mockGameReposiroy)
+	tagMockRepo := new(mockTagRepository)
+	genreMockRepo := new(mockGenreRepository)
 	s3Mock := new(mockS3Storager)
 	mailerMock := new(mockEmailAlerter)
-	gameDeleterMock := new(mockGameDeleter)
-	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock, gameDeleterMock)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 	t.Run("Игра не найдена", func(t *testing.T) {
 		gameID := uint64(1)
 		expectedError := outerror.ErrGameNotFound
-		gameProviderMock.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
+		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
 		game, err := gameService.GetGame(context.Background(), gameID)
 		require.ErrorIs(t, err, expectedError)
 		require.Nil(t, game)
@@ -225,22 +237,22 @@ func TestGetGame(t *testing.T) {
 	t.Run("Internal ошибка", func(t *testing.T) {
 		gameID := uint64(1)
 		expectedError := errors.New("some error")
-		gameProviderMock.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
+		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
 		game, err := gameService.GetGame(context.Background(), gameID)
 		require.ErrorIs(t, err, expectedError)
 		require.Nil(t, game)
 	})
 	t.Run("Успешное получение игры", func(t *testing.T) {
 		gameID := uint64(1)
-		expectedGame := &gamev4.DomainGame{
+		expectedGame := &model.Game{
 			Title:       "Dark Souls 3",
-			Genres:      []string{"Hard"},
+			Genres:      []model.Genre{{GenreID: 1, GenreName: "Hard"}},
 			Description: "qwe",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			Tags:        []string{"asd"},
-			ID:          2,
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			Tags:        []model.Tag{{TagID: 1, TagName: "Aboba"}},
+			GameID:      2,
 		}
-		gameProviderMock.On("GetGameByID", mock.Anything, gameID).Return(expectedGame, nil).Once()
+		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(expectedGame, nil).Once()
 		game, err := gameService.GetGame(context.Background(), gameID)
 		require.NoError(t, err)
 		require.Equal(t, expectedGame, game)
@@ -248,22 +260,22 @@ func TestGetGame(t *testing.T) {
 }
 
 func TestDeleteGame(t *testing.T) {
-	gameProviderMock := new(mockGameProvider)
-	gameSaverMock := new(mockGameSaver)
+	gameMockRepo := new(mockGameReposiroy)
+	tagMockRepo := new(mockTagRepository)
+	genreMockRepo := new(mockGenreRepository)
 	s3Mock := new(mockS3Storager)
 	mailerMock := new(mockEmailAlerter)
-	gameDeleterMock := new(mockGameDeleter)
-	gameService := NewGameService(mockslog.NewDiscardLogger(), gameProviderMock, s3Mock, gameSaverMock, mailerMock, gameDeleterMock)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 	t.Run("Успешное удаление игры", func(t *testing.T) {
 		gameID := uint64(4)
-		deletedGame := &gamev4.DomainGame{
-			Title:         "Dark Souls 3",
-			Description:   "test",
-			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImageUrl: "qwe",
+		deletedGame := &model.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			ImageURL:    "qwe",
 		}
-		gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))
-		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(nil).Once()
 
 		game, err := gameService.DeleteGame(context.Background(), gameID)
@@ -272,7 +284,7 @@ func TestDeleteGame(t *testing.T) {
 	})
 	t.Run("Нет игры для удаления", func(t *testing.T) {
 		gameID := uint64(4)
-		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(nil, outerror.ErrGameNotFound).Once()
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(nil, outerror.ErrGameNotFound).Once()
 		game, err := gameService.DeleteGame(context.Background(), gameID)
 		require.ErrorIs(t, err, outerror.ErrGameNotFound)
 		require.Nil(t, game)
@@ -280,21 +292,21 @@ func TestDeleteGame(t *testing.T) {
 	t.Run("Неожиданная ошибка при удалении игры", func(t *testing.T) {
 		gameID := uint64(4)
 		someErr := errors.New("some err")
-		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(nil, someErr).Once()
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(nil, someErr).Once()
 		game, err := gameService.DeleteGame(context.Background(), gameID)
 		require.ErrorIs(t, err, someErr)
 		require.Nil(t, game)
 	})
 	t.Run("У игры нет обложки в S3", func(t *testing.T) {
 		gameID := uint64(4)
-		deletedGame := &gamev4.DomainGame{
-			Title:         "Dark Souls 3",
-			Description:   "test",
-			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImageUrl: "qwe",
+		deletedGame := &model.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			ImageURL:    "qwe",
 		}
-		gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))
-		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(outerror.ErrImageNotFoundS3).Once()
 		game, err := gameService.DeleteGame(context.Background(), gameID)
 		require.Equal(t, deletedGame, game)
@@ -302,15 +314,15 @@ func TestDeleteGame(t *testing.T) {
 	})
 	t.Run("Не удалось удалить обложку из S3", func(t *testing.T) {
 		gameID := uint64(4)
-		deletedGame := &gamev4.DomainGame{
-			Title:         "Dark Souls 3",
-			Description:   "test",
-			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImageUrl: "qwe",
+		deletedGame := &model.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			ImageURL:    "qwe",
 		}
 		someErr := errors.New("some error")
-		gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.GetReleaseDate().Year))
-		gameDeleterMock.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(someErr).Once()
 		game, err := gameService.DeleteGame(context.Background(), gameID)
 		require.Equal(t, deletedGame, game)

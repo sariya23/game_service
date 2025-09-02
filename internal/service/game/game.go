@@ -15,18 +15,20 @@ import (
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
-type GameProvider interface {
-	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (game *gamev4.DomainGame, err error)
-	GetGameByID(ctx context.Context, gameID uint64) (game *gamev4.DomainGame, err error)
-	GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error)
+type GameReposetory interface {
+	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error)
+	GetGameByID(ctx context.Context, gameID uint64) (*model.Game, error)
+	GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) ([]model.Game, error)
+	SaveGame(ctx context.Context, game model.Game) (*model.Game, error)
+	DaleteGame(ctx context.Context, gameID uint64) (*model.Game, error)
 }
 
-type GameSaver interface {
-	SaveGame(ctx context.Context, game *gamev4.DomainGame) (savedGame *gamev4.DomainGame, err error)
+type TagRepository interface {
+	GetTags(ctx context.Context, tags []string) ([]model.Tag, error)
 }
 
-type GameDeleter interface {
-	DaleteGame(ctx context.Context, gameID uint64) (deletedGame *gamev4.DomainGame, err error)
+type GenreRepository interface {
+	GetGenres(ctx context.Context, genres []string) ([]model.Genre, error)
 }
 
 type S3Storager interface {
@@ -40,40 +42,40 @@ type EmailAlerter interface {
 }
 
 type GameService struct {
-	log          *slog.Logger
-	gameProvider GameProvider
-	s3Storager   S3Storager
-	gameSaver    GameSaver
-	mailer       EmailAlerter
-	gameDeleter  GameDeleter
+	log             *slog.Logger
+	gameRepository  GameReposetory
+	tagReposetory   TagRepository
+	genreReposetory GenreRepository
+	s3Storager      S3Storager
+	mailer          EmailAlerter
 }
 
 func NewGameService(
 	log *slog.Logger,
-	gameProvider GameProvider,
+	gameReposiroy GameReposetory,
+	tagReposetory TagRepository,
+	genreReposetory GenreRepository,
 	s3Storager S3Storager,
-	gameSaver GameSaver,
 	mailer EmailAlerter,
-	gameDeleter GameDeleter,
 
 ) *GameService {
 	return &GameService{
-		log:          log,
-		gameProvider: gameProvider,
-		s3Storager:   s3Storager,
-		gameSaver:    gameSaver,
-		mailer:       mailer,
-		gameDeleter:  gameDeleter,
+		log:             log,
+		s3Storager:      s3Storager,
+		tagReposetory:   tagReposetory,
+		genreReposetory: genreReposetory,
+		gameRepository:  gameReposiroy,
+		mailer:          mailer,
 	}
 }
 
 func (gameService *GameService) AddGame(
 	ctx context.Context,
 	gameToAdd *gamev4.GameRequest,
-) (*gamev4.DomainGame, error) {
+) (*model.Game, error) {
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
-	_, err := gameService.gameProvider.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year)
+	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year)
 	if err == nil {
 		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year))
 		return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameAlreadyExist)
@@ -98,15 +100,15 @@ func (gameService *GameService) AddGame(
 		}
 	}
 	log.Info("no image data in game")
-	game := gamev4.DomainGame{
-		Title:         gameToAdd.GetTitle(),
-		Description:   gameToAdd.GetDescription(),
-		ReleaseDate:   gameToAdd.GetReleaseDate(),
-		Tags:          gameToAdd.GetTags(),
-		Genres:        gameToAdd.GetGenres(),
-		CoverImageUrl: imageURL,
+	game := model.Game{
+		Title:       gameToAdd.GetTitle(),
+		Description: gameToAdd.GetDescription(),
+		ReleaseDate: time.Date(int(gameToAdd.ReleaseDate.Year), time.Month(gameToAdd.ReleaseDate.Month), int(gameToAdd.ReleaseDate.Day), 0, 0, 0, 0, time.UTC),
+		Tags:        gameToAdd.GetTags(),
+		Genres:      gameToAdd.GetGenres(),
+		ImageURL:    imageURL,
 	}
-	savedGame, err := gameService.gameSaver.SaveGame(ctx, &game)
+	savedGame, err := gameService.gameRepository.SaveGame(ctx, game)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
@@ -114,7 +116,7 @@ func (gameService *GameService) AddGame(
 	log.Info("game save successfully")
 	err = gameService.mailer.SendMessage(
 		"Добавлена игра",
-		fmt.Sprintf("Добавлена игра %s %d года", savedGame.GetTitle(), savedGame.GetReleaseDate().Year),
+		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.ReleaseDate.Year),
 	)
 	if err != nil {
 		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))
@@ -125,10 +127,10 @@ func (gameService *GameService) AddGame(
 func (gameService *GameService) GetGame(
 	ctx context.Context,
 	gameID uint64,
-) (*gamev4.DomainGame, error) {
+) (*model.Game, error) {
 	const operationPlace = "gameservice.GetGame"
 	log := gameService.log.With("operationPlace", operationPlace)
-	game, err := gameService.gameProvider.GetGameByID(ctx, gameID)
+	game, err := gameService.gameRepository.GetGameByID(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			log.Warn(fmt.Sprintf("game with id=%d not found", gameID))
@@ -144,16 +146,16 @@ func (gameService *GameService) GetTopGames(
 	ctx context.Context,
 	gameFilters model.GameFilters,
 	limit uint32,
-) ([]*gamev4.DomainGame, error) {
+) ([]model.Game, error) {
 	const operationPlace = "gameservice.GetTopGames"
 	log := gameService.log.With("operationPlace", operationPlace)
 	if gameFilters.ReleaseYear == 0 {
 		gameFilters.ReleaseYear = int32(time.Now().Year())
 	}
-	games, err := gameService.gameProvider.GetTopGames(ctx, gameFilters.ReleaseYear, gameFilters.Tags, gameFilters.Tags, limit)
+	games, err := gameService.gameRepository.GetTopGames(ctx, gameFilters.ReleaseYear, gameFilters.Tags, gameFilters.Tags, limit)
 	if err != nil {
 		log.Error(fmt.Sprintf("unexcpected error; err=%v", err))
-		return []*gamev4.DomainGame{}, fmt.Errorf("%s: %w", operationPlace, err)
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return games, nil
 }
@@ -161,10 +163,10 @@ func (gameService *GameService) GetTopGames(
 func (gameService *GameService) DeleteGame(
 	ctx context.Context,
 	gameID uint64,
-) (*gamev4.DomainGame, error) {
+) (*model.Game, error) {
 	const operationPlace = "gameservice.DeleteGame"
 	log := gameService.log.With("operationPlace", operationPlace)
-	deletedGame, err := gameService.gameDeleter.DaleteGame(ctx, gameID)
+	deletedGame, err := gameService.gameRepository.DaleteGame(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			log.Warn(fmt.Sprintf("game with id=%v not found", gameID))
@@ -174,7 +176,7 @@ func (gameService *GameService) DeleteGame(
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	log.Info(fmt.Sprintf("game with id=%v deleted from DB", gameID))
-	gameKey := minioclient.GameKey(deletedGame.GetTitle(), int(deletedGame.ReleaseDate.GetYear()))
+	gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
 	err = gameService.s3Storager.DeleteObject(ctx, gameKey)
 	var errDeleteImage error
 	if err != nil {
