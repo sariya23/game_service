@@ -100,12 +100,14 @@ func (gameService *GameService) AddGame(
 		}
 	}
 	log.Info("no image data in game")
+	tags, err := gameService.tagReposetory.GetTags(ctx, gameToAdd.GetTags())
+	genres, err := gameService.genreReposetory.GetGenres(ctx, gameToAdd.GetGenres())
 	game := model.Game{
 		Title:       gameToAdd.GetTitle(),
 		Description: gameToAdd.GetDescription(),
 		ReleaseDate: time.Date(int(gameToAdd.ReleaseDate.Year), time.Month(gameToAdd.ReleaseDate.Month), int(gameToAdd.ReleaseDate.Day), 0, 0, 0, 0, time.UTC),
-		Tags:        gameToAdd.GetTags(),
-		Genres:      gameToAdd.GetGenres(),
+		Tags:        tags,
+		Genres:      genres,
 		ImageURL:    imageURL,
 	}
 	savedGame, err := gameService.gameRepository.SaveGame(ctx, game)
