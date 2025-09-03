@@ -5,7 +5,8 @@ import "errors"
 var (
 	ErrGameAlreadyExist           = errors.New("game with this title already exist")
 	ErrGameNotFound               = errors.New("game not found")
-	ErrTagNotFound                = errors.New("tag not found ")
+	ErrTagNotFound                = errors.New("tag not found")
+	ErrGenreNotFound              = errors.New("genre not found ")
 	ErrCannotStartGameTransaction = errors.New("cannot start game transaction")
 	ErrCannotSaveGameImage        = errors.New("cannot save image in s3")
 	ErrImageNotFoundS3            = errors.New("game image not found in s3")

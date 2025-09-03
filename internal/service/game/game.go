@@ -101,22 +101,31 @@ func (gameService *GameService) AddGame(
 	}
 	log.Info("no image data in game")
 	var tags []model.Tag
-	if gameToAdd.GetTags() != nil && len(gameToAdd.GetTags()) != 0 {
-		tags, err = gameService.tagReposetory.GetTags(ctx, gameToAdd.GetTags())
+	if t := gameToAdd.GetTags(); len(t) != 0 {
+		tags, err = gameService.tagReposetory.GetTags(ctx, t)
 		if err != nil {
 			if errors.Is(err, outerror.ErrTagNotFound) {
-				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", tags)))
+				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", t)))
 				return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrTagNotFound)
 			}
 		}
 	}
-	//genres, err := gameService.genreReposetory.GetGenres(ctx, gameToAdd.GetGenres())
+	var genres []model.Genre
+	if g := gameToAdd.GetGenres(); len(g) != 0 {
+		genres, err = gameService.genreReposetory.GetGenres(ctx, g)
+		if err != nil {
+			if errors.Is(err, outerror.ErrGenreNotFound) {
+				log.Warn("genres with this names not found", slog.String("genres", fmt.Sprintf("%#v", g)))
+				return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGenreNotFound)
+			}
+		}
+	}
 	game := model.Game{
 		Title:       gameToAdd.GetTitle(),
 		Description: gameToAdd.GetDescription(),
 		ReleaseDate: time.Date(int(gameToAdd.ReleaseDate.Year), time.Month(gameToAdd.ReleaseDate.Month), int(gameToAdd.ReleaseDate.Day), 0, 0, 0, 0, time.UTC),
 		Tags:        tags,
-		Genres:      nil,
+		Genres:      genres,
 		ImageURL:    imageURL,
 	}
 	savedGame, err := gameService.gameRepository.SaveGame(ctx, game)

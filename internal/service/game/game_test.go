@@ -107,6 +107,9 @@ type mockGenreRepository struct {
 
 func (m *mockGenreRepository) GetGenres(ctx context.Context, genres []string) ([]model.Genre, error) {
 	args := m.Called(ctx, genres)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]model.Genre), args.Error(1)
 }
 
@@ -151,6 +154,26 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		tagMockRepo.On("GetTags", mock.Anything, tags).Return(nil, outerror.ErrTagNotFound).Once()
+		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.Nil(t, savedGame)
+		require.ErrorIs(t, err, expectedError)
+	})
+	t.Run("Игра не создается с несуществующими жанрами", func(t *testing.T) {
+		expectedError := outerror.ErrGenreNotFound
+		genres := []string{"test"}
+		gameToAdd := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			Genres:      genres,
+		}
+		gameMockRepo.On(
+			"GetGameByTitleAndReleaseYear",
+			mock.Anything,
+			gameToAdd.GetTitle(),
+			gameToAdd.GetReleaseDate().Year,
+		).Return(nil, outerror.ErrGameNotFound).Once()
+		genreMockRepo.On("GetGenres", mock.Anything, genres).Return(nil, outerror.ErrGenreNotFound).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.Nil(t, savedGame)
 		require.ErrorIs(t, err, expectedError)
