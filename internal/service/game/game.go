@@ -100,14 +100,23 @@ func (gameService *GameService) AddGame(
 		}
 	}
 	log.Info("no image data in game")
-	tags, err := gameService.tagReposetory.GetTags(ctx, gameToAdd.GetTags())
-	genres, err := gameService.genreReposetory.GetGenres(ctx, gameToAdd.GetGenres())
+	var tags []model.Tag
+	if gameToAdd.GetTags() != nil && len(gameToAdd.GetTags()) != 0 {
+		tags, err = gameService.tagReposetory.GetTags(ctx, gameToAdd.GetTags())
+		if err != nil {
+			if errors.Is(err, outerror.ErrTagNotFound) {
+				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", tags)))
+				return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrTagNotFound)
+			}
+		}
+	}
+	//genres, err := gameService.genreReposetory.GetGenres(ctx, gameToAdd.GetGenres())
 	game := model.Game{
 		Title:       gameToAdd.GetTitle(),
 		Description: gameToAdd.GetDescription(),
 		ReleaseDate: time.Date(int(gameToAdd.ReleaseDate.Year), time.Month(gameToAdd.ReleaseDate.Month), int(gameToAdd.ReleaseDate.Day), 0, 0, 0, 0, time.UTC),
 		Tags:        tags,
-		Genres:      genres,
+		Genres:      nil,
 		ImageURL:    imageURL,
 	}
 	savedGame, err := gameService.gameRepository.SaveGame(ctx, game)
@@ -118,7 +127,7 @@ func (gameService *GameService) AddGame(
 	log.Info("game save successfully")
 	err = gameService.mailer.SendMessage(
 		"Добавлена игра",
-		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.ReleaseDate.Year),
+		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.ReleaseDate.Year()),
 	)
 	if err != nil {
 		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))

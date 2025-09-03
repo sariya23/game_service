@@ -95,6 +95,9 @@ type mockTagRepository struct {
 
 func (m *mockTagRepository) GetTags(ctx context.Context, tags []string) ([]model.Tag, error) {
 	args := m.Called(ctx, tags)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]model.Tag), args.Error(1)
 }
 
@@ -132,13 +135,33 @@ func TestAddGame(t *testing.T) {
 		require.ErrorIs(t, err, expectedError)
 		require.Nil(t, savedGame)
 	})
+	t.Run("Игра не создается с несуществующими тегами", func(t *testing.T) {
+		expectedError := outerror.ErrTagNotFound
+		tags := []string{"test"}
+		gameToAdd := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			Tags:        tags,
+		}
+		gameMockRepo.On(
+			"GetGameByTitleAndReleaseYear",
+			mock.Anything,
+			gameToAdd.GetTitle(),
+			gameToAdd.GetReleaseDate().Year,
+		).Return(nil, outerror.ErrGameNotFound).Once()
+		tagMockRepo.On("GetTags", mock.Anything, tags).Return(nil, outerror.ErrTagNotFound).Once()
+		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.Nil(t, savedGame)
+		require.ErrorIs(t, err, expectedError)
+	})
 	t.Run("Не удалось сохранить игру", func(t *testing.T) {
 		gameToAdd := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Description: "test",
 			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 		}
-		game := &model.Game{
+		game := model.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
 			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
@@ -155,14 +178,14 @@ func TestAddGame(t *testing.T) {
 		require.ErrorIs(t, err, expectedErr)
 		require.Nil(t, savedGame)
 	})
-	t.Run("Игра сохранена, но не удалось сохранить обложку в S3", func(t *testing.T) {
+	t.Run("Игра сохраняется даже в случае не сохранения обложки в S3", func(t *testing.T) {
 		gameToAdd := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Description: "test",
 			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 		}
-		game := &model.Game{
+		game := model.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
 			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
@@ -181,9 +204,9 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedErr).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(game, nil).Once()
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(&game, nil).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Equal(t, game, savedGame)
+		require.Equal(t, game, *savedGame)
 		require.ErrorIs(t, err, expectedErr)
 	})
 	t.Run("Сохранение игры без ошибок", func(t *testing.T) {
@@ -193,7 +216,7 @@ func TestAddGame(t *testing.T) {
 			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
 			CoverImage:  []byte("qwe"),
 		}
-		game := &model.Game{
+		game := model.Game{
 			Title:       "Dark Souls 3",
 			Description: "test",
 			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
@@ -212,9 +235,9 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(game, nil).Once()
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(&game, nil).Once()
 		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Equal(t, game, savedGame)
+		require.Equal(t, game, *savedGame)
 		require.NoError(t, err)
 	})
 }
