@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/sariya23/game_service/internal/converters"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
@@ -13,10 +14,10 @@ import (
 )
 
 type GameServicer interface {
-	AddGame(ctx context.Context, game *gamev4.GameRequest) (savedGame *gamev4.DomainGame, err error)
-	GetGame(ctx context.Context, gameID uint64) (game *gamev4.DomainGame, err error)
-	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []*gamev4.DomainGame, err error)
-	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *gamev4.DomainGame, err error)
+	AddGame(ctx context.Context, game *gamev4.GameRequest) (savedGame *model.Game, err error)
+	GetGame(ctx context.Context, gameID uint64) (game *model.Game, err error)
+	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []model.Game, err error)
+	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *model.Game, err error)
 }
 
 type serverAPI struct {
@@ -46,12 +47,12 @@ func (srvApi *serverAPI) AddGame(
 		if errors.Is(err, outerror.ErrGameAlreadyExist) {
 			return &gamev4.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
 		} else if errors.Is(err, outerror.ErrCannotSaveGameImage) {
-			return &gamev4.AddGameResponse{Game: savedGame}, nil
+			return &gamev4.AddGameResponse{Game: converters.ToProtoGame(*savedGame)}, nil
 		}
-		return &gamev4.AddGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
+		return nil, status.Error(codes.Internal, outerror.InternalMessage)
 	}
 	response := gamev4.AddGameResponse{
-		Game: savedGame,
+		Game: converters.ToProtoGame(*savedGame),
 	}
 
 	return &response, nil
@@ -68,7 +69,7 @@ func (srvApi *serverAPI) GetGame(
 		}
 		return &gamev4.GetGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
-	return &gamev4.GetGameResponse{Game: game}, nil
+	return &gamev4.GetGameResponse{Game: converters.ToProtoGame(*game)}, nil
 }
 
 func (srvApi *serverAPI) GetTopGames(
@@ -87,7 +88,11 @@ func (srvApi *serverAPI) GetTopGames(
 	if err != nil {
 		return &gamev4.GetTopGamesResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
-	return &gamev4.GetTopGamesResponse{Games: games}, nil
+	result := make([]*gamev4.DomainGame, 0, len(games))
+	for _, g := range games {
+		result = append(result, converters.ToProtoGame(g))
+	}
+	return &gamev4.GetTopGamesResponse{Games: result}, nil
 }
 
 func (srvAPI *serverAPI) DeleteGame(
@@ -101,5 +106,5 @@ func (srvAPI *serverAPI) DeleteGame(
 		}
 		return &gamev4.DeleteGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
-	return &gamev4.DeleteGameResponse{Game: game}, nil
+	return &gamev4.DeleteGameResponse{Game: converters.ToProtoGame(*game)}, nil
 }
