@@ -52,9 +52,9 @@ func (m *mockGameServicer) DeleteGame(ctx context.Context, gameID uint64) (*mode
 }
 
 func TestAddGameHandler(t *testing.T) {
-	mockGameService := new(mockGameServicer)
-	srv := serverAPI{gameServicer: mockGameService}
 	t.Run("Успешное добавление игры", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG"},
@@ -78,6 +78,8 @@ func TestAddGameHandler(t *testing.T) {
 		require.Equal(t, *converters.ToProtoGame(*expectedGame), *resp.GetGame())
 	})
 	t.Run("Не указано поле Title", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
 			Description: "test",
@@ -93,6 +95,8 @@ func TestAddGameHandler(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Не указано поле Description", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
@@ -108,6 +112,8 @@ func TestAddGameHandler(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Не указано поле Release Year", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Description: "test",
@@ -123,6 +129,8 @@ func TestAddGameHandler(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Игра уже существует", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
@@ -140,6 +148,8 @@ func TestAddGameHandler(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Internal ошибка", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
@@ -156,6 +166,8 @@ func TestAddGameHandler(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Игра сохранена, но без обложки", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
@@ -179,6 +191,8 @@ func TestAddGameHandler(t *testing.T) {
 		require.NoError(t, err)
 	})
 	t.Run("Нельзя создать игру с несуществующим жанром", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		game := &gamev4.GameRequest{
 			Title:       "Dark Souls 3",
 			Genres:      []string{"Action RPG", "Dark Fantasy"},
@@ -194,13 +208,34 @@ func TestAddGameHandler(t *testing.T) {
 		require.Equal(t, codes.InvalidArgument, s.Code())
 		require.Equal(t, outerror.GenreNotFoundMessage, s.Message())
 		require.Nil(t, resp.GetGame())
+		mockGameService.AssertExpectations(t)
+	})
+	t.Run("Нельзя создать игру с несуществующим тэгом", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		game := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			Description: "test",
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		req := gamev4.AddGameRequest{Game: game}
+		mockGameService.On("AddGame", mock.Anything, game).Return(nil, outerror.ErrTagNotFound).Once()
+		resp, err := srv.AddGame(context.Background(), &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, outerror.TagNotFoundMessage, s.Message())
+		require.Nil(t, resp.GetGame())
+
 	})
 }
 
 func TestGetGameHandler(t *testing.T) {
-	mockGameService := new(mockGameServicer)
-	srv := serverAPI{gameServicer: mockGameService}
 	t.Run("Игра не найдена", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		gameID := uint64(2)
 		req := gamev4.GetGameRequest{GameId: gameID}
 
@@ -212,6 +247,8 @@ func TestGetGameHandler(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Успешное получение игры", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		gameID := uint64(2)
 		expectedGame := model.Game{
 			Title:       "Dark Souls 3",
@@ -229,6 +266,8 @@ func TestGetGameHandler(t *testing.T) {
 		require.Equal(t, *converters.ToProtoGame(expectedGame), *resp.GetGame())
 	})
 	t.Run("Internal ошибка", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
 		gameID := uint64(2)
 		req := gamev4.GetGameRequest{GameId: gameID}
 

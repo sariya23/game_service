@@ -50,6 +50,8 @@ func (srvApi *serverAPI) AddGame(
 			return &gamev4.AddGameResponse{Game: converters.ToProtoGame(*savedGame)}, nil
 		} else if errors.Is(err, outerror.ErrGenreNotFound) {
 			return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.GenreNotFoundMessage)
+		} else if errors.Is(err, outerror.ErrTagNotFound) {
+			return nil, status.Error(codes.InvalidArgument, outerror.TagNotFoundMessage)
 		}
 		return nil, status.Error(codes.Internal, outerror.InternalMessage)
 	}
