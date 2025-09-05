@@ -21,4 +21,5 @@ var (
 	GameNotFoundMessage               = "Game not found"
 	CannotStartGameTransactionMessage = "Cannot start game transaction"
 	GameSavedWithoutImageMessage      = "Game saved but without image. Store is not response"
+	GenreNotFoundMessage              = "Unknow genre name"
 )

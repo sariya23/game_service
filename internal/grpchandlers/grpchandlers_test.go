@@ -178,6 +178,23 @@ func TestAddGameHandler(t *testing.T) {
 		require.Equal(t, *converters.ToProtoGame(expectedGame), *resp.GetGame())
 		require.NoError(t, err)
 	})
+	t.Run("Нельзя создать игру с несуществующим жанром", func(t *testing.T) {
+		game := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Genres:      []string{"Action RPG", "Dark Fantasy"},
+			Description: "test",
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"Hard"},
+		}
+		req := gamev4.AddGameRequest{Game: game}
+		mockGameService.On("AddGame", mock.Anything, game).Return(nil, outerror.ErrGenreNotFound).Once()
+		resp, err := srv.AddGame(context.Background(), &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, outerror.GenreNotFoundMessage, s.Message())
+		require.Nil(t, resp.GetGame())
+	})
 }
 
 func TestGetGameHandler(t *testing.T) {
@@ -196,21 +213,20 @@ func TestGetGameHandler(t *testing.T) {
 	})
 	t.Run("Успешное получение игры", func(t *testing.T) {
 		gameID := uint64(2)
-		expectedGame := &gamev4.DomainGame{
-			Title:         "Dark Souls 3",
-			Genres:        []string{"Action RPG", "Dark Fantasy"},
-			Description:   "test",
-			ReleaseDate:   &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImageUrl: "https://",
-			Tags:          []string{"Hard"},
-			Rating:        5.0,
+		expectedGame := model.Game{
+			Title:       "Dark Souls 3",
+			Genres:      []model.Genre{{1, "Action RPG"}},
+			Description: "test",
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			ImageURL:    "https://",
+			Tags:        []model.Tag{{1, "Hard"}},
 		}
 		req := gamev4.GetGameRequest{GameId: gameID}
 
-		mockGameService.On("GetGame", mock.Anything, gameID).Return(expectedGame, nil).Once()
+		mockGameService.On("GetGame", mock.Anything, gameID).Return(&expectedGame, nil).Once()
 		resp, err := srv.GetGame(context.Background(), &req)
 		require.NoError(t, err)
-		require.Equal(t, expectedGame, resp.GetGame())
+		require.Equal(t, *converters.ToProtoGame(expectedGame), *resp.GetGame())
 	})
 	t.Run("Internal ошибка", func(t *testing.T) {
 		gameID := uint64(2)

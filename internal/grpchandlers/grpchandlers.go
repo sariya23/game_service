@@ -48,6 +48,8 @@ func (srvApi *serverAPI) AddGame(
 			return &gamev4.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
 		} else if errors.Is(err, outerror.ErrCannotSaveGameImage) {
 			return &gamev4.AddGameResponse{Game: converters.ToProtoGame(*savedGame)}, nil
+		} else if errors.Is(err, outerror.ErrGenreNotFound) {
+			return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.GenreNotFoundMessage)
 		}
 		return nil, status.Error(codes.Internal, outerror.InternalMessage)
 	}
