@@ -279,3 +279,50 @@ func TestGetGameHandler(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 }
+
+func TestDeleteGame(t *testing.T) {
+	t.Run("Игра не найдена", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		gameID := uint64(2)
+		req := gamev4.DeleteGameRequest{GameId: gameID}
+		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(nil, outerror.ErrGameNotFound)
+		resp, err := srv.DeleteGame(ctx, &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.NotFound, s.Code())
+		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
+		require.Nil(t, resp.GetGame())
+	})
+	t.Run("Internal ошибка", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		gameID := uint64(2)
+		req := gamev4.DeleteGameRequest{GameId: gameID}
+		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(nil, errors.New("err"))
+		resp, err := srv.DeleteGame(ctx, &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.Internal, s.Code())
+		require.Equal(t, outerror.InternalMessage, s.Message())
+		require.Nil(t, resp.GetGame())
+	})
+	t.Run("Успешное удаление игры", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		gameID := uint64(2)
+		req := gamev4.DeleteGameRequest{GameId: gameID}
+
+		expectedGame := model.Game{
+			GameID:      gameID,
+			Description: "Title",
+			Title:       "Title",
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+		}
+		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(&expectedGame, nil)
+		resp, err := srv.DeleteGame(ctx, &req)
+		require.NoError(t, err)
+		require.Equal(t, converters.ToProtoGame(expectedGame), resp.GetGame())
+	})
+}
