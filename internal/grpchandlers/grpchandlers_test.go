@@ -326,3 +326,41 @@ func TestDeleteGame(t *testing.T) {
 		require.Equal(t, converters.ToProtoGame(expectedGame), resp.GetGame())
 	})
 }
+
+func TestGetTopGames(t *testing.T) {
+	t.Run("По фильтрам не нашлось игр", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
+		filters := model.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
+		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{}, nil)
+		resp, err := srv.GetTopGames(ctx, &req)
+		require.NoError(t, err)
+		require.Empty(t, resp.GetGames())
+	})
+	t.Run("Internal ошибка", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
+		filters := model.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
+		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{}, errors.New("err"))
+		resp, err := srv.GetTopGames(ctx, &req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.Internal, s.Code())
+		require.Equal(t, outerror.InternalMessage, s.Message())
+		require.Nil(t, resp.GetGames())
+	})
+	t.Run("Успешное получение топа", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
+		filters := model.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
+		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{{GameID: 1, Title: "qwe"}}, nil)
+		resp, err := srv.GetTopGames(ctx, &req)
+		require.NoError(t, err)
+		require.NotEmpty(t, resp.GetGames())
+	})
+}
