@@ -32,12 +32,9 @@ func (m *mockGameReposiroy) GetTopGames(ctx context.Context, filters model.GameF
 	return args.Get(0).([]model.Game), args.Error(1)
 }
 
-func (m *mockGameReposiroy) SaveGame(ctx context.Context, game model.Game) (*model.Game, error) {
+func (m *mockGameReposiroy) SaveGame(ctx context.Context, game model.Game) error {
 	args := m.Called(ctx, game)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*model.Game), args.Error(1)
+	return args.Error(0)
 }
 
 func (m *mockGameReposiroy) DaleteGame(ctx context.Context, gameID uint64) (*model.Game, error) {

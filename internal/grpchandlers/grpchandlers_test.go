@@ -21,12 +21,9 @@ type mockGameServicer struct {
 	mock.Mock
 }
 
-func (m *mockGameServicer) AddGame(ctx context.Context, game *gamev4.GameRequest) (*model.Game, error) {
+func (m *mockGameServicer) AddGame(ctx context.Context, game *gamev4.GameRequest) error {
 	args := m.Called(ctx, game)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*model.Game), args.Error(1)
+	return args.Error(0)
 }
 
 func (m *mockGameServicer) GetGame(ctx context.Context, gameID uint64) (*model.Game, error) {
@@ -63,19 +60,10 @@ func TestAddGameHandler(t *testing.T) {
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
-		expectedGame := &model.Game{
-			Title:       "Dark Souls 3",
-			Genres:      []model.Genre{{1, "Action RPG"}},
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			ImageURL:    "http://",
-			Tags:        []model.Tag{{1, "Hard"}},
-		}
 		req := gamev4.AddGameRequest{Game: game}
-		mockGameService.On("AddGame", mock.Anything, game).Return(expectedGame, nil).Once()
-		resp, err := srv.AddGame(context.Background(), &req)
+		mockGameService.On("AddGame", mock.Anything, game).Return(nil).Once()
+		_, err := srv.AddGame(context.Background(), &req)
 		require.NoError(t, err)
-		require.Equal(t, *converters.ToProtoGame(*expectedGame), *resp.GetGame())
 	})
 	t.Run("Не указано поле Title", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -88,11 +76,10 @@ func TestAddGameHandler(t *testing.T) {
 			Tags:        []string{"Hard"},
 		}
 		req := &gamev4.AddGameRequest{Game: game}
-		resp, err := srv.AddGame(context.Background(), req)
+		_, err := srv.AddGame(context.Background(), req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
 		require.Equal(t, outerror.TitleRequiredMessage, s.Message())
-		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Не указано поле Description", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -105,11 +92,10 @@ func TestAddGameHandler(t *testing.T) {
 			Tags:        []string{"Hard"},
 		}
 		req := gamev4.AddGameRequest{Game: game}
-		resp, err := srv.AddGame(context.Background(), &req)
+		_, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
 		require.Equal(t, outerror.DescriptionRequiredMessage, s.Message())
-		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Не указано поле Release Year", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -122,11 +108,10 @@ func TestAddGameHandler(t *testing.T) {
 			Tags:        []string{"Hard"},
 		}
 		req := gamev4.AddGameRequest{Game: game}
-		resp, err := srv.AddGame(context.Background(), &req)
+		_, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
 		require.Equal(t, outerror.ReleaseYearRequiredMessage, s.Message())
-		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Игра уже существует", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -140,12 +125,11 @@ func TestAddGameHandler(t *testing.T) {
 			Tags:        []string{"Hard"},
 		}
 		req := gamev4.AddGameRequest{Game: game}
-		mockGameService.On("AddGame", mock.Anything, game).Return(nil, outerror.ErrGameAlreadyExist).Once()
-		resp, err := srv.AddGame(context.Background(), &req)
+		mockGameService.On("AddGame", mock.Anything, game).Return(outerror.ErrGameAlreadyExist).Once()
+		_, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.AlreadyExists, s.Code())
 		require.Equal(t, outerror.GameAlreadyExistMessage, s.Message())
-		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Internal ошибка", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -159,11 +143,10 @@ func TestAddGameHandler(t *testing.T) {
 			Tags:        []string{"Hard"},
 		}
 		req := gamev4.AddGameRequest{Game: game}
-		mockGameService.On("AddGame", mock.Anything, game).Return(nil, errors.New("some error")).Once()
-		resp, err := srv.AddGame(context.Background(), &req)
+		mockGameService.On("AddGame", mock.Anything, game).Return(errors.New("some error")).Once()
+		_, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.Internal, s.Code())
-		require.Nil(t, resp.GetGame())
 	})
 	t.Run("Игра сохранена, но без обложки", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -176,18 +159,9 @@ func TestAddGameHandler(t *testing.T) {
 			CoverImage:  []byte("qwe"),
 			Tags:        []string{"Hard"},
 		}
-		expectedGame := model.Game{
-			Title:       "Dark Souls 3",
-			Genres:      []model.Genre{{1, "Action RPG"}},
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			ImageURL:    "http://",
-			Tags:        []model.Tag{{1, "Hard"}},
-		}
 		req := gamev4.AddGameRequest{Game: game}
-		mockGameService.On("AddGame", mock.Anything, game).Return(&expectedGame, outerror.ErrCannotSaveGameImage)
-		resp, err := srv.AddGame(context.Background(), &req)
-		require.Equal(t, *converters.ToProtoGame(expectedGame), *resp.GetGame())
+		mockGameService.On("AddGame", mock.Anything, game).Return(outerror.ErrCannotSaveGameImage)
+		_, err := srv.AddGame(context.Background(), &req)
 		require.NoError(t, err)
 	})
 	t.Run("Нельзя создать игру с несуществующим жанром", func(t *testing.T) {
@@ -202,13 +176,11 @@ func TestAddGameHandler(t *testing.T) {
 			Tags:        []string{"Hard"},
 		}
 		req := gamev4.AddGameRequest{Game: game}
-		mockGameService.On("AddGame", mock.Anything, game).Return(nil, outerror.ErrGenreNotFound).Once()
-		resp, err := srv.AddGame(context.Background(), &req)
+		mockGameService.On("AddGame", mock.Anything, game).Return(outerror.ErrGenreNotFound).Once()
+		_, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
 		require.Equal(t, outerror.GenreNotFoundMessage, s.Message())
-		require.Nil(t, resp.GetGame())
-		mockGameService.AssertExpectations(t)
 	})
 	t.Run("Нельзя создать игру с несуществующим тэгом", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -222,13 +194,11 @@ func TestAddGameHandler(t *testing.T) {
 			Tags:        []string{"Hard"},
 		}
 		req := gamev4.AddGameRequest{Game: game}
-		mockGameService.On("AddGame", mock.Anything, game).Return(nil, outerror.ErrTagNotFound).Once()
-		resp, err := srv.AddGame(context.Background(), &req)
+		mockGameService.On("AddGame", mock.Anything, game).Return(outerror.ErrTagNotFound).Once()
+		_, err := srv.AddGame(context.Background(), &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.InvalidArgument, s.Code())
 		require.Equal(t, outerror.TagNotFoundMessage, s.Message())
-		require.Nil(t, resp.GetGame())
-
 	})
 }
 

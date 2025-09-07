@@ -19,7 +19,7 @@ type GameReposetory interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error)
 	GetGameByID(ctx context.Context, gameID uint64) (*model.Game, error)
 	GetTopGames(ctx context.Context, filters model.GameFilters, limit uint32) ([]model.Game, error)
-	SaveGame(ctx context.Context, game model.Game) (*model.Game, error)
+	SaveGame(ctx context.Context, game model.Game) error
 	DaleteGame(ctx context.Context, gameID uint64) (*model.Game, error)
 }
 
@@ -72,16 +72,16 @@ func NewGameService(
 func (gameService *GameService) AddGame(
 	ctx context.Context,
 	gameToAdd *gamev4.GameRequest,
-) (*model.Game, error) {
+) error {
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
 	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year)
 	if err == nil {
 		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year))
-		return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameAlreadyExist)
+		return fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameAlreadyExist)
 	} else if !errors.Is(err, outerror.ErrGameNotFound) {
 		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year))
-		return nil, fmt.Errorf("%s:%w", operationPlace, err)
+		return fmt.Errorf("%s:%w", operationPlace, err)
 	}
 	var errSaveImage error
 	var imageURL string
@@ -106,7 +106,7 @@ func (gameService *GameService) AddGame(
 		if err != nil {
 			if errors.Is(err, outerror.ErrTagNotFound) {
 				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", t)))
-				return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrTagNotFound)
+				return fmt.Errorf("%s: %w", operationPlace, outerror.ErrTagNotFound)
 			}
 		}
 	}
@@ -116,7 +116,7 @@ func (gameService *GameService) AddGame(
 		if err != nil {
 			if errors.Is(err, outerror.ErrGenreNotFound) {
 				log.Warn("genres with this names not found", slog.String("genres", fmt.Sprintf("%#v", g)))
-				return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGenreNotFound)
+				return fmt.Errorf("%s: %w", operationPlace, outerror.ErrGenreNotFound)
 			}
 		}
 	}
@@ -128,20 +128,20 @@ func (gameService *GameService) AddGame(
 		Genres:      genres,
 		ImageURL:    imageURL,
 	}
-	savedGame, err := gameService.gameRepository.SaveGame(ctx, game)
+	err = gameService.gameRepository.SaveGame(ctx, game)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		return fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	log.Info("game save successfully")
 	err = gameService.mailer.SendMessage(
 		"Добавлена игра",
-		fmt.Sprintf("Добавлена игра %s %d года", savedGame.Title, savedGame.ReleaseDate.Year()),
+		fmt.Sprintf("Добавлена игра %s %d года", game.Title, game.ReleaseDate.Year()),
 	)
 	if err != nil {
 		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))
 	}
-	return savedGame, errSaveImage
+	return errSaveImage
 }
 
 func (gameService *GameService) GetGame(

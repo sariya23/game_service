@@ -73,9 +73,8 @@ func TestAddGame(t *testing.T) {
 		}
 		gameMockRepo.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.GetReleaseDate().Year).Return(game, nil).Once()
 
-		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
+		err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
-		require.Nil(t, savedGame)
 	})
 	t.Run("Игра не создается с несуществующими тегами", func(t *testing.T) {
 		expectedError := outerror.ErrTagNotFound
@@ -93,8 +92,7 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		tagMockRepo.On("GetTags", mock.Anything, tags).Return(nil, outerror.ErrTagNotFound).Once()
-		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Nil(t, savedGame)
+		err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
 	})
 	t.Run("Игра не создается с несуществующими жанрами", func(t *testing.T) {
@@ -113,8 +111,7 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		genreMockRepo.On("GetGenres", mock.Anything, genres).Return(nil, outerror.ErrGenreNotFound).Once()
-		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Nil(t, savedGame)
+		err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
 	})
 	t.Run("Не удалось сохранить игру", func(t *testing.T) {
@@ -135,10 +132,9 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetTitle(),
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil, expectedErr).Once()
-		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedErr).Once()
+		err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedErr)
-		require.Nil(t, savedGame)
 	})
 	t.Run("Игра сохраняется даже в случае не сохранения обложки в S3", func(t *testing.T) {
 		gameToAdd := &gamev4.GameRequest{
@@ -166,9 +162,8 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedErr).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(&game, nil).Once()
-		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Equal(t, game, *savedGame)
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil).Once()
+		err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedErr)
 	})
 	t.Run("Сохранение игры без ошибок", func(t *testing.T) {
@@ -197,9 +192,8 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(&game, nil).Once()
-		savedGame, err := gameService.AddGame(context.Background(), gameToAdd)
-		require.Equal(t, game, *savedGame)
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil).Once()
+		err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
 	})
 }
