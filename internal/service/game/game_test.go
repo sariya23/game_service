@@ -314,3 +314,33 @@ func TestDeleteGame(t *testing.T) {
 		require.ErrorIs(t, err, someErr)
 	})
 }
+
+func TestGetTopGames(t *testing.T) {
+	gameMockRepo := new(mockGameReposiroy)
+	tagMockRepo := new(mockTagRepository)
+	genreMockRepo := new(mockGenreRepository)
+	s3Mock := new(mockS3Storager)
+	mailerMock := new(mockEmailAlerter)
+	gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+	t.Run("Internal ошибка", func(t *testing.T) {
+		filters := model.GameFilters{ReleaseYear: 2020}
+		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.Game)(nil), errors.New("err")).Once()
+		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
+		require.Error(t, err)
+		require.Nil(t, games)
+	})
+	t.Run("Если игр под фильтры не нашлось, ошибки нет", func(t *testing.T) {
+		filters := model.GameFilters{ReleaseYear: 2020}
+		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.Game)(nil), nil).Once()
+		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
+		require.NoError(t, err)
+		require.Nil(t, games)
+	})
+	t.Run("Успешное получение топа игр", func(t *testing.T) {
+		filters := model.GameFilters{ReleaseYear: 2020}
+		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return([]model.Game{{GameID: 1, Title: "qwe", Description: "qe"}}, nil).Once()
+		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
+		require.NoError(t, err)
+		require.Equal(t, games, []model.Game{{GameID: 1, Title: "qwe", Description: "qe"}})
+	})
+}

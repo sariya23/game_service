@@ -18,7 +18,7 @@ import (
 type GameReposetory interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error)
 	GetGameByID(ctx context.Context, gameID uint64) (*model.Game, error)
-	GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) ([]model.Game, error)
+	GetTopGames(ctx context.Context, filters model.GameFilters, limit uint32) ([]model.Game, error)
 	SaveGame(ctx context.Context, game model.Game) (*model.Game, error)
 	DaleteGame(ctx context.Context, gameID uint64) (*model.Game, error)
 }
@@ -172,7 +172,7 @@ func (gameService *GameService) GetTopGames(
 	if gameFilters.ReleaseYear == 0 {
 		gameFilters.ReleaseYear = int32(time.Now().Year())
 	}
-	games, err := gameService.gameRepository.GetTopGames(ctx, gameFilters.ReleaseYear, gameFilters.Tags, gameFilters.Tags, limit)
+	games, err := gameService.gameRepository.GetTopGames(ctx, gameFilters, limit)
 	if err != nil {
 		log.Error(fmt.Sprintf("unexcpected error; err=%v", err))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
