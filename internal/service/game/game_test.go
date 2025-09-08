@@ -196,6 +196,68 @@ func TestAddGame(t *testing.T) {
 		err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
 	})
+	t.Run("Сохранение игры с тэгами и жанрами без ошибок", func(t *testing.T) {
+		gameToAdd := &gamev4.GameRequest{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"TAG"},
+			Genres:      []string{"GENRE"},
+		}
+		game := model.Game{
+			Title:       "Dark Souls 3",
+			Description: "test",
+			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			ImageURL:    "qwe",
+			Tags:        []model.Tag{{1, "TAG"}},
+			Genres:      []model.Genre{{1, "GENRE"}},
+		}
+		gameMockRepo.On(
+			"GetGameByTitleAndReleaseYear",
+			mock.Anything,
+			gameToAdd.GetTitle(),
+			gameToAdd.GetReleaseDate().Year,
+		).Return(nil, outerror.ErrGameNotFound).Once()
+		s3Mock.On(
+			"SaveObject",
+			mock.Anything,
+			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
+			bytes.NewReader(gameToAdd.GetCoverImage()),
+		).Return("qwe", nil).Once()
+		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
+		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
+		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil).Once()
+		err := gameService.AddGame(context.Background(), gameToAdd)
+		require.NoError(t, err)
+	})
+	t.Run("Игра не сохраняется при ошибке получении тэгов", func(t *testing.T) {
+		// TODO: сделать через gofakeit
+		gameToAdd := &gamev4.GameRequest{
+			Title:       "Dark Souls 34",
+			Description: "test",
+			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
+			CoverImage:  []byte("qwe"),
+			Tags:        []string{"ABOBA"},
+		}
+		gameMockRepo.On(
+			"GetGameByTitleAndReleaseYear",
+			mock.Anything,
+			gameToAdd.GetTitle(),
+			gameToAdd.GetReleaseDate().Year,
+		).Return(nil, outerror.ErrGameNotFound).Once()
+		s3Mock.On(
+			"SaveObject",
+			mock.Anything,
+			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
+			bytes.NewReader(gameToAdd.GetCoverImage()),
+		).Return("qwe", nil).Once()
+		expectedErr := errors.New("some err")
+		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return(nil, expectedErr).Once()
+		err := gameService.AddGame(context.Background(), gameToAdd)
+		require.ErrorIs(t, err, expectedErr)
+	})
 }
 
 func TestGetGame(t *testing.T) {

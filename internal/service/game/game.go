@@ -108,6 +108,8 @@ func (gameService *GameService) AddGame(
 				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", t)))
 				return fmt.Errorf("%s: %w", operationPlace, outerror.ErrTagNotFound)
 			}
+			log.Error(fmt.Sprintf("cannot get tags, err=%v", err))
+			return fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 	var genres []model.Genre
