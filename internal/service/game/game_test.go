@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/sariya23/game_service/internal/lib/mockslog"
+	"github.com/sariya23/game_service/internal/lib/random"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
-	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/genproto/googleapis/type/date"
 )
 
 type mockEmailAlerter struct {
@@ -61,15 +60,22 @@ func TestAddGame(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		expectedError := outerror.ErrGameAlreadyExist
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Genres = nil
+		gameToAdd.Tags = nil
+		gameToAdd.CoverImage = nil
 		game := &model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			Title:       gameToAdd.GetTitle(),
+			Description: gameToAdd.GetDescription(),
+			ReleaseDate: time.Date(
+				int(gameToAdd.ReleaseDate.Year),
+				time.Month(gameToAdd.ReleaseDate.Month),
+				int(gameToAdd.ReleaseDate.Day),
+				0,
+				0,
+				0,
+				0,
+				time.UTC),
 		}
 		gameMockRepo.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.GetReleaseDate().Year).Return(game, nil).Once()
 
@@ -84,13 +90,9 @@ func TestAddGame(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		expectedError := outerror.ErrTagNotFound
-		tags := []string{"test"}
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			Tags:        tags,
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		tags := gameToAdd.Tags
+		gameToAdd.CoverImage = nil
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
@@ -109,13 +111,10 @@ func TestAddGame(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		expectedError := outerror.ErrGenreNotFound
-		genres := []string{"test"}
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			Genres:      genres,
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.CoverImage = nil
+		gameToAdd.Tags = nil
+		genres := gameToAdd.Genres
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
@@ -133,15 +132,22 @@ func TestAddGame(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Genres = nil
+		gameToAdd.Tags = nil
+		gameToAdd.CoverImage = nil
 		game := model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			Title:       gameToAdd.GetTitle(),
+			Description: gameToAdd.GetDescription(),
+			ReleaseDate: time.Date(
+				int(gameToAdd.ReleaseDate.Year),
+				time.Month(gameToAdd.ReleaseDate.Month),
+				int(gameToAdd.ReleaseDate.Day),
+				0,
+				0,
+				0,
+				0,
+				time.UTC),
 		}
 		expectedErr := errors.New("some error")
 		gameMockRepo.On(
@@ -161,16 +167,21 @@ func TestAddGame(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImage:  []byte("qwe"),
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Genres = nil
+		gameToAdd.Tags = nil
 		game := model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
+			Title:       gameToAdd.GetTitle(),
+			Description: gameToAdd.GetDescription(),
+			ReleaseDate: time.Date(
+				int(gameToAdd.ReleaseDate.Year),
+				time.Month(gameToAdd.ReleaseDate.Month),
+				int(gameToAdd.ReleaseDate.Day),
+				0,
+				0,
+				0,
+				0,
+				time.UTC),
 		}
 		expectedErr := outerror.ErrCannotSaveGameImage
 		gameMockRepo.On(
@@ -197,17 +208,22 @@ func TestAddGame(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImage:  []byte("qwe"),
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Genres = nil
+		gameToAdd.Tags = nil
 		game := model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			ImageURL:    "qwe",
+			Title:       gameToAdd.GetTitle(),
+			Description: gameToAdd.GetDescription(),
+			ReleaseDate: time.Date(
+				int(gameToAdd.ReleaseDate.Year),
+				time.Month(gameToAdd.ReleaseDate.Month),
+				int(gameToAdd.ReleaseDate.Day),
+				0,
+				0,
+				0,
+				0,
+				time.UTC),
+			ImageURL: string(gameToAdd.CoverImage),
 		}
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
@@ -220,7 +236,7 @@ func TestAddGame(t *testing.T) {
 			mock.Anything,
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
-		).Return("qwe", nil).Once()
+		).Return(string(gameToAdd.CoverImage), nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil).Once()
 		err := gameService.AddGame(context.Background(), gameToAdd)
@@ -233,21 +249,25 @@ func TestAddGame(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImage:  []byte("qwe"),
-			Tags:        []string{"TAG"},
-			Genres:      []string{"GENRE"},
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Tags = []string{"TAG"}
+		gameToAdd.Genres = []string{"GENRE"}
 		game := model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			ImageURL:    "qwe",
-			Tags:        []model.Tag{{1, "TAG"}},
-			Genres:      []model.Genre{{1, "GENRE"}},
+			Title:       gameToAdd.Title,
+			Description: gameToAdd.Description,
+			ReleaseDate: time.Date(
+				int(gameToAdd.ReleaseDate.Year),
+				time.Month(gameToAdd.ReleaseDate.Month),
+				int(gameToAdd.ReleaseDate.Day),
+				0,
+				0,
+				0,
+				0,
+				time.UTC,
+			),
+			ImageURL: string(gameToAdd.CoverImage),
+			Tags:     []model.Tag{{1, "TAG"}},
+			Genres:   []model.Genre{{1, "GENRE"}},
 		}
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
@@ -260,7 +280,7 @@ func TestAddGame(t *testing.T) {
 			mock.Anything,
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
-		).Return("qwe", nil).Once()
+		).Return(game.ImageURL, nil).Once()
 		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
 		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
@@ -275,14 +295,7 @@ func TestAddGame(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		// TODO: сделать через gofakeit
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 34",
-			Description: "test",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImage:  []byte("qwe"),
-			Tags:        []string{"ABOBA"},
-		}
+		gameToAdd := random.RandomAddGameRequest()
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
@@ -307,13 +320,8 @@ func TestAddGame(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		gameToAdd := &gamev4.GameRequest{
-			Title:       "Dark Souls 34",
-			Description: "fgudgdifg",
-			ReleaseDate: &date.Date{Year: 2016, Month: 3, Day: 16},
-			CoverImage:  []byte("qwe"),
-			Genres:      []string{"ABOBA"},
-		}
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Tags = nil
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
