@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
-	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
 type PostgreSQL struct {
@@ -222,7 +221,7 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 	return &game, nil
 }
 
-func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *model.Game) (*model.Game, error) {
+func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) error {
 	const operationPlace = "postgresql.SaveGame"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	saveGameArgs := pgx.NamedArgs{
@@ -256,7 +255,7 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *model.Game) (*m
 	tx, err := postgresql.connection.Begin(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot start transaction, unexpected error = %v", err))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		return fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer tx.Rollback(ctx)
 
@@ -265,14 +264,14 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *model.Game) (*m
 	err = saveGameRow.Scan(&savedGameID)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game, unexpected error = %v", err))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		return fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	for _, tagID := range tagIDs {
 		_, err = tx.Exec(ctx, addTagsForGameQuery, savedGameID, tagID)
 		if err != nil {
 			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int("tagID", tagID), slog.Int("gameID", int(savedGameID)))
-			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+			return fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 
@@ -280,21 +279,29 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *model.Game) (*m
 		_, err = tx.Exec(ctx, addGenresForGameQuery, savedGameID, genreID)
 		if err != nil {
 			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int("genreID", genreID), slog.Int("gameID", int(savedGameID)))
-			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+			return fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 	err = tx.Commit(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot commit, err = %v", err))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		return fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	return game, nil
+	return nil
 }
 
-func (postgresql PostgreSQL) GetTopGames(ctx context.Context, releaseYear int32, tags []string, genres []string, limit uint32) (games []*gamev4.DomainGame, err error) {
+func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters model.GameFilters, limit uint32) (games []model.Game, err error) {
 	return nil, nil
 }
 
-func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*gamev4.DomainGame, error) {
+func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*model.Game, error) {
 	return nil, nil
+}
+
+func (postgresql PostgreSQL) GetTags(ctx context.Context, tags []string) ([]model.Tag, error) {
+	panic("impl me")
+}
+
+func (postgressql PostgreSQL) GetGenres(ctx context.Context, genres []string) ([]model.Genre, error) {
+	panic("impl me")
 }

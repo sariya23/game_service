@@ -39,10 +39,8 @@ func TestAddGame(t *testing.T) {
 				CoverImage:  nil,
 			},
 		}
-		response, err := grpcClient.AddGame(ctx, &request)
+		_, err = grpcClient.AddGame(ctx, &request)
 		require.NoError(t, err)
-		if response.Game.GetID() == 0 {
-			t.Error("asd")
-		}
+
 	})
 }

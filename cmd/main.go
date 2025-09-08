@@ -29,7 +29,7 @@ func main() {
 	db := postgresql.MustNewConnection(ctx, log, cfg.Postgres.PostgresURL)
 	s3Client := minioclient.MustPrepareMinio(ctx, log, cfg.Minio, false)
 	mailer := email.NewDialer(cfg.Email)
-	gameService := gameservice.NewGameService(log, db, s3Client, db, mailer, db)
+	gameService := gameservice.NewGameService(log, db, db, db, s3Client, mailer)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.GrpcServerPort))
 	if err != nil {
