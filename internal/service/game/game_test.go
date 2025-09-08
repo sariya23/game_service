@@ -379,14 +379,7 @@ func TestGetGame(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		gameID := uint64(1)
-		expectedGame := &model.Game{
-			Title:       "Dark Souls 3",
-			Genres:      []model.Genre{{GenreID: 1, GenreName: "Hard"}},
-			Description: "qwe",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			Tags:        []model.Tag{{TagID: 1, TagName: "Aboba"}},
-			GameID:      2,
-		}
+		expectedGame := model.NewRandomGame()
 		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(expectedGame, nil).Once()
 		game, err := gameService.GetGame(context.Background(), gameID)
 		require.NoError(t, err)
@@ -403,12 +396,7 @@ func TestDeleteGame(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		gameID := uint64(4)
-		deletedGame := &model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			ImageURL:    "qwe",
-		}
+		deletedGame := model.NewRandomGame()
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(nil).Once()
@@ -452,12 +440,8 @@ func TestDeleteGame(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		gameID := uint64(4)
-		deletedGame := &model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			ImageURL:    "qwe",
-		}
+		deletedGame := model.NewRandomGame()
+		deletedGame.ImageURL = ""
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(outerror.ErrImageNotFoundS3).Once()
@@ -473,12 +457,7 @@ func TestDeleteGame(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		gameID := uint64(4)
-		deletedGame := &model.Game{
-			Title:       "Dark Souls 3",
-			Description: "test",
-			ReleaseDate: time.Date(2016, 3, 16, 0, 0, 0, 0, time.UTC),
-			ImageURL:    "qwe",
-		}
+		deletedGame := model.NewRandomGame()
 		someErr := errors.New("some error")
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
