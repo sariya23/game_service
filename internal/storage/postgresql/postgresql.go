@@ -301,7 +301,7 @@ func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*mo
 func (postgresql PostgreSQL) GetTags(ctx context.Context, tags []string) ([]model.Tag, error) {
 	const operationPlace = "postgresql.GetTags"
 	log := postgresql.log.With("operationPlace", operationPlace)
-	getTagsQuery := fmt.Sprintf("select %s, %s from tag where %s=$1", tagTagIDFieldName, tagTagNameFieldName, tagTagNameFieldName)
+	getTagsQuery := fmt.Sprintf("select %s, %s from tag where %s=any($1)", tagTagIDFieldName, tagTagNameFieldName, tagTagNameFieldName)
 	tagRows, err := postgresql.connection.Query(ctx, getTagsQuery, tags)
 	if err != nil {
 		log.Error(fmt.Sprintf("Cannot get tags, uncaught error: %v", err))
@@ -331,7 +331,7 @@ func (postgresql PostgreSQL) GetTags(ctx context.Context, tags []string) ([]mode
 func (postgresql PostgreSQL) GetGenres(ctx context.Context, genres []string) ([]model.Genre, error) {
 	const operationPlace = "postgresql.GetGenres"
 	log := postgresql.log.With("operationPlace", operationPlace)
-	getGenresQuery := fmt.Sprintf("select %s, %s from genre where %s=$1", genreGenreIDFieldName, genreGenreNameFieldName, genreGenreNameFieldName)
+	getGenresQuery := fmt.Sprintf("select %s, %s from genre where %s=any($1)", genreGenreIDFieldName, genreGenreNameFieldName, genreGenreNameFieldName)
 	genreRows, err := postgresql.connection.Query(ctx, getGenresQuery, genres)
 	if err != nil {
 		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err))
