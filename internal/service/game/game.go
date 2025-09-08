@@ -120,6 +120,8 @@ func (gameService *GameService) AddGame(
 				log.Warn("genres with this names not found", slog.String("genres", fmt.Sprintf("%#v", g)))
 				return fmt.Errorf("%s: %w", operationPlace, outerror.ErrGenreNotFound)
 			}
+			log.Error(fmt.Sprintf("cannot get genres, err=%v", err))
+			return fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 	game := model.Game{
