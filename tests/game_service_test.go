@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/sariya23/game_service/internal/config"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/require"
@@ -31,7 +32,7 @@ func TestAddGame(t *testing.T) {
 		}
 		request := gamev4.AddGameRequest{
 			Game: &gamev4.GameRequest{
-				Title:       "test",
+				Title:       gofakeit.Book().Title,
 				Genres:      []string{"Экшен"},
 				Tags:        []string{"Пиксельная графика"},
 				ReleaseDate: &date.Date{Year: 2024, Month: 3, Day: 2},

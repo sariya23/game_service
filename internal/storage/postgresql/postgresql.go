@@ -299,9 +299,9 @@ func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*mo
 }
 
 func (postgresql PostgreSQL) GetTags(ctx context.Context, tags []string) ([]model.Tag, error) {
-	panic("impl me")
+	panic("impl GetTags")
 }
 
 func (postgressql PostgreSQL) GetGenres(ctx context.Context, genres []string) ([]model.Genre, error) {
-	panic("impl me")
+	panic("impl GetGenres")
 }
