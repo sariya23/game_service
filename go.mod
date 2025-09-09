@@ -3,10 +3,11 @@ module github.com/sariya23/game_service
 go 1.23.0
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.5.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/minio/minio-go/v7 v7.0.91
-	github.com/sariya23/proto_api_games/v4 v4.0.24
+	github.com/sariya23/proto_api_games/v4 v4.0.25
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto v0.0.0-20250313205543-e70fdf4c4cb4
 	google.golang.org/grpc v1.71.0
@@ -15,7 +16,6 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
-	github.com/brianvoe/gofakeit/v7 v7.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect

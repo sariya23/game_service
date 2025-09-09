@@ -14,7 +14,7 @@ import (
 )
 
 type GameServicer interface {
-	AddGame(ctx context.Context, game *gamev4.GameRequest) (err error)
+	AddGame(ctx context.Context, game *gamev4.GameRequest) (gameID uint64, err error)
 	GetGame(ctx context.Context, gameID uint64) (game *model.Game, err error)
 	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []model.Game, err error)
 	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *model.Game, err error)
@@ -42,21 +42,21 @@ func (srvApi *serverAPI) AddGame(
 	if request.Game.ReleaseDate == nil {
 		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.ReleaseYearRequiredMessage)
 	}
-	err := srvApi.gameServicer.AddGame(ctx, request.Game)
+	gameID, err := srvApi.gameServicer.AddGame(ctx, request.Game)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameAlreadyExist) {
 			return &gamev4.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
 		} else if errors.Is(err, outerror.ErrCannotSaveGameImage) {
-			return &gamev4.AddGameResponse{}, nil
+			return &gamev4.AddGameResponse{GameId: gameID}, nil
 		} else if errors.Is(err, outerror.ErrGenreNotFound) {
 			return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.GenreNotFoundMessage)
 		} else if errors.Is(err, outerror.ErrTagNotFound) {
-			return nil, status.Error(codes.InvalidArgument, outerror.TagNotFoundMessage)
+			return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.TagNotFoundMessage)
 		}
-		return nil, status.Error(codes.Internal, outerror.InternalMessage)
+		return &gamev4.AddGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
 
-	return &gamev4.AddGameResponse{}, nil
+	return &gamev4.AddGameResponse{GameId: gameID}, nil
 }
 
 func (srvApi *serverAPI) GetGame(
