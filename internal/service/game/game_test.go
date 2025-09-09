@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const GameNotSaveID uint64 = 0
+
 type mockEmailAlerter struct {
 	mock.Mock
 }
@@ -79,8 +81,9 @@ func TestAddGame(t *testing.T) {
 		}
 		gameMockRepo.On("GetGameByTitleAndReleaseYear", mock.Anything, gameToAdd.Title, gameToAdd.GetReleaseDate().Year).Return(game, nil).Once()
 
-		err := gameService.AddGame(context.Background(), gameToAdd)
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
+		require.Zero(t, gameID)
 	})
 	t.Run("Игра не создается с несуществующими тегами", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -100,8 +103,9 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		tagMockRepo.On("GetTags", mock.Anything, tags).Return(nil, outerror.ErrTagNotFound).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
+		require.Zero(t, gameID)
 	})
 	t.Run("Игра не создается с несуществующими жанрами", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -122,8 +126,9 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
 		genreMockRepo.On("GetGenres", mock.Anything, genres).Return(nil, outerror.ErrGenreNotFound).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
+		require.Zero(t, gameID)
 	})
 	t.Run("Не удалось сохранить игру", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -149,16 +154,17 @@ func TestAddGame(t *testing.T) {
 				0,
 				time.UTC),
 		}
-		expectedErr := errors.New("some error")
+		expectedError := errors.New("some error")
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
 			gameToAdd.GetTitle(),
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedErr).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
-		require.ErrorIs(t, err, expectedErr)
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(GameNotSaveID, expectedError).Once()
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.ErrorIs(t, err, expectedError)
+		require.Zero(t, gameID)
 	})
 	t.Run("Игра сохраняется даже в случае не сохранения обложки в S3", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -183,7 +189,7 @@ func TestAddGame(t *testing.T) {
 				0,
 				time.UTC),
 		}
-		expectedErr := outerror.ErrCannotSaveGameImage
+		expectedError := outerror.ErrCannotSaveGameImage
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
@@ -195,11 +201,12 @@ func TestAddGame(t *testing.T) {
 			mock.Anything,
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
-		).Return("", expectedErr).Once()
+		).Return("", expectedError).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
-		require.ErrorIs(t, err, expectedErr)
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(GameNotSaveID, nil).Once()
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.ErrorIs(t, err, expectedError)
+		require.Zero(t, gameID)
 	})
 	t.Run("Сохранение игры без ошибок", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -225,6 +232,7 @@ func TestAddGame(t *testing.T) {
 				time.UTC),
 			ImageURL: string(gameToAdd.CoverImage),
 		}
+		expectedGameID := uint64(228)
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
@@ -238,9 +246,10 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return(string(gameToAdd.CoverImage), nil).Once()
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
+		require.Equal(t, expectedGameID, gameID)
 	})
 	t.Run("Сохранение игры с тэгами и жанрами без ошибок", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -269,6 +278,7 @@ func TestAddGame(t *testing.T) {
 			Tags:     []model.Tag{{1, "TAG"}},
 			Genres:   []model.Genre{{1, "GENRE"}},
 		}
+		expectedGameID := uint64(288)
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
 			mock.Anything,
@@ -284,9 +294,10 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
 		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(nil).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
+		require.Equal(t, expectedGameID, gameID)
 	})
 	t.Run("Игра не сохраняется при ошибке получении тэгов", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -308,10 +319,11 @@ func TestAddGame(t *testing.T) {
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
-		expectedErr := errors.New("some err")
-		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return(nil, expectedErr).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
-		require.ErrorIs(t, err, expectedErr)
+		expectedError := errors.New("some err")
+		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return(nil, expectedError).Once()
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.ErrorIs(t, err, expectedError)
+		require.Zero(t, gameID)
 	})
 	t.Run("Игра не сохранилась при при ошибке получения жанров", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -334,11 +346,12 @@ func TestAddGame(t *testing.T) {
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
-		expectedErr := errors.New("some err")
+		expectedError := errors.New("some err")
 		tagMockRepo.AssertNotCalled(t, "GetTags")
-		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return(nil, expectedErr).Once()
-		err := gameService.AddGame(context.Background(), gameToAdd)
-		require.ErrorIs(t, err, expectedErr)
+		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return(nil, expectedError).Once()
+		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
+		require.ErrorIs(t, err, expectedError)
+		require.Zero(t, gameID)
 	})
 }
 
