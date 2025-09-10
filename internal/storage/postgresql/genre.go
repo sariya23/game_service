@@ -8,7 +8,7 @@ import (
 	"github.com/sariya23/game_service/internal/outerror"
 )
 
-func (postgresql PostgreSQL) GetGenres(ctx context.Context, genres []string) ([]model.Genre, error) {
+func (postgresql PostgreSQL) GetGenreByNames(ctx context.Context, genres []string) ([]model.Genre, error) {
 	const operationPlace = "postgresql.GetGenres"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	getGenresQuery := fmt.Sprintf("select %s, %s from genre where %s=any($1)", genreGenreIDFieldName, genreGenreNameFieldName, genreGenreNameFieldName)

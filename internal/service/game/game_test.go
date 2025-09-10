@@ -45,7 +45,7 @@ type mockGenreRepository struct {
 	mock.Mock
 }
 
-func (m *mockGenreRepository) GetGenres(ctx context.Context, genres []string) ([]model.Genre, error) {
+func (m *mockGenreRepository) GetGenreByNames(ctx context.Context, genres []string) ([]model.Genre, error) {
 	args := m.Called(ctx, genres)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -125,7 +125,7 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetTitle(),
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
-		genreMockRepo.On("GetGenres", mock.Anything, genres).Return(nil, outerror.ErrGenreNotFound).Once()
+		genreMockRepo.On("GetGenreByNames", mock.Anything, genres).Return(nil, outerror.ErrGenreNotFound).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
 		require.Zero(t, gameID)
@@ -292,7 +292,7 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return(game.ImageURL, nil).Once()
 		tagMockRepo.On("GetTagByNames", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
-		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
+		genreMockRepo.On("GetGenreByNames", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
@@ -347,7 +347,7 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		expectedError := errors.New("some err")
-		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return(nil, expectedError).Once()
+		genreMockRepo.On("GetGenreByNames", mock.Anything, gameToAdd.GetGenres()).Return(nil, expectedError).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
 		require.Zero(t, gameID)

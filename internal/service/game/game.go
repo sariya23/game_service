@@ -28,7 +28,7 @@ type TagRepository interface {
 }
 
 type GenreRepository interface {
-	GetGenres(ctx context.Context, genres []string) ([]model.Genre, error)
+	GetGenreByNames(ctx context.Context, genres []string) ([]model.Genre, error)
 }
 
 type S3Storager interface {
@@ -114,7 +114,7 @@ func (gameService *GameService) AddGame(
 	}
 	var genres []model.Genre
 	if g := gameToAdd.GetGenres(); len(g) != 0 {
-		genres, err = gameService.genreReposetory.GetGenres(ctx, g)
+		genres, err = gameService.genreReposetory.GetGenreByNames(ctx, g)
 		if err != nil {
 			if errors.Is(err, outerror.ErrGenreNotFound) {
 				log.Warn("genres with this names not found", slog.String("genres", fmt.Sprintf("%#v", g)))
