@@ -298,7 +298,7 @@ func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*mo
 	return nil, nil
 }
 
-func (postgresql PostgreSQL) GetTags(ctx context.Context, tags []string) ([]model.Tag, error) {
+func (postgresql PostgreSQL) GetTagByNames(ctx context.Context, tags []string) ([]model.Tag, error) {
 	const operationPlace = "postgresql.GetTags"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	getTagsQuery := fmt.Sprintf("select %s, %s from tag where %s=any($1)", tagTagIDFieldName, tagTagNameFieldName, tagTagNameFieldName)

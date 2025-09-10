@@ -24,7 +24,7 @@ type GameReposetory interface {
 }
 
 type TagRepository interface {
-	GetTags(ctx context.Context, tags []string) ([]model.Tag, error)
+	GetTagByNames(ctx context.Context, tags []string) ([]model.Tag, error)
 }
 
 type GenreRepository interface {
@@ -102,7 +102,7 @@ func (gameService *GameService) AddGame(
 	log.Info("no image data in game")
 	var tags []model.Tag
 	if t := gameToAdd.GetTags(); len(t) != 0 {
-		tags, err = gameService.tagReposetory.GetTags(ctx, t)
+		tags, err = gameService.tagReposetory.GetTagByNames(ctx, t)
 		if err != nil {
 			if errors.Is(err, outerror.ErrTagNotFound) {
 				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", t)))

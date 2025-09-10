@@ -33,7 +33,7 @@ type mockTagRepository struct {
 	mock.Mock
 }
 
-func (m *mockTagRepository) GetTags(ctx context.Context, tags []string) ([]model.Tag, error) {
+func (m *mockTagRepository) GetTagByNames(ctx context.Context, tags []string) ([]model.Tag, error) {
 	args := m.Called(ctx, tags)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -102,7 +102,7 @@ func TestAddGame(t *testing.T) {
 			gameToAdd.GetTitle(),
 			gameToAdd.GetReleaseDate().Year,
 		).Return(nil, outerror.ErrGameNotFound).Once()
-		tagMockRepo.On("GetTags", mock.Anything, tags).Return(nil, outerror.ErrTagNotFound).Once()
+		tagMockRepo.On("GetTagByNames", mock.Anything, tags).Return(nil, outerror.ErrTagNotFound).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
 		require.Zero(t, gameID)
@@ -291,7 +291,7 @@ func TestAddGame(t *testing.T) {
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return(game.ImageURL, nil).Once()
-		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
+		tagMockRepo.On("GetTagByNames", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
 		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
 		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
@@ -320,7 +320,7 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		expectedError := errors.New("some err")
-		tagMockRepo.On("GetTags", mock.Anything, gameToAdd.GetTags()).Return(nil, expectedError).Once()
+		tagMockRepo.On("GetTagByNames", mock.Anything, gameToAdd.GetTags()).Return(nil, expectedError).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
 		require.Zero(t, gameID)
@@ -347,7 +347,6 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("qwe", nil).Once()
 		expectedError := errors.New("some err")
-		tagMockRepo.AssertNotCalled(t, "GetTags")
 		genreMockRepo.On("GetGenres", mock.Anything, gameToAdd.GetGenres()).Return(nil, expectedError).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
