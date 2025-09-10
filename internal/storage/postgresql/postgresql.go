@@ -221,7 +221,7 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 	return &game, nil
 }
 
-func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) error {
+func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) (uint64, error) {
 	const operationPlace = "postgresql.SaveGame"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	saveGameArgs := pgx.NamedArgs{
@@ -255,7 +255,7 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) erro
 	tx, err := postgresql.connection.Begin(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot start transaction, unexpected error = %v", err))
-		return fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer tx.Rollback(ctx)
 
@@ -264,14 +264,14 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) erro
 	err = saveGameRow.Scan(&savedGameID)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game, unexpected error = %v", err))
-		return fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	for _, tagID := range tagIDs {
 		_, err = tx.Exec(ctx, addTagsForGameQuery, savedGameID, tagID)
 		if err != nil {
 			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int("tagID", tagID), slog.Int("gameID", int(savedGameID)))
-			return fmt.Errorf("%s: %w", operationPlace, err)
+			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 
@@ -279,15 +279,15 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) erro
 		_, err = tx.Exec(ctx, addGenresForGameQuery, savedGameID, genreID)
 		if err != nil {
 			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int("genreID", genreID), slog.Int("gameID", int(savedGameID)))
-			return fmt.Errorf("%s: %w", operationPlace, err)
+			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 	err = tx.Commit(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot commit, err = %v", err))
-		return fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	return nil
+	return savedGameID, nil
 }
 
 func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters model.GameFilters, limit uint32) (games []model.Game, err error) {
