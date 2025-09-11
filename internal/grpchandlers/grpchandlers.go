@@ -42,7 +42,7 @@ func (srvApi *serverAPI) AddGame(
 	if request.Game.ReleaseDate == nil {
 		return &gamev4.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.ReleaseYearRequiredMessage)
 	}
-	gameID, err := srvApi.gameServicer.AddGame(ctx, request.Game)
+	gameID, err := srvApi.gameServicer.AddGame(ctx, request.GetGame())
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameAlreadyExist) {
 			return &gamev4.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
