@@ -18,27 +18,29 @@ import (
 )
 
 func TestAddGame(t *testing.T) {
-	t.Run("Успешное сохранение игры", func(t *testing.T) {
-		ctx := context.Background()
-		cfg := config.MustLoadByPath("../config/local.env")
-		db := postgresql.MustNewConnection(ctx, mockslog.NewDiscardLogger(), cfg.Postgres.PostgresURL)
-		conn, err := grpc.NewClient(
-			net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Server.GrpcServerPort)),
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-		)
-		if err != nil || conn == nil {
-			t.Fatalf("cannot start client; err = %v", err)
-		}
-		grpcClient := gamev4.NewGameServiceClient(conn)
-		if grpcClient == nil {
-			t.Fatal("cannot create grpcClient")
-		}
+	ctx := context.Background()
+	cfg := config.MustLoadByPath("../config/local.env")
+	db := postgresql.MustNewConnection(ctx, mockslog.NewDiscardLogger(), cfg.Postgres.PostgresURL)
+	conn, err := grpc.NewClient(
+		net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Server.GrpcServerPort)),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil || conn == nil {
+		t.Fatalf("cannot start client; err = %v", err)
+	}
+	grpcClient := gamev4.NewGameServiceClient(conn)
+	if grpcClient == nil {
+		t.Fatal("cannot create grpcClient")
+	}
+	t.Run("Успешное сохранение игры; все поля", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		availableTags, err := db.GetTags(ctx)
 		require.NoError(t, err)
+		availableGenres, err := db.GetGenres(ctx)
+		require.NoError(t, err)
 		gameToAdd.Tags = model.TagNames(availableTags)
+		gameToAdd.Genres = model.GenreNames(availableGenres)
 		gameToAdd.CoverImage = nil
-		gameToAdd.Genres = nil
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
 		require.NoError(t, err)

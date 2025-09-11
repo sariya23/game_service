@@ -173,7 +173,7 @@ func TestGetGameHandler(t *testing.T) {
 		mockGameService := new(mockGameServicer)
 		srv := serverAPI{gameServicer: mockGameService}
 		gameID := uint64(2)
-		expectedGame := model.NewRandomGame()
+		expectedGame := random.NewRandomGame()
 		req := gamev4.GetGameRequest{GameId: gameID}
 		mockGameService.On("GetGame", mock.Anything, gameID).Return(expectedGame, nil).Once()
 		resp, err := srv.GetGame(context.Background(), &req)
@@ -229,7 +229,7 @@ func TestDeleteGame(t *testing.T) {
 		gameID := uint64(2)
 		req := gamev4.DeleteGameRequest{GameId: gameID}
 
-		expectedGame := model.NewRandomGame()
+		expectedGame := random.NewRandomGame()
 		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(expectedGame, nil)
 		resp, err := srv.DeleteGame(ctx, &req)
 		require.NoError(t, err)
@@ -268,7 +268,7 @@ func TestGetTopGames(t *testing.T) {
 		ctx := context.Background()
 		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
 		filters := model.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
-		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{*model.NewRandomGame()}, nil)
+		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{*random.NewRandomGame()}, nil)
 		resp, err := srv.GetTopGames(ctx, &req)
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.GetGames())
