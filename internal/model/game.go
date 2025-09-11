@@ -12,6 +12,15 @@ type Tag struct {
 	TagName string
 }
 
+// TagNames возвращает имена тэгов.
+func TagNames(t []Tag) []string {
+	res := make([]string, 0, len(t))
+	for _, v := range t {
+		res = append(res, v.TagName)
+	}
+	return res
+}
+
 func NewRandomTag() *Tag {
 	var tag Tag
 	fakeit := gofakeit.New(0)
@@ -24,6 +33,15 @@ func NewRandomTag() *Tag {
 type Genre struct {
 	GenreID   uint64
 	GenreName string
+}
+
+// GenreNames возвращает имена жанров.
+func GenreNames(g []Genre) []string {
+	res := make([]string, 0, len(g))
+	for _, v := range g {
+		res = append(res, v.GenreName)
+	}
+	return res
 }
 
 func NewRandomGenre() *Genre {

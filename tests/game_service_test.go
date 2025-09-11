@@ -6,11 +6,13 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/brianvoe/gofakeit/v7"
 	"github.com/sariya23/game_service/internal/config"
+	"github.com/sariya23/game_service/internal/lib/mockslog"
+	"github.com/sariya23/game_service/internal/lib/random"
+	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/storage/postgresql"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -19,6 +21,7 @@ func TestAddGame(t *testing.T) {
 	t.Run("Успешное сохранение игры", func(t *testing.T) {
 		ctx := context.Background()
 		cfg := config.MustLoadByPath("../config/local.env")
+		db := postgresql.MustNewConnection(ctx, mockslog.NewDiscardLogger(), cfg.Postgres.PostgresURL)
 		conn, err := grpc.NewClient(
 			net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Server.GrpcServerPort)),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -30,18 +33,19 @@ func TestAddGame(t *testing.T) {
 		if grpcClient == nil {
 			t.Fatal("cannot create grpcClient")
 		}
-		request := gamev4.AddGameRequest{
-			Game: &gamev4.GameRequest{
-				Title:       gofakeit.Book().Title,
-				Genres:      []string{"Экшен"},
-				Tags:        []string{"Пиксельная графика"},
-				ReleaseDate: &date.Date{Year: 2024, Month: 3, Day: 2},
-				Description: "test",
-				CoverImage:  nil,
-			},
-		}
-		_, err = grpcClient.AddGame(ctx, &request)
+		gameToAdd := random.RandomAddGameRequest()
+		availableTags, err := db.GetTags(ctx)
 		require.NoError(t, err)
+		gameToAdd.Tags = model.TagNames(availableTags)
+		gameToAdd.CoverImage = nil
+		gameToAdd.Genres = nil
+		request := gamev4.AddGameRequest{Game: gameToAdd}
+		resp, err := grpcClient.AddGame(ctx, &request)
+		require.NoError(t, err)
+		require.NotZero(t, resp.GetGameId())
 
+		game, err := grpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: resp.GetGameId()})
+		require.NoError(t, err)
+		require.Equal(t, gameToAdd.Title, game.Game.Title)
 	})
 }
