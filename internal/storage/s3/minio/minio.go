@@ -91,8 +91,17 @@ func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (str
 	const operationPlace = "minioclient.SaveObject"
 	log := m.log.With("operationPlace", operationPlace)
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(data)
-	info, err := m.client.PutObject(ctx, m.BucketName, name, data, int64(buf.Len()), minio.PutObjectOptions{})
+	_, err := buf.ReadFrom(data)
+	if err != nil {
+		log.Error(fmt.Sprintf("cannot read data from reader; err=%v", err))
+		return "", fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	if buf.Len() == 0 {
+		log.Error("empty data provided")
+		return "", fmt.Errorf("%s: empty data", operationPlace)
+	}
+	reader := bytes.NewReader(buf.Bytes())
+	info, err := m.client.PutObject(ctx, m.BucketName, name, reader, int64(buf.Len()), minio.PutObjectOptions{})
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save object in s3; err=%v", err))
 		return "", fmt.Errorf("%s: %w", operationPlace, err)

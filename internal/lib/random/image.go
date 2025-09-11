@@ -1,4 +1,4 @@
-package tests
+package random
 
 import (
 	"bytes"
@@ -7,11 +7,10 @@ import (
 	"image/png"
 )
 
-// GenerateTestImage создает простое тестовое изображение
-func GenerateTestImage() ([]byte, error) {
+// Image создает простое тестовое изображение
+func Image() ([]byte, error) {
 	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
 
-	// Заполняем фон
 	for y := 0; y < 100; y++ {
 		for x := 0; x < 100; x++ {
 			r := uint8(x * 255 / 100)

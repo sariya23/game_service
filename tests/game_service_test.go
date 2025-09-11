@@ -44,7 +44,7 @@ func TestAddGame(t *testing.T) {
 		require.NoError(t, err)
 		gameToAdd.Tags = model.TagNames(tags)
 		gameToAdd.Genres = model.GenreNames(genres)
-		expectedImage, err := GenerateTestImage()
+		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
 		request := gamev4.AddGameRequest{Game: gameToAdd}
