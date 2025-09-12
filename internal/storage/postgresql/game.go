@@ -145,7 +145,7 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			log.Warn("cannot get game", slog.Uint64("gameID", gameID))
+			log.Warn("game does not exists", slog.Uint64("gameID", gameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameNotFound)
 		} else {
 			log.Error(fmt.Sprintf("Uncaught error: %v", err))
