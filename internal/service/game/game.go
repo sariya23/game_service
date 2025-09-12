@@ -98,8 +98,9 @@ func (gameService *GameService) AddGame(
 		} else {
 			log.Info(fmt.Sprintf("image successfully saved in s3 with key=%s", gameKey))
 		}
+	} else {
+		log.Info("no image data in game")
 	}
-	log.Info("no image data in game")
 	var tags []model.Tag
 	if t := gameToAdd.GetTags(); len(t) != 0 {
 		tags, err = gameService.tagReposetory.GetTagByNames(ctx, t)
