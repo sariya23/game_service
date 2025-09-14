@@ -110,12 +110,15 @@ func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (str
 	return info.Key, nil
 }
 
-func (m Minio) GetObject(ctx context.Context, name string) (io.Reader, error) {
+func (m Minio) GetObject(ctx context.Context, name string) (*minio.Object, error) {
 	const operationPlace = "minioclient.GetObject"
 	log := m.log.With("operationPlace", operationPlace)
 	object, err := m.client.GetObject(ctx, m.BucketName, name, minio.GetObjectOptions{})
 	if err != nil {
 		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	if _, err := object.Stat(); err != nil {
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return object, nil

@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/minio/minio-go/v7"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
@@ -33,7 +34,7 @@ type GenreRepository interface {
 
 type S3Storager interface {
 	SaveObject(ctx context.Context, name string, data io.Reader) (string, error)
-	GetObject(ctx context.Context, name string) (io.Reader, error)
+	GetObject(ctx context.Context, name string) (*minio.Object, error)
 	DeleteObject(ctx context.Context, name string) error
 }
 

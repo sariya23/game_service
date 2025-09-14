@@ -25,3 +25,14 @@ func TestSaveMinio(t *testing.T) {
 		require.NotEmpty(t, key)
 	})
 }
+
+func TestGetObject(t *testing.T) {
+	ctx := context.Background()
+	cfg := config.MustLoadByPath("../../../../config/local.env")
+	s3 := MustPrepareMinio(ctx, mockslog.NewDiscardLogger(), cfg.Minio, false)
+	t.Run("Объект не найден", func(t *testing.T) {
+		reader, err := s3.GetObject(ctx, fmt.Sprintf("sduhfwuyegfyugeryuf%v", time.Now()))
+		require.Error(t, err)
+		require.Empty(t, reader)
+	})
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -16,9 +17,9 @@ func (m *mockS3Storager) SaveObject(ctx context.Context, name string, data io.Re
 	return args.Get(0).(string), args.Error(1)
 }
 
-func (m *mockS3Storager) GetObject(ctx context.Context, name string) (io.Reader, error) {
+func (m *mockS3Storager) GetObject(ctx context.Context, name string) (*minio.Object, error) {
 	args := m.Called(ctx, name)
-	return args.Get(0).(io.Reader), args.Error(1)
+	return args.Get(0).(*minio.Object), args.Error(1)
 }
 
 func (m *mockS3Storager) DeleteObject(ctx context.Context, name string) error {
