@@ -207,15 +207,11 @@ func (gameService *GameService) DeleteGame(
 	err = gameService.s3Storager.DeleteObject(ctx, gameKey)
 	var errDeleteImage error
 	if err != nil {
-		if errors.Is(err, outerror.ErrImageNotFoundS3) {
-			log.Info("there is not image for game")
-		} else {
-			log.Error("cannot delete image from s3")
-			log.Info(fmt.Sprintf("game: %+v", deletedGame))
-		}
+		log.Error("cannot delete image from s3")
+		log.Info(fmt.Sprintf("game: %+v", deletedGame))
 		errDeleteImage = err
 	} else {
-		log.Info("image cover deleted from s3")
+		log.Info("image cover deleted from s3 or is not present")
 	}
 	return deletedGame.GameID, errDeleteImage
 }

@@ -457,10 +457,10 @@ func TestDeleteGame(t *testing.T) {
 		deletedGame.ImageURL = ""
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(dto.DeletedGameFromGame(deletedGame), nil).Once()
-		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(outerror.ErrImageNotFoundS3).Once()
+		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(nil).Once()
 		deletedGameID, err := gameService.DeleteGame(context.Background(), gameID)
 		require.Equal(t, deletedGame.GameID, deletedGameID)
-		require.ErrorIs(t, err, outerror.ErrImageNotFoundS3)
+		require.NoError(t, err)
 	})
 	t.Run("Не удалось удалить обложку из S3", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)

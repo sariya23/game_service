@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/sariya23/game_service/internal/config"
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/lib/random"
@@ -34,5 +35,15 @@ func TestGetObject(t *testing.T) {
 		reader, err := s3.GetObject(ctx, fmt.Sprintf("sduhfwuyegfyugeryuf%v", time.Now()))
 		require.Error(t, err)
 		require.Empty(t, reader)
+	})
+}
+
+func TestDeleteObject(t *testing.T) {
+	ctx := context.Background()
+	cfg := config.MustLoadByPath("../../../../config/local.env")
+	s3 := MustPrepareMinio(ctx, mockslog.NewDiscardLogger(), cfg.Minio, false)
+	t.Run("Объект не найден", func(t *testing.T) {
+		err := s3.DeleteObject(ctx, gofakeit.Name())
+		require.NoError(t, err)
 	})
 }

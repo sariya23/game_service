@@ -189,7 +189,7 @@ func TestDeteteGame(t *testing.T) {
 	ctx := context.Background()
 	cfg := config.MustLoadByPath("../config/local.env")
 	db := postgresql.MustNewConnection(ctx, mockslog.NewDiscardLogger(), cfg.Postgres.PostgresURL)
-	// s3 := minioclient.MustPrepareMinio(ctx, mockslog.NewDiscardLogger(), cfg.Minio, false)
+	s3 := minioclient.MustPrepareMinio(ctx, mockslog.NewDiscardLogger(), cfg.Minio, false)
 	conn, err := grpc.NewClient(
 		net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Server.GrpcServerPort)),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -226,5 +226,28 @@ func TestDeteteGame(t *testing.T) {
 		require.Equal(t, codes.NotFound, s.Code())
 		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
 		require.Nil(t, respGet)
+
+		obj, err := s3.GetObject(ctx, minioclient.GameKey(gameToAdd.Title, int(gameToAdd.ReleaseDate.Year)))
+		require.Error(t, err)
+		require.Empty(t, obj)
+	})
+	t.Run("Удаление игры без обложки", func(t *testing.T) {
+		gameToAdd := random.RandomAddGameRequest()
+		tags, err := db.GetTags(ctx)
+		require.NoError(t, err)
+		genres, err := db.GetGenres(ctx)
+		require.NoError(t, err)
+		gameToAdd.Tags = model.TagNames(tags)
+		gameToAdd.Genres = model.GenreNames(genres)
+		gameToAdd.CoverImage = nil
+
+		request := gamev4.AddGameRequest{Game: gameToAdd}
+		addResp, err := grpcClient.AddGame(ctx, &request)
+		require.NoError(t, err)
+		require.NotZero(t, addResp.GetGameId())
+
+		respDelete, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: addResp.GameId})
+		require.NoError(t, err)
+		require.Equal(t, addResp.GameId, respDelete.GameId)
 	})
 }
