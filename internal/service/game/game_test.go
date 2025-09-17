@@ -489,7 +489,7 @@ func TestGetTopGames(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		filters := model.GameFilters{ReleaseYear: 2020}
+		filters := dto.GameFilters{ReleaseYear: 2020}
 		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.Game)(nil), errors.New("err")).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
 		require.Error(t, err)
@@ -502,7 +502,7 @@ func TestGetTopGames(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		filters := model.GameFilters{ReleaseYear: 2020}
+		filters := dto.GameFilters{ReleaseYear: 2020}
 		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.Game)(nil), nil).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
 		require.NoError(t, err)
@@ -515,7 +515,7 @@ func TestGetTopGames(t *testing.T) {
 		s3Mock := new(mockS3Storager)
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
-		filters := model.GameFilters{ReleaseYear: 2020}
+		filters := dto.GameFilters{ReleaseYear: 2020}
 		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return([]model.Game{{GameID: 1, Title: "qwe", Description: "qe"}}, nil).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
 		require.NoError(t, err)

@@ -8,6 +8,7 @@ import (
 	"github.com/sariya23/game_service/internal/converters"
 	"github.com/sariya23/game_service/internal/lib/random"
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
@@ -33,7 +34,7 @@ func (m *mockGameServicer) GetGame(ctx context.Context, gameID uint64) (*model.G
 	return args.Get(0).(*model.Game), args.Error(1)
 }
 
-func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) ([]model.Game, error) {
+func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) ([]model.Game, error) {
 	args := m.Called(ctx, gameFilters, limit)
 	return args.Get(0).([]model.Game), args.Error(1)
 
@@ -241,7 +242,7 @@ func TestGetTopGames(t *testing.T) {
 		srv := serverAPI{gameServicer: mockGameService}
 		ctx := context.Background()
 		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
-		filters := model.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
+		filters := dto.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
 		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{}, nil)
 		resp, err := srv.GetTopGames(ctx, &req)
 		require.NoError(t, err)
@@ -252,7 +253,7 @@ func TestGetTopGames(t *testing.T) {
 		srv := serverAPI{gameServicer: mockGameService}
 		ctx := context.Background()
 		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
-		filters := model.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
+		filters := dto.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
 		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{}, errors.New("err"))
 		resp, err := srv.GetTopGames(ctx, &req)
 		s, _ := status.FromError(err)
@@ -265,7 +266,7 @@ func TestGetTopGames(t *testing.T) {
 		srv := serverAPI{gameServicer: mockGameService}
 		ctx := context.Background()
 		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
-		filters := model.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
+		filters := dto.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
 		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{*random.NewRandomGame()}, nil)
 		resp, err := srv.GetTopGames(ctx, &req)
 		require.NoError(t, err)

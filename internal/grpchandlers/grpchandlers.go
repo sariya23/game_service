@@ -6,6 +6,7 @@ import (
 
 	"github.com/sariya23/game_service/internal/converters"
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"google.golang.org/grpc"
@@ -16,7 +17,7 @@ import (
 type GameServicer interface {
 	AddGame(ctx context.Context, game *gamev4.GameRequest) (gameID uint64, err error)
 	GetGame(ctx context.Context, gameID uint64) (game *model.Game, err error)
-	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []model.Game, err error)
+	GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) (games []model.Game, err error)
 	DeleteGame(ctx context.Context, gameID uint64) (deletedGameID uint64, err error)
 }
 
@@ -79,7 +80,7 @@ func (srvApi *serverAPI) GetTopGames(
 ) (*gamev4.GetTopGamesResponse, error) {
 	games, err := srvApi.gameServicer.GetTopGames(
 		ctx,
-		model.GameFilters{
+		dto.GameFilters{
 			ReleaseYear: request.GetYear(),
 			Genres:      request.GetGenres(),
 			Tags:        request.GetTags(),

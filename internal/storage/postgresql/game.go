@@ -265,7 +265,7 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) (uin
 	return savedGameID, nil
 }
 
-func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters model.GameFilters, limit uint32) (games []model.Game, err error) {
+func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) (games []model.Game, err error) {
 	return nil, nil
 }
 
