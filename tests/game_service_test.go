@@ -250,4 +250,11 @@ func TestDeteteGame(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, addResp.GameId, respDelete.GameId)
 	})
+	t.Run("Игра не найдена", func(t *testing.T) {
+		resp, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: uint64(gofakeit.Uint8())})
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.NotFound, s.Code())
+		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
+		require.Nil(t, resp)
+	})
 }
