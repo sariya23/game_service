@@ -184,3 +184,47 @@ func TestGetGame(t *testing.T) {
 		require.Nil(t, resp.GetGame())
 	})
 }
+
+func TestDeteteGame(t *testing.T) {
+	ctx := context.Background()
+	cfg := config.MustLoadByPath("../config/local.env")
+	db := postgresql.MustNewConnection(ctx, mockslog.NewDiscardLogger(), cfg.Postgres.PostgresURL)
+	// s3 := minioclient.MustPrepareMinio(ctx, mockslog.NewDiscardLogger(), cfg.Minio, false)
+	conn, err := grpc.NewClient(
+		net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Server.GrpcServerPort)),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil || conn == nil {
+		t.Fatalf("cannot start client; err = %v", err)
+	}
+	grpcClient := gamev4.NewGameServiceClient(conn)
+	if grpcClient == nil {
+		t.Fatal("cannot create grpcClient")
+	}
+	t.Run("Успешное удаление игры", func(t *testing.T) {
+		gameToAdd := random.RandomAddGameRequest()
+		tags, err := db.GetTags(ctx)
+		require.NoError(t, err)
+		genres, err := db.GetGenres(ctx)
+		require.NoError(t, err)
+		gameToAdd.Tags = model.TagNames(tags)
+		gameToAdd.Genres = model.GenreNames(genres)
+		expectedImage, err := random.Image()
+		require.NoError(t, err)
+		gameToAdd.CoverImage = expectedImage
+		request := gamev4.AddGameRequest{Game: gameToAdd}
+		addResp, err := grpcClient.AddGame(ctx, &request)
+		require.NoError(t, err)
+		require.NotZero(t, addResp.GetGameId())
+
+		respDelete, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: addResp.GameId})
+		require.NoError(t, err)
+		require.Equal(t, addResp.GameId, respDelete.GameId)
+
+		respGet, err := grpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: addResp.GameId})
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.NotFound, s.Code())
+		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
+		require.Nil(t, respGet)
+	})
+}
