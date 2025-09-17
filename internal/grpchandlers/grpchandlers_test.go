@@ -39,12 +39,12 @@ func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters model.Ga
 
 }
 
-func (m *mockGameServicer) DeleteGame(ctx context.Context, gameID uint64) (*model.Game, error) {
+func (m *mockGameServicer) DeleteGame(ctx context.Context, gameID uint64) (uint64, error) {
 	args := m.Called(ctx, gameID)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return 0, args.Error(1)
 	}
-	return args.Get(0).(*model.Game), args.Error(1)
+	return args.Get(0).(uint64), args.Error(1)
 }
 
 func TestAddGameHandler(t *testing.T) {
@@ -202,12 +202,12 @@ func TestDeleteGame(t *testing.T) {
 		ctx := context.Background()
 		gameID := uint64(2)
 		req := gamev4.DeleteGameRequest{GameId: gameID}
-		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(nil, outerror.ErrGameNotFound)
+		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(uint64(0), outerror.ErrGameNotFound)
 		resp, err := srv.DeleteGame(ctx, &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.NotFound, s.Code())
 		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
-		require.Nil(t, resp.GetGame())
+		require.Zero(t, resp.GetGameId())
 	})
 	t.Run("Internal ошибка", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -215,12 +215,12 @@ func TestDeleteGame(t *testing.T) {
 		ctx := context.Background()
 		gameID := uint64(2)
 		req := gamev4.DeleteGameRequest{GameId: gameID}
-		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(nil, errors.New("err"))
+		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(uint64(0), errors.New("err"))
 		resp, err := srv.DeleteGame(ctx, &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.Internal, s.Code())
 		require.Equal(t, outerror.InternalMessage, s.Message())
-		require.Nil(t, resp.GetGame())
+		require.Zero(t, resp.GetGameId())
 	})
 	t.Run("Успешное удаление игры", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -228,12 +228,10 @@ func TestDeleteGame(t *testing.T) {
 		ctx := context.Background()
 		gameID := uint64(2)
 		req := gamev4.DeleteGameRequest{GameId: gameID}
-
-		expectedGame := random.NewRandomGame()
-		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(expectedGame, nil)
+		mockGameService.On("DeleteGame", mock.Anything, gameID).Return(gameID, nil)
 		resp, err := srv.DeleteGame(ctx, &req)
 		require.NoError(t, err)
-		require.Equal(t, converters.ToProtoGame(*expectedGame), resp.GetGame())
+		require.Equal(t, gameID, resp.GetGameId())
 	})
 }
 

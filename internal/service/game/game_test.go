@@ -11,6 +11,7 @@ import (
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/lib/random"
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	"github.com/stretchr/testify/mock"
@@ -410,12 +411,12 @@ func TestDeleteGame(t *testing.T) {
 		gameID := uint64(4)
 		deletedGame := random.NewRandomGame()
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
-		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(dto.DeletedGameFromGame(deletedGame), nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(nil).Once()
 
-		game, err := gameService.DeleteGame(context.Background(), gameID)
+		deletedGameID, err := gameService.DeleteGame(context.Background(), gameID)
 		require.NoError(t, err)
-		require.Equal(t, deletedGame, game)
+		require.Equal(t, deletedGame.GameID, deletedGameID)
 	})
 	t.Run("Нет игры для удаления", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -426,9 +427,9 @@ func TestDeleteGame(t *testing.T) {
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		gameID := uint64(4)
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(nil, outerror.ErrGameNotFound).Once()
-		game, err := gameService.DeleteGame(context.Background(), gameID)
+		deletedGameID, err := gameService.DeleteGame(context.Background(), gameID)
 		require.ErrorIs(t, err, outerror.ErrGameNotFound)
-		require.Nil(t, game)
+		require.Zero(t, deletedGameID)
 	})
 	t.Run("Неожиданная ошибка при удалении игры", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -440,9 +441,9 @@ func TestDeleteGame(t *testing.T) {
 		gameID := uint64(4)
 		someErr := errors.New("some err")
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(nil, someErr).Once()
-		game, err := gameService.DeleteGame(context.Background(), gameID)
+		deletedGameID, err := gameService.DeleteGame(context.Background(), gameID)
 		require.ErrorIs(t, err, someErr)
-		require.Nil(t, game)
+		require.Zero(t, deletedGameID)
 	})
 	t.Run("У игры нет обложки в S3", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -455,10 +456,10 @@ func TestDeleteGame(t *testing.T) {
 		deletedGame := random.NewRandomGame()
 		deletedGame.ImageURL = ""
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
-		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(dto.DeletedGameFromGame(deletedGame), nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(outerror.ErrImageNotFoundS3).Once()
-		game, err := gameService.DeleteGame(context.Background(), gameID)
-		require.Equal(t, deletedGame, game)
+		deletedGameID, err := gameService.DeleteGame(context.Background(), gameID)
+		require.Equal(t, deletedGame.GameID, deletedGameID)
 		require.ErrorIs(t, err, outerror.ErrImageNotFoundS3)
 	})
 	t.Run("Не удалось удалить обложку из S3", func(t *testing.T) {
@@ -472,10 +473,10 @@ func TestDeleteGame(t *testing.T) {
 		deletedGame := random.NewRandomGame()
 		someErr := errors.New("some error")
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
-		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(deletedGame, nil).Once()
+		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(dto.DeletedGameFromGame(deletedGame), nil).Once()
 		s3Mock.On("DeleteObject", mock.Anything, gameKey).Return(someErr).Once()
-		game, err := gameService.DeleteGame(context.Background(), gameID)
-		require.Equal(t, deletedGame, game)
+		deletedGameID, err := gameService.DeleteGame(context.Background(), gameID)
+		require.Equal(t, deletedGame.GameID, deletedGameID)
 		require.ErrorIs(t, err, someErr)
 	})
 }

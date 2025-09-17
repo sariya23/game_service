@@ -17,7 +17,7 @@ type GameServicer interface {
 	AddGame(ctx context.Context, game *gamev4.GameRequest) (gameID uint64, err error)
 	GetGame(ctx context.Context, gameID uint64) (game *model.Game, err error)
 	GetTopGames(ctx context.Context, gameFilters model.GameFilters, limit uint32) (games []model.Game, err error)
-	DeleteGame(ctx context.Context, gameID uint64) (deletedGame *model.Game, err error)
+	DeleteGame(ctx context.Context, gameID uint64) (deletedGameID uint64, err error)
 }
 
 type serverAPI struct {
@@ -100,12 +100,12 @@ func (srvAPI *serverAPI) DeleteGame(
 	ctx context.Context,
 	request *gamev4.DeleteGameRequest,
 ) (*gamev4.DeleteGameResponse, error) {
-	game, err := srvAPI.gameServicer.DeleteGame(ctx, request.GetGameId())
+	gameID, err := srvAPI.gameServicer.DeleteGame(ctx, request.GetGameId())
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			return &gamev4.DeleteGameResponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
 		}
 		return &gamev4.DeleteGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
-	return &gamev4.DeleteGameResponse{Game: converters.ToProtoGame(*game)}, nil
+	return &gamev4.DeleteGameResponse{GameId: gameID}, nil
 }

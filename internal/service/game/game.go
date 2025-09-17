@@ -11,6 +11,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
@@ -21,7 +22,7 @@ type GameReposetory interface {
 	GetGameByID(ctx context.Context, gameID uint64) (*model.Game, error)
 	GetTopGames(ctx context.Context, filters model.GameFilters, limit uint32) ([]model.Game, error)
 	SaveGame(ctx context.Context, game model.Game) (uint64, error)
-	DaleteGame(ctx context.Context, gameID uint64) (*model.Game, error)
+	DaleteGame(ctx context.Context, gameID uint64) (*dto.DeletedGame, error)
 }
 
 type TagRepository interface {
@@ -189,20 +190,20 @@ func (gameService *GameService) GetTopGames(
 func (gameService *GameService) DeleteGame(
 	ctx context.Context,
 	gameID uint64,
-) (*model.Game, error) {
+) (uint64, error) {
 	const operationPlace = "gameservice.DeleteGame"
 	log := gameService.log.With("operationPlace", operationPlace)
 	deletedGame, err := gameService.gameRepository.DaleteGame(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			log.Warn(fmt.Sprintf("game with id=%v not found", gameID))
-			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	log.Info(fmt.Sprintf("game with id=%v deleted from DB", gameID))
-	gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
+	gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseYear))
 	err = gameService.s3Storager.DeleteObject(ctx, gameKey)
 	var errDeleteImage error
 	if err != nil {
@@ -216,5 +217,5 @@ func (gameService *GameService) DeleteGame(
 	} else {
 		log.Info("image cover deleted from s3")
 	}
-	return deletedGame, errDeleteImage
+	return deletedGame.GameID, errDeleteImage
 }
