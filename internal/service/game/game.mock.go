@@ -28,9 +28,9 @@ func (m *mockGameReposiroy) GetGameByID(ctx context.Context, gameID uint64) (*mo
 	return args.Get(0).(*model.Game), args.Error(1)
 }
 
-func (m *mockGameReposiroy) GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.Game, error) {
+func (m *mockGameReposiroy) GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
 	args := m.Called(ctx, filters, limit)
-	return args.Get(0).([]model.Game), args.Error(1)
+	return args.Get(0).([]model.ShortGame), args.Error(1)
 }
 
 func (m *mockGameReposiroy) SaveGame(ctx context.Context, game model.Game) (uint64, error) {

@@ -20,7 +20,7 @@ import (
 type GameReposetory interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error)
 	GetGameByID(ctx context.Context, gameID uint64) (*model.Game, error)
-	GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.Game, error)
+	GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error)
 	SaveGame(ctx context.Context, game model.Game) (uint64, error)
 	DaleteGame(ctx context.Context, gameID uint64) (*dto.DeletedGame, error)
 }
@@ -173,7 +173,7 @@ func (gameService *GameService) GetTopGames(
 	ctx context.Context,
 	gameFilters dto.GameFilters,
 	limit uint32,
-) ([]model.Game, error) {
+) ([]model.ShortGame, error) {
 	const operationPlace = "gameservice.GetTopGames"
 	log := gameService.log.With("operationPlace", operationPlace)
 	if gameFilters.ReleaseYear == 0 {

@@ -490,7 +490,7 @@ func TestGetTopGames(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		filters := dto.GameFilters{ReleaseYear: 2020}
-		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.Game)(nil), errors.New("err")).Once()
+		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), errors.New("err")).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
 		require.Error(t, err)
 		require.Nil(t, games)
@@ -503,7 +503,7 @@ func TestGetTopGames(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		filters := dto.GameFilters{ReleaseYear: 2020}
-		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.Game)(nil), nil).Once()
+		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), nil).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
 		require.NoError(t, err)
 		require.Nil(t, games)
@@ -516,9 +516,9 @@ func TestGetTopGames(t *testing.T) {
 		mailerMock := new(mockEmailAlerter)
 		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
 		filters := dto.GameFilters{ReleaseYear: 2020}
-		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return([]model.Game{{GameID: 1, Title: "qwe", Description: "qe"}}, nil).Once()
+		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return([]model.ShortGame{{GameID: 1, Title: "qwe", Description: "qe"}}, nil).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
 		require.NoError(t, err)
-		require.Equal(t, games, []model.Game{{GameID: 1, Title: "qwe", Description: "qe"}})
+		require.Equal(t, games, []model.ShortGame{{GameID: 1, Title: "qwe", Description: "qe"}})
 	})
 }
