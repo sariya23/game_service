@@ -266,6 +266,28 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) (uin
 }
 
 func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) (games []model.Game, err error) {
+	const operationPlace = "postgresql.GetTopGames"
+	log := postgresql.log.With("operationPlave", operationPlace)
+
+	filterGameQuery := fmt.Sprintf(`select
+			g.game_id,
+			g.title,
+			g.description,
+			coalesce(
+				json_agg(distinct jsonb_build_object('id', t.tag_id, 'name', t.tag_name))
+				filter (where t.tag_id is not null), '[]'
+			) as tags,
+			coalesce(
+				json_agg(distinct jsonb_build_object('id', ge.genre_id, 'name', ge.genre_name))
+				filter (where ge.genre_id is not null), '[]'
+			) as genres
+		from game g
+		left join game_tag gt on g.game_id = gt.game_id
+		left join tag t on gt.tag_id = t.tag_id
+		left join game_genre gg on g.game_id = gg.game_id
+		left join genre ge on gg.genre_id = ge.genre_id
+		group by g.game_id;
+	`)
 	return nil, nil
 }
 

@@ -17,7 +17,7 @@ import (
 type GameServicer interface {
 	AddGame(ctx context.Context, game *gamev4.GameRequest) (gameID uint64, err error)
 	GetGame(ctx context.Context, gameID uint64) (game *model.Game, err error)
-	GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) (games []model.Game, err error)
+	GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) (games []model.ShortGame, err error)
 	DeleteGame(ctx context.Context, gameID uint64) (deletedGameID uint64, err error)
 }
 
@@ -90,9 +90,9 @@ func (srvApi *serverAPI) GetTopGames(
 	if err != nil {
 		return &gamev4.GetTopGamesResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
-	result := make([]*gamev4.DomainGame, 0, len(games))
+	result := make([]*gamev4.GetTopGamesResponse_ShortGame, 0, len(games))
 	for _, g := range games {
-		result = append(result, converters.ToProtoGame(g))
+		result = append(result, converters.ToShortGameResponse(g))
 	}
 	return &gamev4.GetTopGamesResponse{Games: result}, nil
 }

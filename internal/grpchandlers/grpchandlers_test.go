@@ -34,9 +34,9 @@ func (m *mockGameServicer) GetGame(ctx context.Context, gameID uint64) (*model.G
 	return args.Get(0).(*model.Game), args.Error(1)
 }
 
-func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) ([]model.Game, error) {
+func (m *mockGameServicer) GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
 	args := m.Called(ctx, gameFilters, limit)
-	return args.Get(0).([]model.Game), args.Error(1)
+	return args.Get(0).([]model.ShortGame), args.Error(1)
 
 }
 
@@ -243,7 +243,7 @@ func TestGetTopGames(t *testing.T) {
 		ctx := context.Background()
 		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
 		filters := dto.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
-		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{}, nil)
+		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.ShortGame{}, nil)
 		resp, err := srv.GetTopGames(ctx, &req)
 		require.NoError(t, err)
 		require.Empty(t, resp.GetGames())
@@ -254,7 +254,7 @@ func TestGetTopGames(t *testing.T) {
 		ctx := context.Background()
 		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
 		filters := dto.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
-		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{}, errors.New("err"))
+		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.ShortGame{}, errors.New("err"))
 		resp, err := srv.GetTopGames(ctx, &req)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.Internal, s.Code())
@@ -267,7 +267,7 @@ func TestGetTopGames(t *testing.T) {
 		ctx := context.Background()
 		req := gamev4.GetTopGamesRequest{Limit: 10, Year: 2020}
 		filters := dto.GameFilters{ReleaseYear: req.GetYear(), Tags: req.GetTags(), Genres: req.GetGenres()}
-		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.Game{*random.NewRandomGame()}, nil)
+		mockGameService.On("GetTopGames", mock.Anything, filters, req.GetLimit()).Return([]model.ShortGame{*random.NewRandomShortGame()}, nil)
 		resp, err := srv.GetTopGames(ctx, &req)
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.GetGames())
