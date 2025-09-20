@@ -48,8 +48,8 @@ func TestAddGame(t *testing.T) {
 		require.NoError(t, err)
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
-		gameToAdd.Tags = model.TagNames(tags)
-		gameToAdd.Genres = model.GenreNames(genres)
+		gameToAdd.Tags = model.GetTagNames(tags)
+		gameToAdd.Genres = model.GetGenreNames(genres)
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
@@ -66,8 +66,8 @@ func TestAddGame(t *testing.T) {
 		assert.Equal(t, gameToAdd.GetReleaseDate().GetYear(), int32(gameDB.ReleaseDate.Year()))
 		assert.Equal(t, gameToAdd.GetReleaseDate().GetMonth(), int32(gameDB.ReleaseDate.Month()))
 		assert.Equal(t, gameToAdd.GetReleaseDate().GetDay(), int32(gameDB.ReleaseDate.Day()))
-		assert.Equal(t, gameToAdd.GetTags(), model.TagNames(gameDB.Tags))
-		assert.Equal(t, gameToAdd.GetGenres(), model.GenreNames(gameDB.Genres))
+		assert.Equal(t, gameToAdd.GetTags(), model.GetTagNames(gameDB.Tags))
+		assert.Equal(t, gameToAdd.GetGenres(), model.GetGenreNames(gameDB.Genres))
 		image, err := s3.GetObject(ctx, minioclient.GameKey(gameToAdd.GetTitle(), int(gameToAdd.ReleaseDate.GetYear())))
 		require.NoError(t, err)
 		imageBytes, err := io.ReadAll(image)
@@ -79,7 +79,7 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
-		gameToAdd.Tags = append(model.TagNames(tags), gameToAdd.Tags...)
+		gameToAdd.Tags = append(model.GetTagNames(tags), gameToAdd.Tags...)
 		gameToAdd.Genres = nil
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
-		gameToAdd.Genres = append(model.GenreNames(genres), gameToAdd.Genres...)
+		gameToAdd.Genres = append(model.GetGenreNames(genres), gameToAdd.Genres...)
 		gameToAdd.Tags = nil
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
@@ -153,8 +153,8 @@ func TestGetGame(t *testing.T) {
 		require.NoError(t, err)
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
-		gameToAdd.Tags = model.TagNames(tags)
-		gameToAdd.Genres = model.GenreNames(genres)
+		gameToAdd.Tags = model.GetTagNames(tags)
+		gameToAdd.Genres = model.GetGenreNames(genres)
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
@@ -209,8 +209,8 @@ func TestDeteteGame(t *testing.T) {
 		require.NoError(t, err)
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
-		gameToAdd.Tags = model.TagNames(tags)
-		gameToAdd.Genres = model.GenreNames(genres)
+		gameToAdd.Tags = model.GetTagNames(tags)
+		gameToAdd.Genres = model.GetGenreNames(genres)
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
@@ -239,8 +239,8 @@ func TestDeteteGame(t *testing.T) {
 		require.NoError(t, err)
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
-		gameToAdd.Tags = model.TagNames(tags)
-		gameToAdd.Genres = model.GenreNames(genres)
+		gameToAdd.Tags = model.GetTagNames(tags)
+		gameToAdd.Genres = model.GetGenreNames(genres)
 		gameToAdd.CoverImage = nil
 
 		request := gamev4.AddGameRequest{Game: gameToAdd}
@@ -301,7 +301,7 @@ func TestGetTopGames(t *testing.T) {
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
 		genres = random.Sample(genres, 3)
-		expectedGenreNames := model.GenreNames(genres)
+		expectedGenreNames := model.GetGenreNames(genres)
 		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{Genres: expectedGenreNames}, 10)
 		require.NoError(t, err)
 		req := gamev4.GetTopGamesRequest{Genres: expectedGenreNames}
@@ -315,8 +315,38 @@ func TestGetTopGames(t *testing.T) {
 
 			fullGame, err := db.GetGameByID(ctx, gameDB.GameID)
 			require.NoError(t, err)
-			fullGameGenreNames := model.GenreNames(fullGame.Genres)
+			fullGameGenreNames := model.GetGenreNames(fullGame.Genres)
 			assert.True(t, helpers.HasIntersection(expectedGenreNames, fullGameGenreNames))
+			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
+			assert.Equal(t, gameDB.Title, gameSRV.Title)
+			assert.Equal(t, gameDB.Description, gameSRV.Description)
+			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
+			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+		}
+	})
+	t.Run("Фильтрация по тэгам, без лимита", func(t *testing.T) {
+		// tags, err := db.GetTags(ctx)
+		require.NoError(t, err)
+		// tags = random.Sample(tags, 3)
+		expectedTagNames := []string{"Выживание", "Одиночная игра", "От первого лица"}
+		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{Tags: expectedTagNames}, 10)
+		require.NoError(t, err)
+		req := gamev4.GetTopGamesRequest{Tags: expectedTagNames}
+		response, err := grpcClient.GetTopGames(ctx, &req)
+		require.NoError(t, err)
+
+		require.Equal(t, len(expctedGames), len(response.Games))
+		for i := 0; i < len(expctedGames); i++ {
+			gameDB := expctedGames[i]
+			gameSRV := response.Games[i]
+
+			fullGame, err := db.GetGameByID(ctx, gameDB.GameID)
+			require.NoError(t, err)
+			fullGameTagsNames := model.GetTagNames(fullGame.Tags)
+
+			assert.True(t, helpers.HasIntersection(expectedTagNames, fullGameTagsNames))
 			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
 			assert.Equal(t, gameDB.Title, gameSRV.Title)
 			assert.Equal(t, gameDB.Description, gameSRV.Description)

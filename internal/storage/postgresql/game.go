@@ -273,7 +273,7 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 	gameTagsQuery := sq.Select(gameGameIDFieldName).From("game")
 
 	if t := filters.Tags; len(t) > 0 {
-		gameTagsQuery = sq.Select(gameTagTagIDFieldName).From("tag").Join(fmt.Sprintf("game_tag using(%s)", tagTagIDFieldName)).Where(sq.Eq{tagTagNameFieldName: t})
+		gameTagsQuery = sq.Select(gameTagGameIDFieldName).From("tag").Join(fmt.Sprintf("game_tag using(%s)", tagTagIDFieldName)).Where(sq.Eq{tagTagNameFieldName: t})
 	}
 	if g := filters.Genres; len(g) > 0 {
 		gameGenresQuery = sq.Select(gameGenreGameIDFieldName).From("genre").Join(fmt.Sprintf("game_genre using(%s)", genreGenreIDFieldName)).Where(sq.Eq{genreGenreNameFieldName: g})

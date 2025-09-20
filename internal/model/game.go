@@ -10,8 +10,8 @@ type Tag struct {
 	TagName string
 }
 
-// TagNames возвращает имена тэгов.
-func TagNames(t []Tag) []string {
+// GetTagNames возвращает имена тэгов.
+func GetTagNames(t []Tag) []string {
 	res := make([]string, 0, len(t))
 	for _, v := range t {
 		res = append(res, v.TagName)
@@ -25,8 +25,8 @@ type Genre struct {
 	GenreName string
 }
 
-// GenreNames возвращает имена жанров.
-func GenreNames(g []Genre) []string {
+// GetGenreNames возвращает имена жанров.
+func GetGenreNames(g []Genre) []string {
 	res := make([]string, 0, len(g))
 	for _, v := range g {
 		res = append(res, v.GenreName)
