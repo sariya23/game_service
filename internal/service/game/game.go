@@ -176,9 +176,6 @@ func (gameService *GameService) GetTopGames(
 ) ([]model.ShortGame, error) {
 	const operationPlace = "gameservice.GetTopGames"
 	log := gameService.log.With("operationPlace", operationPlace)
-	if gameFilters.ReleaseYear == 0 {
-		gameFilters.ReleaseYear = int32(time.Now().Year())
-	}
 	if limit == 0 {
 		limit = 10
 	}

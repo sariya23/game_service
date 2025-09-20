@@ -288,8 +288,11 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 	filteredGameID := sq.Select(gameGameIDFieldName).
 		From("game").
 		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...)).
-		Where(fmt.Sprintf("extract(year from %s)=?", gameReleaseDateFieldName)).
 		Limit(uint64(limit))
+
+	if filters.ReleaseYear > 0 {
+		filteredGameID = filteredGameID.Where(fmt.Sprintf("extract(year from %s)=?", gameReleaseDateFieldName))
+	}
 
 	finalSQL, finalArgs, err := filteredGameID.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
