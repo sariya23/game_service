@@ -75,11 +75,11 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 			log.Error(fmt.Sprintf("Cannot scan game genres, uncaught error: %v", err), slog.Uint64("gameID", game.GameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		if genreRows.Err() != nil {
+			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Uint64("gameID", game.GameID))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
 		game.Genres = append(game.Genres, gameGenre)
-	}
-	if genreRows.Err() != nil {
-		log.Error(fmt.Sprintf("Uncaught error: %v", err), slog.Uint64("gameID", game.GameID))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	tagRows, err := postgresql.connection.Query(ctx, getGameTagsQuery, game.GameID)
@@ -95,11 +95,11 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 			log.Error(fmt.Sprintf("Cannot scan game tags, uncaught error: %v", err), slog.Uint64("gameID", game.GameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		if tagRows.Err() != nil {
+			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Uint64("gameID", game.GameID))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
 		game.Tags = append(game.Tags, gameTag)
-	}
-	if tagRows.Err() != nil {
-		log.Error(fmt.Sprintf("Uncaught error: %v", err), slog.Uint64("gameID", game.GameID))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return &game, nil
 }
@@ -167,11 +167,11 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 			log.Error(fmt.Sprintf("Cannot scan game genres, uncaught error: %v", err), slog.Uint64("gameID", gameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		if genreRows.Err() != nil {
+			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Uint64("gameID", gameID))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
 		game.Genres = append(game.Genres, gameGenre)
-	}
-	if genreRows.Err() != nil {
-		log.Error(fmt.Sprintf("Uncaught error: %v", err), slog.Uint64("gameID", gameID))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	tagRows, err := postgresql.connection.Query(ctx, getGameTagsQuery, gameID)
@@ -187,11 +187,11 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 			log.Error(fmt.Sprintf("Cannot scan game tags, uncaught error: %v", err), slog.Uint64("gameID", gameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		if tagRows.Err() != nil {
+			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Uint64("gameID", gameID))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
 		game.Tags = append(game.Tags, gameTag)
-	}
-	if tagRows.Err() != nil {
-		log.Error(fmt.Sprintf("Uncaught error: %v", err), slog.Uint64("gameID", gameID))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	return &game, nil
