@@ -269,15 +269,14 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) (uin
 func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
 	const operationPlace = "postgresql.GetTopGames"
 	log := postgresql.log.With("operationPlave", operationPlace)
-	gameGenresQuery := sq.Select(gameGenreGameIDFieldName).From("genre").Join(fmt.Sprintf("game_genre using(%s)", genreGenreIDFieldName))
-	gameTagsQuery := sq.Select(gameTagTagIDFieldName).From("tag").Join(fmt.Sprintf("game_tag using(%s)", tagTagIDFieldName))
+	gameGenresQuery := sq.Select(gameGameIDFieldName).From("game")
+	gameTagsQuery := sq.Select(gameGameIDFieldName).From("game")
 
 	if t := filters.Tags; len(t) > 0 {
-		gameTagsQuery = gameTagsQuery.Where(sq.Eq{tagTagNameFieldName: t})
+		gameTagsQuery = sq.Select(gameTagTagIDFieldName).From("tag").Join(fmt.Sprintf("game_tag using(%s)", tagTagIDFieldName)).Where(sq.Eq{tagTagNameFieldName: t})
 	}
-
 	if g := filters.Genres; len(g) > 0 {
-		gameGenresQuery = gameGenresQuery.Where(sq.Eq{genreGenreNameFieldName: g})
+		gameGenresQuery = sq.Select(gameGenreGameIDFieldName).From("genre").Join(fmt.Sprintf("game_genre using(%s)", genreGenreIDFieldName)).Where(sq.Eq{genreGenreNameFieldName: g})
 	}
 	tagSQL, tagArgs, _ := gameTagsQuery.ToSql()
 	genreSQL, genreArgs, _ := gameGenresQuery.ToSql()
