@@ -179,6 +179,9 @@ func (gameService *GameService) GetTopGames(
 	if gameFilters.ReleaseYear == 0 {
 		gameFilters.ReleaseYear = int32(time.Now().Year())
 	}
+	if limit == 0 {
+		limit = 10
+	}
 	games, err := gameService.gameRepository.GetTopGames(ctx, gameFilters, limit)
 	if err != nil {
 		log.Error(fmt.Sprintf("unexcpected error; err=%v", err))

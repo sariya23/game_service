@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
@@ -265,30 +266,65 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) (uin
 	return savedGameID, nil
 }
 
-func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) (games []model.Game, err error) {
+func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
 	const operationPlace = "postgresql.GetTopGames"
 	log := postgresql.log.With("operationPlave", operationPlace)
+	gameGenresQuery := sq.Select(gameGenreGameIDFieldName).From("genre").Join(fmt.Sprintf("game_genre using(%s)", genreGenreIDFieldName))
+	gameTagsQuery := sq.Select(gameTagTagIDFieldName).From("tag").Join(fmt.Sprintf("game_tag using(%s)", tagTagIDFieldName))
 
-	filterGameQuery := fmt.Sprintf(`select
-			g.game_id,
-			g.title,
-			g.description,
-			coalesce(
-				json_agg(distinct jsonb_build_object('id', t.tag_id, 'name', t.tag_name))
-				filter (where t.tag_id is not null), '[]'
-			) as tags,
-			coalesce(
-				json_agg(distinct jsonb_build_object('id', ge.genre_id, 'name', ge.genre_name))
-				filter (where ge.genre_id is not null), '[]'
-			) as genres
-		from game g
-		left join game_tag gt on g.game_id = gt.game_id
-		left join tag t on gt.tag_id = t.tag_id
-		left join game_genre gg on g.game_id = gg.game_id
-		left join genre ge on gg.genre_id = ge.genre_id
-		group by g.game_id;
-	`)
-	return nil, nil
+	if t := filters.Tags; len(t) > 0 {
+		gameTagsQuery = gameTagsQuery.Where(sq.Eq{tagTagNameFieldName: t})
+	}
+
+	if g := filters.Genres; len(g) > 0 {
+		gameGenresQuery = gameGenresQuery.Where(sq.Eq{genreGenreNameFieldName: g})
+	}
+	tagSQL, tagArgs, _ := gameTagsQuery.ToSql()
+	genreSQL, genreArgs, _ := gameGenresQuery.ToSql()
+
+	intersectGameID := fmt.Sprintf("(%s intersect %s)", tagSQL, genreSQL)
+	args := append(tagArgs, genreArgs...)
+
+	filteredGameID := sq.Select(gameGameIDFieldName).
+		From("game").
+		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...)).
+		Where(fmt.Sprintf("extract(year from %s)=?", gameReleaseDateFieldName)).
+		Limit(uint64(limit))
+
+	finalSQL, finalArgs, err := filteredGameID.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		log.Error("cannot translate final query to sql string", slog.String("err", err.Error()))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	finalArgs = append(args, finalArgs...)
+
+	var games []model.ShortGame
+	gameIDsRows, err := postgresql.connection.Query(ctx, finalSQL, args...)
+	if err != nil {
+		log.Error("cannot execute query to get game ids", slog.String("err", err.Error()))
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	defer gameIDsRows.Close()
+	for gameIDsRows.Next() {
+		var game model.ShortGame
+		err = gameIDsRows.Scan(&game.GameID,
+			&game.Title,
+			&game.Description,
+			&game.ReleaseDate,
+			&game.ImageURL,
+		)
+		if err != nil {
+			log.Error("cannot scan game id", slog.String("err", err.Error()))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
+		if gameIDsRows.Err() != nil {
+			log.Error("cannot prepare next row", slog.String("err", err.Error()))
+			return nil, fmt.Errorf("%s: %w", operationPlace, err)
+		}
+		games = append(games, game)
+	}
+
+	return games, nil
 }
 
 func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*dto.DeletedGame, error) {
