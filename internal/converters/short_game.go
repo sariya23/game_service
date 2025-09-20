@@ -7,6 +7,7 @@ import (
 
 func ToShortGameResponse(game model.ShortGame) *gamev4.GetTopGamesResponse_ShortGame {
 	return &gamev4.GetTopGamesResponse_ShortGame{
+		ID:            game.GameID,
 		Title:         game.Title,
 		Description:   game.Description,
 		CoverImageUrl: game.ImageURL,

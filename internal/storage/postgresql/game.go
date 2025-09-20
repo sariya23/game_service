@@ -284,15 +284,20 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 	intersectGameID := fmt.Sprintf("(%s intersect %s)", tagSQL, genreSQL)
 	args := append(tagArgs, genreArgs...)
 
-	filteredGameID := sq.Select(gameGameIDFieldName).
+	filteredGameID := sq.Select(
+		gameGameIDFieldName,
+		gameTitleFieldName,
+		gameDescriptionFieldName,
+		gameReleaseDateFieldName,
+		gameImageURLFieldName,
+	).
 		From("game").
-		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...)).
-		Limit(uint64(limit))
+		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...))
 
 	if filters.ReleaseYear > 0 {
 		filteredGameID = filteredGameID.Where(fmt.Sprintf("extract(year from %s)=?", gameReleaseDateFieldName))
 	}
-
+	filteredGameID = filteredGameID.OrderBy(gameTitleFieldName).Limit(uint64(limit))
 	finalSQL, finalArgs, err := filteredGameID.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		log.Error("cannot translate final query to sql string", slog.String("err", err.Error()))
@@ -301,15 +306,16 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 	finalArgs = append(args, finalArgs...)
 
 	var games []model.ShortGame
-	gameIDsRows, err := postgresql.connection.Query(ctx, finalSQL, args...)
+	gameRows, err := postgresql.connection.Query(ctx, finalSQL, args...)
 	if err != nil {
 		log.Error("cannot execute query to get game ids", slog.String("err", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	defer gameIDsRows.Close()
-	for gameIDsRows.Next() {
+	defer gameRows.Close()
+	for gameRows.Next() {
 		var game model.ShortGame
-		err = gameIDsRows.Scan(&game.GameID,
+		err = gameRows.Scan(
+			&game.GameID,
 			&game.Title,
 			&game.Description,
 			&game.ReleaseDate,
@@ -319,7 +325,7 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 			log.Error("cannot scan game id", slog.String("err", err.Error()))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		if gameIDsRows.Err() != nil {
+		if gameRows.Err() != nil {
 			log.Error("cannot prepare next row", slog.String("err", err.Error()))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}

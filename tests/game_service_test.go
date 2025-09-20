@@ -12,6 +12,7 @@ import (
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/lib/random"
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
@@ -256,5 +257,43 @@ func TestDeteteGame(t *testing.T) {
 		require.Equal(t, codes.NotFound, s.Code())
 		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
 		require.Nil(t, resp)
+	})
+}
+
+func TestGetTopGames(t *testing.T) {
+	ctx := context.Background()
+	cfg := config.MustLoadByPath("../config/local.env")
+	db := postgresql.MustNewConnection(ctx, mockslog.NewDiscardLogger(), cfg.Postgres.PostgresURL)
+	conn, err := grpc.NewClient(
+		net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Server.GrpcServerPort)),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil || conn == nil {
+		t.Fatalf("cannot start client; err = %v", err)
+	}
+	grpcClient := gamev4.NewGameServiceClient(conn)
+	if grpcClient == nil {
+		t.Fatal("cannot create grpcClient")
+	}
+	t.Run("При пустом запросе вовзращается 10 игр", func(t *testing.T) {
+		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{}, 10)
+		require.NoError(t, err)
+		req := gamev4.GetTopGamesRequest{}
+		response, err := grpcClient.GetTopGames(ctx, &req)
+		require.NoError(t, err)
+
+		require.Equal(t, len(expctedGames), len(response.Games))
+		for i := 0; i < len(expctedGames); i++ {
+			gameDB := expctedGames[i]
+			gameSRV := response.Games[i]
+
+			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
+			assert.Equal(t, gameDB.Title, gameSRV.Title)
+			assert.Equal(t, gameDB.Description, gameSRV.Description)
+			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
+			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+		}
 	})
 }
