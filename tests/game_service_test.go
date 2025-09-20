@@ -16,6 +16,7 @@ import (
 	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
+	"github.com/sariya23/game_service/tests/helpers"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -287,6 +288,35 @@ func TestGetTopGames(t *testing.T) {
 			gameDB := expctedGames[i]
 			gameSRV := response.Games[i]
 
+			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
+			assert.Equal(t, gameDB.Title, gameSRV.Title)
+			assert.Equal(t, gameDB.Description, gameSRV.Description)
+			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
+			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+		}
+	})
+	t.Run("Фильтрация по жанрам, без лимита", func(t *testing.T) {
+		genres, err := db.GetGenres(ctx)
+		require.NoError(t, err)
+		genres = random.Sample(genres, 3)
+		expectedGenreNames := model.GenreNames(genres)
+		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{Genres: expectedGenreNames}, 10)
+		require.NoError(t, err)
+		req := gamev4.GetTopGamesRequest{Genres: expectedGenreNames}
+		response, err := grpcClient.GetTopGames(ctx, &req)
+		require.NoError(t, err)
+
+		require.Equal(t, len(expctedGames), len(response.Games))
+		for i := 0; i < len(expctedGames); i++ {
+			gameDB := expctedGames[i]
+			gameSRV := response.Games[i]
+
+			fullGame, err := db.GetGameByID(ctx, gameDB.GameID)
+			require.NoError(t, err)
+			fullGameGenreNames := model.GenreNames(fullGame.Genres)
+			assert.True(t, helpers.HasIntersection(expectedGenreNames, fullGameGenreNames))
 			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
 			assert.Equal(t, gameDB.Title, gameSRV.Title)
 			assert.Equal(t, gameDB.Description, gameSRV.Description)
