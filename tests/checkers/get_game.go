@@ -21,6 +21,7 @@ func AssertGetGame(ctx context.Context,
 	s3 *minioclient.Minio,
 	err error,
 ) {
+	t.Helper()
 	require.NoError(t, err)
 	assert.Equal(t, expected.GetTitle(), response.Game.GetTitle())
 	assert.Equal(t, expected.GetDescription(), response.Game.GetDescription())
@@ -37,6 +38,7 @@ func AssertGetGame(ctx context.Context,
 }
 
 func AssertGetGameNotFound(t *testing.T, err error, response *gamev4.GetGameResponse) {
+	t.Helper()
 	s, _ := status.FromError(err)
 	require.Equal(t, codes.NotFound, s.Code())
 	require.Equal(t, outerror.GameNotFoundMessage, s.Message())

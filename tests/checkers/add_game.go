@@ -16,6 +16,7 @@ import (
 )
 
 func AssertAddGame(t *testing.T, err error, response *gamev4.AddGameResponse) {
+	t.Helper()
 	require.NoError(t, err)
 	require.NotZero(t, response.GetGameId())
 }
@@ -26,6 +27,7 @@ func AssertAddGameRequestAndDB(ctx context.Context,
 	gameDB model.Game,
 	s3 *minioclient.Minio,
 ) {
+	t.Helper()
 	assert.Equal(t, request.Game.GetTitle(), gameDB.Title)
 	assert.Equal(t, request.Game.GetDescription(), gameDB.Description)
 	assert.Equal(t, request.Game.GetReleaseDate().GetYear(), int32(gameDB.ReleaseDate.Year()))
@@ -41,6 +43,7 @@ func AssertAddGameRequestAndDB(ctx context.Context,
 }
 
 func AssertAddGameTagNotFound(t *testing.T, err error, response *gamev4.AddGameResponse) {
+	t.Helper()
 	s, _ := status.FromError(err)
 	require.Equal(t, codes.InvalidArgument, s.Code())
 	require.Equal(t, outerror.TagNotFoundMessage, s.Message())
@@ -48,6 +51,7 @@ func AssertAddGameTagNotFound(t *testing.T, err error, response *gamev4.AddGameR
 }
 
 func AssertAddGameGenreNotFound(t *testing.T, err error, response *gamev4.AddGameResponse) {
+	t.Helper()
 	s, _ := status.FromError(err)
 	require.Equal(t, codes.InvalidArgument, s.Code())
 	require.Equal(t, outerror.GenreNotFoundMessage, s.Message())
@@ -55,6 +59,7 @@ func AssertAddGameGenreNotFound(t *testing.T, err error, response *gamev4.AddGam
 }
 
 func AssertAddGameDuplicateGame(t *testing.T, err error, response *gamev4.AddGameResponse) {
+	t.Helper()
 	s, _ := status.FromError(err)
 	require.Equal(t, codes.AlreadyExists, s.Code())
 	require.Equal(t, outerror.GameAlreadyExistMessage, s.Message())
