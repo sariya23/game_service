@@ -302,8 +302,11 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 		From("game").
 		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...))
 
+	yearArgs := make([]interface{}, 0, 1)
 	if filters.ReleaseYear > 0 {
-		filteredGameID = filteredGameID.Where(fmt.Sprintf("extract(year from %s)=?", gameReleaseDateFieldName))
+		filteredGameID = filteredGameID.
+			Where(fmt.Sprintf("extract(year from %s)=?", gameReleaseDateFieldName))
+		yearArgs = append(yearArgs, filters.ReleaseYear)
 	}
 	filteredGameID = filteredGameID.OrderBy(gameTitleFieldName).Limit(uint64(limit))
 	finalSQL, finalArgs, err := filteredGameID.PlaceholderFormat(sq.Dollar).ToSql()
@@ -311,10 +314,10 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 		log.Error("cannot translate final query to sql string", slog.String("err", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	finalArgs = append(args, finalArgs...)
+	finalArgs = append(finalArgs, yearArgs...)
 
 	var games []model.ShortGame
-	gameRows, err := postgresql.connection.Query(ctx, finalSQL, args...)
+	gameRows, err := postgresql.connection.Query(ctx, finalSQL, finalArgs...)
 	if err != nil {
 		log.Error("cannot execute query to get game ids", slog.String("err", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)

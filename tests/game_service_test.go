@@ -401,4 +401,51 @@ func TestGetTopGames(t *testing.T) {
 			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
 		}
 	})
+	t.Run("Фильтрация по тэгам, жанрам и году", func(t *testing.T) {
+		tags, err := db.GetTags(ctx)
+		require.NoError(t, err)
+		genres, err := db.GetGenres(ctx)
+		require.NoError(t, err)
+		gameTagNames := model.GetTagNames(random.Sample(tags, 2))
+		gameGenreNames := model.GetGenreNames(random.Sample(genres, 2))
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Genres = gameGenreNames
+		gameToAdd.Tags = gameTagNames
+
+		_, err = grpcClient.AddGame(ctx, &gamev4.AddGameRequest{Game: gameToAdd})
+		require.NoError(t, err)
+
+		expectedGames, err := db.GetTopGames(ctx, dto.GameFilters{
+			Genres:      gameGenreNames,
+			Tags:        gameTagNames,
+			ReleaseYear: gameToAdd.ReleaseDate.Year,
+		}, 10)
+		require.NoError(t, err)
+
+		resp, err := grpcClient.GetTopGames(ctx,
+			&gamev4.GetTopGamesRequest{
+				Genres: gameGenreNames,
+				Tags:   gameTagNames,
+				Year:   gameToAdd.ReleaseDate.Year,
+			})
+		require.NoError(t, err)
+		require.Equal(t, len(expectedGames), len(resp.Games))
+
+		for i := 0; i < len(expectedGames); i++ {
+			gameDB := expectedGames[i]
+			gameSRV := resp.Games[i]
+
+			assert.Equal(t, gameDB.GameID, gameSRV.ID)
+			fullGame, err := grpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: gameSRV.ID})
+			require.NoError(t, err)
+			assert.True(t, helpers.HasIntersection(fullGame.Game.Genres, gameGenreNames))
+			assert.True(t, helpers.HasIntersection(fullGame.Game.Tags, gameTagNames))
+			assert.Equal(t, gameDB.Title, gameSRV.Title)
+			assert.Equal(t, gameDB.Description, gameSRV.Description)
+			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
+			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+		}
+	})
 }
