@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"io"
+	"math/rand/v2"
 	"net"
 	"strconv"
 	"testing"
@@ -440,6 +441,28 @@ func TestGetTopGames(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, helpers.HasIntersection(fullGame.Game.Genres, gameGenreNames))
 			assert.True(t, helpers.HasIntersection(fullGame.Game.Tags, gameTagNames))
+			assert.Equal(t, gameDB.Title, gameSRV.Title)
+			assert.Equal(t, gameDB.Description, gameSRV.Description)
+			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
+			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
+			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+		}
+	})
+	t.Run("Указан только лимит", func(t *testing.T) {
+		limit := rand.IntN(15) + 1
+		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{}, uint32(limit))
+		require.NoError(t, err)
+		req := gamev4.GetTopGamesRequest{Limit: uint32(limit)}
+		response, err := grpcClient.GetTopGames(ctx, &req)
+		require.NoError(t, err)
+
+		require.Equal(t, len(expctedGames), len(response.Games))
+		for i := 0; i < len(expctedGames); i++ {
+			gameDB := expctedGames[i]
+			gameSRV := response.Games[i]
+
+			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
 			assert.Equal(t, gameDB.Title, gameSRV.Title)
 			assert.Equal(t, gameDB.Description, gameSRV.Description)
 			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
