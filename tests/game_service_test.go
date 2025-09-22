@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"io"
 	"math/rand/v2"
 	"net"
 	"strconv"
@@ -152,26 +151,11 @@ func TestGetGame(t *testing.T) {
 		require.NotZero(t, addResp.GetGameId())
 
 		getResp, err := grpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: addResp.GetGameId()})
-		require.NoError(t, err)
-		assert.Equal(t, gameToAdd.GetTitle(), getResp.Game.GetTitle())
-		assert.Equal(t, gameToAdd.GetDescription(), getResp.Game.GetDescription())
-		assert.Equal(t, gameToAdd.GetReleaseDate().GetYear(), getResp.Game.GetReleaseDate().GetYear())
-		assert.Equal(t, gameToAdd.GetReleaseDate().GetMonth(), getResp.Game.GetReleaseDate().GetMonth())
-		assert.Equal(t, gameToAdd.GetReleaseDate().GetDay(), getResp.Game.GetReleaseDate().GetDay())
-		assert.Equal(t, gameToAdd.GetGenres(), getResp.Game.GetGenres())
-		assert.Equal(t, gameToAdd.GetTags(), getResp.Game.GetTags())
-		obj, err := s3.GetObject(ctx, getResp.Game.GetCoverImageUrl())
-		require.NoError(t, err)
-		imageBytes, err := io.ReadAll(obj)
-		require.NoError(t, err)
-		assert.Equal(t, gameToAdd.GetCoverImage(), imageBytes)
+		checkers.AssertGetGame(ctx, t, gameToAdd, getResp, s3, err)
 	})
 	t.Run("Тест ручки GetGame; Ошибка при получени несуществующей игры", func(t *testing.T) {
 		resp, err := grpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: uint64(gofakeit.IntRange(10000, 40000))})
-		s, _ := status.FromError(err)
-		require.Equal(t, codes.NotFound, s.Code())
-		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
-		require.Nil(t, resp.GetGame())
+		checkers.AssertGetGameNotFound(t, err, resp)
 	})
 }
 
