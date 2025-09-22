@@ -13,7 +13,6 @@ import (
 	"github.com/sariya23/game_service/internal/lib/random"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
-	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	"github.com/sariya23/game_service/tests/checkers"
@@ -22,9 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
 )
 
 func TestAddGame(t *testing.T) {
@@ -188,18 +185,13 @@ func TestDeteteGame(t *testing.T) {
 		gameToAdd.CoverImage = expectedImage
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		addResp, err := grpcClient.AddGame(ctx, &request)
-		require.NoError(t, err)
-		require.NotZero(t, addResp.GetGameId())
+		checkers.AssertAddGame(t, err, addResp)
 
 		respDelete, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: addResp.GameId})
-		require.NoError(t, err)
-		require.Equal(t, addResp.GameId, respDelete.GameId)
+		checkers.AssertDeleteGame(t, err, addResp.GameId, respDelete)
 
 		respGet, err := grpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: addResp.GameId})
-		s, _ := status.FromError(err)
-		require.Equal(t, codes.NotFound, s.Code())
-		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
-		require.Nil(t, respGet)
+		checkers.AssertGetGameNotFound(t, err, respGet)
 
 		obj, err := s3.GetObject(ctx, minioclient.GameKey(gameToAdd.Title, int(gameToAdd.ReleaseDate.Year)))
 		require.Error(t, err)
@@ -217,19 +209,14 @@ func TestDeteteGame(t *testing.T) {
 
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		addResp, err := grpcClient.AddGame(ctx, &request)
-		require.NoError(t, err)
-		require.NotZero(t, addResp.GetGameId())
+		checkers.AssertAddGame(t, err, addResp)
 
 		respDelete, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: addResp.GameId})
-		require.NoError(t, err)
-		require.Equal(t, addResp.GameId, respDelete.GameId)
+		checkers.AssertDeleteGame(t, err, addResp.GameId, respDelete)
 	})
 	t.Run("Тест ручки DeleteGame; Игра не найдена", func(t *testing.T) {
 		resp, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: uint64(gofakeit.Uint64())})
-		s, _ := status.FromError(err)
-		require.Equal(t, int(codes.NotFound), int(s.Code()))
-		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
-		require.Nil(t, resp)
+		checkers.AssertDeleteGameNotFound(t, err, resp)
 	})
 }
 
