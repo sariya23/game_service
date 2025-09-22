@@ -17,6 +17,7 @@ import (
 	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
+	"github.com/sariya23/game_service/tests/checkers"
 	"github.com/sariya23/game_service/tests/helpers"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/assert"
@@ -54,6 +55,7 @@ func TestAddGame(t *testing.T) {
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
+
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
 		require.NoError(t, err)
@@ -61,19 +63,7 @@ func TestAddGame(t *testing.T) {
 
 		gameDB, err := db.GetGameByID(ctx, resp.GetGameId())
 		require.NoError(t, err)
-
-		assert.Equal(t, gameToAdd.GetTitle(), gameDB.Title)
-		assert.Equal(t, gameToAdd.GetDescription(), gameDB.Description)
-		assert.Equal(t, gameToAdd.GetReleaseDate().GetYear(), int32(gameDB.ReleaseDate.Year()))
-		assert.Equal(t, gameToAdd.GetReleaseDate().GetMonth(), int32(gameDB.ReleaseDate.Month()))
-		assert.Equal(t, gameToAdd.GetReleaseDate().GetDay(), int32(gameDB.ReleaseDate.Day()))
-		assert.Equal(t, gameToAdd.GetTags(), model.GetTagNames(gameDB.Tags))
-		assert.Equal(t, gameToAdd.GetGenres(), model.GetGenreNames(gameDB.Genres))
-		image, err := s3.GetObject(ctx, minioclient.GameKey(gameToAdd.GetTitle(), int(gameToAdd.ReleaseDate.GetYear())))
-		require.NoError(t, err)
-		imageBytes, err := io.ReadAll(image)
-		require.NoError(t, err)
-		assert.Equal(t, gameToAdd.CoverImage, imageBytes)
+		checkers.AssertAddGame(ctx, t, &request, *gameDB, s3)
 
 	})
 	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий тэг", func(t *testing.T) {
@@ -85,12 +75,11 @@ func TestAddGame(t *testing.T) {
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
+
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
-		s, _ := status.FromError(err)
-		require.Equal(t, codes.InvalidArgument, s.Code())
-		require.Equal(t, outerror.TagNotFoundMessage, s.Message())
-		require.Zero(t, resp.GetGameId())
+
+		checkers.AssertAddGameTagNotFound(t, err, resp)
 	})
 	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий жанр", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
@@ -101,12 +90,12 @@ func TestAddGame(t *testing.T) {
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
+
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
-		s, _ := status.FromError(err)
-		require.Equal(t, codes.InvalidArgument, s.Code())
-		require.Equal(t, outerror.GenreNotFoundMessage, s.Message())
-		require.Zero(t, resp.GetGameId())
+
+		checkers.AssertAddGameGenreNotFound(t, err, resp)
+
 	})
 	t.Run("Тест ручки AddGame; Нельзя сохранить точно такую же игру", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
@@ -123,12 +112,11 @@ func TestAddGame(t *testing.T) {
 		duplicateGame := random.RandomAddGameRequest()
 		duplicateGame.Title = gameToAdd.GetTitle()
 		duplicateGame.ReleaseDate = gameToAdd.GetReleaseDate()
+
 		duplicateRequest := gamev4.AddGameRequest{Game: duplicateGame}
 		resp, err = grpcClient.AddGame(ctx, &duplicateRequest)
-		s, _ := status.FromError(err)
-		require.Equal(t, codes.AlreadyExists, s.Code())
-		require.Equal(t, outerror.GameAlreadyExistMessage, s.Message())
-		require.Zero(t, resp.GetGameId())
+
+		checkers.AssertAddGameDuplicateGame(t, err, resp)
 	})
 }
 
