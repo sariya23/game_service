@@ -15,12 +15,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// AssertAddGame проверяет ответ ручки AddGame при успешном сохранении
 func AssertAddGame(t *testing.T, err error, response *gamev4.AddGameResponse) {
 	t.Helper()
 	require.NoError(t, err)
 	require.NotZero(t, response.GetGameId())
 }
 
+// AssertAddGameRequestAndDB сравнивает данные для сохранения игры с сохраненной игрой
 func AssertAddGameRequestAndDB(ctx context.Context,
 	t *testing.T,
 	request *gamev4.AddGameRequest,
@@ -42,6 +44,8 @@ func AssertAddGameRequestAndDB(ctx context.Context,
 	assert.Equal(t, request.Game.CoverImage, imageBytes)
 }
 
+// AssertAddGameGenreNotFound проверяет ответ ручки AddGame при попытке создании игры с
+// несуществующим жанром
 func AssertAddGameTagNotFound(t *testing.T, err error, response *gamev4.AddGameResponse) {
 	t.Helper()
 	s, _ := status.FromError(err)
@@ -50,6 +54,8 @@ func AssertAddGameTagNotFound(t *testing.T, err error, response *gamev4.AddGameR
 	require.Zero(t, response.GetGameId())
 }
 
+// AssertAddGameGenreNotFound проверяет ответ ручки AddGame при попытке создании игры с
+// несуществующим жанром
 func AssertAddGameGenreNotFound(t *testing.T, err error, response *gamev4.AddGameResponse) {
 	t.Helper()
 	s, _ := status.FromError(err)
@@ -58,6 +64,7 @@ func AssertAddGameGenreNotFound(t *testing.T, err error, response *gamev4.AddGam
 	require.Zero(t, response.GetGameId())
 }
 
+// AssertAddGameDuplicateGame проверяет ответ ручки при попытке создать дублирующую игру
 func AssertAddGameDuplicateGame(t *testing.T, err error, response *gamev4.AddGameResponse) {
 	t.Helper()
 	s, _ := status.FromError(err)

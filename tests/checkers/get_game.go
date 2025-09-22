@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// AssertGetGame проверяет ответ ручки GetGame
 func AssertGetGame(ctx context.Context,
 	t *testing.T,
 	expected *gamev4.GameRequest,
@@ -37,6 +38,7 @@ func AssertGetGame(ctx context.Context,
 	assert.Equal(t, expected.GetCoverImage(), imageBytes)
 }
 
+// AssertGetGameNotFound проверяет ответ ручки GetGame при попытке получить несуществующую игру
 func AssertGetGameNotFound(t *testing.T, err error, response *gamev4.GetGameResponse) {
 	t.Helper()
 	s, _ := status.FromError(err)
