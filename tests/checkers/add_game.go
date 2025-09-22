@@ -15,7 +15,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func AssertAddGame(ctx context.Context,
+func AssertAddGame(t *testing.T, err error, response *gamev4.AddGameResponse) {
+	require.NoError(t, err)
+	require.NotZero(t, response.GetGameId())
+}
+
+func AssertAddGameRequestAndDB(ctx context.Context,
 	t *testing.T,
 	request *gamev4.AddGameRequest,
 	gameDB model.Game,

@@ -58,12 +58,11 @@ func TestAddGame(t *testing.T) {
 
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
-		require.NoError(t, err)
-		require.NotZero(t, resp.GetGameId())
+		checkers.AssertAddGame(t, err, resp)
 
 		gameDB, err := db.GetGameByID(ctx, resp.GetGameId())
 		require.NoError(t, err)
-		checkers.AssertAddGame(ctx, t, &request, *gameDB, s3)
+		checkers.AssertAddGameRequestAndDB(ctx, t, &request, *gameDB, s3)
 
 	})
 	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий тэг", func(t *testing.T) {
