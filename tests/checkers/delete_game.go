@@ -17,6 +17,7 @@ func AssertDeleteGame(t *testing.T, err error, expectedID uint64, resp *gamev4.D
 	require.Equal(t, expectedID, resp.GameId)
 }
 
+// AssertDeleteGameNotFound проверят ответ ручки DeleteGame при попытке удалить несуществующую игру
 func AssertDeleteGameNotFound(t *testing.T, err error, response *gamev4.DeleteGameResponse) {
 	t.Helper()
 	s, _ := status.FromError(err)
