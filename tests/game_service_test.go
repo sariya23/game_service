@@ -43,7 +43,7 @@ func TestAddGame(t *testing.T) {
 	if grpcClient == nil {
 		t.Fatal("cannot create grpcClient")
 	}
-	t.Run("Успешное сохранение игры; все поля", func(t *testing.T) {
+	t.Run("Тест ручки AddGame; Успешное сохранение игры; все поля", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
@@ -76,7 +76,7 @@ func TestAddGame(t *testing.T) {
 		assert.Equal(t, gameToAdd.CoverImage, imageBytes)
 
 	})
-	t.Run("Игра не создается если передан хотя бы один несущетвующий тэг", func(t *testing.T) {
+	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий тэг", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestAddGame(t *testing.T) {
 		require.Equal(t, outerror.TagNotFoundMessage, s.Message())
 		require.Zero(t, resp.GetGameId())
 	})
-	t.Run("Игра не создается если передан хотя бы один несущетвующий жанр", func(t *testing.T) {
+	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий жанр", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
@@ -108,7 +108,7 @@ func TestAddGame(t *testing.T) {
 		require.Equal(t, outerror.GenreNotFoundMessage, s.Message())
 		require.Zero(t, resp.GetGameId())
 	})
-	t.Run("Нельзя сохранить точно такую же игру", func(t *testing.T) {
+	t.Run("Тест ручки AddGame; Нельзя сохранить точно такую же игру", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Genres = nil
 		gameToAdd.Tags = nil
@@ -148,7 +148,7 @@ func TestGetGame(t *testing.T) {
 	if grpcClient == nil {
 		t.Fatal("cannot create grpcClient")
 	}
-	t.Run("Успешное получение игры", func(t *testing.T) {
+	t.Run("Тест ручки GetGame; Успешное получение игры", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
@@ -179,7 +179,7 @@ func TestGetGame(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, gameToAdd.GetCoverImage(), imageBytes)
 	})
-	t.Run("Ошибка при получени несуществующей игры", func(t *testing.T) {
+	t.Run("Тест ручки GetGame; Ошибка при получени несуществующей игры", func(t *testing.T) {
 		resp, err := grpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: uint64(gofakeit.IntRange(10000, 40000))})
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.NotFound, s.Code())
@@ -204,7 +204,7 @@ func TestDeteteGame(t *testing.T) {
 	if grpcClient == nil {
 		t.Fatal("cannot create grpcClient")
 	}
-	t.Run("Успешное удаление игры", func(t *testing.T) {
+	t.Run("Тест ручки DeleteGame; Успешное удаление игры", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
@@ -234,7 +234,7 @@ func TestDeteteGame(t *testing.T) {
 		require.Error(t, err)
 		require.Empty(t, obj)
 	})
-	t.Run("Удаление игры без обложки", func(t *testing.T) {
+	t.Run("Тест ручки DeleteGame; Удаление игры без обложки", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
@@ -253,7 +253,7 @@ func TestDeteteGame(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, addResp.GameId, respDelete.GameId)
 	})
-	t.Run("Игра не найдена", func(t *testing.T) {
+	t.Run("Тест ручки DeleteGame; Игра не найдена", func(t *testing.T) {
 		resp, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: uint64(gofakeit.Uint64())})
 		s, _ := status.FromError(err)
 		require.Equal(t, int(codes.NotFound), int(s.Code()))
@@ -277,7 +277,7 @@ func TestGetTopGames(t *testing.T) {
 	if grpcClient == nil {
 		t.Fatal("cannot create grpcClient")
 	}
-	t.Run("При пустом запросе вовзращается 10 игр", func(t *testing.T) {
+	t.Run("Тест ручки GetTopGame; При пустом запросе вовзращается 10 игр", func(t *testing.T) {
 		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{}, 10)
 		require.NoError(t, err)
 		req := gamev4.GetTopGamesRequest{}
@@ -298,7 +298,7 @@ func TestGetTopGames(t *testing.T) {
 			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
 		}
 	})
-	t.Run("Фильтрация по жанрам, без лимита", func(t *testing.T) {
+	t.Run("Тест ручки GetTopGame; Фильтрация по жанрам, без лимита", func(t *testing.T) {
 		genres, err := db.GetGenres(ctx)
 		require.NoError(t, err)
 		genres = random.Sample(genres, 3)
@@ -335,7 +335,7 @@ func TestGetTopGames(t *testing.T) {
 			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
 		}
 	})
-	t.Run("Фильтрация по тэгам, без лимита", func(t *testing.T) {
+	t.Run("Тест ручки GetTopGame; Фильтрация по тэгам, без лимита", func(t *testing.T) {
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
 		tags = random.Sample(tags, 3)
@@ -374,7 +374,7 @@ func TestGetTopGames(t *testing.T) {
 			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
 		}
 	})
-	t.Run("Фильтрация по тэгам и жанрам", func(t *testing.T) {
+	t.Run("Тест ручки GetTopGame; Фильтрация по тэгам и жанрам", func(t *testing.T) {
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
 		genres, err := db.GetGenres(ctx)
@@ -421,7 +421,7 @@ func TestGetTopGames(t *testing.T) {
 			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
 		}
 	})
-	t.Run("Фильтрация по тэгам, жанрам и году", func(t *testing.T) {
+	t.Run("Тест ручки GetTopGame; Фильтрация по тэгам, жанрам и году", func(t *testing.T) {
 		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
 		genres, err := db.GetGenres(ctx)
@@ -470,7 +470,7 @@ func TestGetTopGames(t *testing.T) {
 			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
 		}
 	})
-	t.Run("Указан только лимит", func(t *testing.T) {
+	t.Run("Тест ручки GetTopGame; Указан только лимит", func(t *testing.T) {
 		limit := rand.IntN(15) + 1
 		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{}, uint32(limit))
 		require.NoError(t, err)
