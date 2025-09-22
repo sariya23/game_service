@@ -327,10 +327,10 @@ func TestGetTopGames(t *testing.T) {
 		}
 	})
 	t.Run("Фильтрация по тэгам, без лимита", func(t *testing.T) {
-		// tags, err := db.GetTags(ctx)
+		tags, err := db.GetTags(ctx)
 		require.NoError(t, err)
-		// tags = random.Sample(tags, 3)
-		expectedTagNames := []string{"Выживание", "Одиночная игра", "От первого лица"}
+		tags = random.Sample(tags, 3)
+		expectedTagNames := model.GetTagNames(tags)
 		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{Tags: expectedTagNames}, 10)
 		require.NoError(t, err)
 		req := gamev4.GetTopGamesRequest{Tags: expectedTagNames}
