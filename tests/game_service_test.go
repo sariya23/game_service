@@ -254,9 +254,9 @@ func TestDeteteGame(t *testing.T) {
 		require.Equal(t, addResp.GameId, respDelete.GameId)
 	})
 	t.Run("Игра не найдена", func(t *testing.T) {
-		resp, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: uint64(gofakeit.Uint8())})
+		resp, err := grpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: uint64(gofakeit.Uint64())})
 		s, _ := status.FromError(err)
-		require.Equal(t, codes.NotFound, s.Code())
+		require.Equal(t, int(codes.NotFound), int(s.Code()))
 		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
 		require.Nil(t, resp)
 	})
@@ -303,6 +303,14 @@ func TestGetTopGames(t *testing.T) {
 		require.NoError(t, err)
 		genres = random.Sample(genres, 3)
 		expectedGenreNames := model.GetGenreNames(genres)
+
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Genres = expectedGenreNames
+		gameToAdd.Tags = nil
+		_, err = grpcClient.AddGame(ctx, &gamev4.AddGameRequest{Game: gameToAdd})
+		require.NoError(t, err)
+
+		expectedGenreNames = append(expectedGenreNames, gofakeit.MovieGenre())
 		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{Genres: expectedGenreNames}, 10)
 		require.NoError(t, err)
 		req := gamev4.GetTopGamesRequest{Genres: expectedGenreNames}
@@ -332,8 +340,17 @@ func TestGetTopGames(t *testing.T) {
 		require.NoError(t, err)
 		tags = random.Sample(tags, 3)
 		expectedTagNames := model.GetTagNames(tags)
+
+		gameToAdd := random.RandomAddGameRequest()
+		gameToAdd.Tags = expectedTagNames
+		gameToAdd.Genres = nil
+		_, err = grpcClient.AddGame(ctx, &gamev4.AddGameRequest{Game: gameToAdd})
+		require.NoError(t, err)
+
+		expectedTagNames = append(expectedTagNames, gofakeit.BookGenre())
 		expctedGames, err := db.GetTopGames(ctx, dto.GameFilters{Tags: expectedTagNames}, 10)
 		require.NoError(t, err)
+		expectedTagNames = append(expectedTagNames, gofakeit.BookGenre())
 		req := gamev4.GetTopGamesRequest{Tags: expectedTagNames}
 		response, err := grpcClient.GetTopGames(ctx, &req)
 		require.NoError(t, err)
@@ -377,6 +394,8 @@ func TestGetTopGames(t *testing.T) {
 		}, 10)
 		require.NoError(t, err)
 
+		gameGenreNames = append(gameGenreNames, gofakeit.BookGenre())
+		gameTagNames = append(gameTagNames, gofakeit.BookGenre())
 		resp, err := grpcClient.GetTopGames(ctx,
 			&gamev4.GetTopGamesRequest{
 				Genres: gameGenreNames,
@@ -416,6 +435,8 @@ func TestGetTopGames(t *testing.T) {
 		_, err = grpcClient.AddGame(ctx, &gamev4.AddGameRequest{Game: gameToAdd})
 		require.NoError(t, err)
 
+		gameGenreNames = append(gameGenreNames, gofakeit.BookGenre())
+		gameTagNames = append(gameTagNames, gofakeit.BookGenre())
 		expectedGames, err := db.GetTopGames(ctx, dto.GameFilters{
 			Genres:      gameGenreNames,
 			Tags:        gameTagNames,

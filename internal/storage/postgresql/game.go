@@ -308,7 +308,9 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 			Where(fmt.Sprintf("extract(year from %s)=?", gameReleaseDateFieldName))
 		yearArgs = append(yearArgs, filters.ReleaseYear)
 	}
-	filteredGameID = filteredGameID.OrderBy(gameTitleFieldName).Limit(uint64(limit))
+	filteredGameID = filteredGameID.
+		OrderBy(gameTitleFieldName, gameReleaseDateFieldName).
+		Limit(uint64(limit))
 	finalSQL, finalArgs, err := filteredGameID.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		log.Error("cannot translate final query to sql string", slog.String("err", err.Error()))
