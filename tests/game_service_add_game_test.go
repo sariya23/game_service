@@ -12,7 +12,8 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
-	checkers "github.com/sariya23/game_service/tests/checkers/handlers"
+	checkers "github.com/sariya23/game_service/tests/checkers"
+	hadlerchecker "github.com/sariya23/game_service/tests/checkers/handlers"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -49,7 +50,7 @@ func TestAddGame(t *testing.T) {
 
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
-		checkers.AssertAddGame(t, err, resp)
+		hadlerchecker.AssertAddGame(t, err, resp)
 
 		gameDB, err := db.GetGameByID(ctx, resp.GetGameId())
 		require.NoError(t, err)
@@ -69,7 +70,7 @@ func TestAddGame(t *testing.T) {
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
 
-		checkers.AssertAddGameTagNotFound(t, err, resp)
+		hadlerchecker.AssertAddGameTagNotFound(t, err, resp)
 	})
 	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий жанр", func(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
@@ -84,7 +85,7 @@ func TestAddGame(t *testing.T) {
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		resp, err := grpcClient.AddGame(ctx, &request)
 
-		checkers.AssertAddGameGenreNotFound(t, err, resp)
+		hadlerchecker.AssertAddGameGenreNotFound(t, err, resp)
 
 	})
 	t.Run("Тест ручки AddGame; Нельзя сохранить точно такую же игру", func(t *testing.T) {
@@ -106,6 +107,6 @@ func TestAddGame(t *testing.T) {
 		duplicateRequest := gamev4.AddGameRequest{Game: duplicateGame}
 		resp, err = grpcClient.AddGame(ctx, &duplicateRequest)
 
-		checkers.AssertAddGameDuplicateGame(t, err, resp)
+		hadlerchecker.AssertAddGameDuplicateGame(t, err, resp)
 	})
 }
