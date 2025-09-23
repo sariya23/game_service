@@ -141,13 +141,13 @@ func (gameService *GameService) AddGame(
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	log.Info("game save successfully")
-	// err = gameService.mailer.SendMessage(
-	// 	"Добавлена игра",
-	// 	fmt.Sprintf("Добавлена игра %s %d года", game.Title, game.ReleaseDate.Year()),
-	// )
-	// if err != nil {
-	// 	log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))
-	// }
+	err = gameService.mailer.SendMessage(
+		"Добавлена игра",
+		fmt.Sprintf("Добавлена игра %s %d года", game.Title, game.ReleaseDate.Year()),
+	)
+	if err != nil {
+		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))
+	}
 	return gameID, errSaveImage
 }
 

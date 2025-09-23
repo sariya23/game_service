@@ -8,6 +8,10 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+const (
+	TestEnvType = "string"
+)
+
 type Config struct {
 	Server   *Server
 	Postgres *Postgres
