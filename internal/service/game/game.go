@@ -39,7 +39,7 @@ type S3Storager interface {
 	DeleteObject(ctx context.Context, name string) error
 }
 
-type EmailAlerter interface {
+type GameValidationSender interface {
 	SendMessage(subject string, body string) error
 }
 
@@ -49,7 +49,7 @@ type GameService struct {
 	tagReposetory   TagRepository
 	genreReposetory GenreRepository
 	s3Storager      S3Storager
-	mailer          EmailAlerter
+	mailer          GameValidationSender
 }
 
 func NewGameService(
@@ -58,7 +58,7 @@ func NewGameService(
 	tagReposetory TagRepository,
 	genreReposetory GenreRepository,
 	s3Storager S3Storager,
-	mailer EmailAlerter,
+	mailer GameValidationSender,
 
 ) *GameService {
 	return &GameService{
