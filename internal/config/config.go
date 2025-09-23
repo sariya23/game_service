@@ -13,6 +13,11 @@ type Config struct {
 	Postgres *Postgres
 	Email    *Email
 	Minio    *Minio
+	Env      *Env
+}
+
+type Env struct {
+	EnvType string `env:"ENV_TYPE"`
 }
 
 type Server struct {
@@ -54,6 +59,7 @@ func MustLoad() Config {
 	postgresConfig := Postgres{}
 	emailConfig := Email{}
 	minioConfig := Minio{}
+	envConfig := Env{}
 	cfg := Config{}
 	if err := cleanenv.ReadConfig(configPath, &serverConfig); err != nil {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
@@ -67,10 +73,14 @@ func MustLoad() Config {
 	if err := cleanenv.ReadConfig(configPath, &minioConfig); err != nil {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
+	if err := cleanenv.ReadConfig(configPath, &envConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
 	cfg.Server = &serverConfig
 	cfg.Postgres = &postgresConfig
 	cfg.Email = &emailConfig
 	cfg.Minio = &minioConfig
+	cfg.Env = &envConfig
 	return cfg
 }
 
@@ -84,6 +94,7 @@ func MustLoadByPath(configPath string) Config {
 	postgresConfig := Postgres{}
 	emailConfig := Email{}
 	minioConfig := Minio{}
+	envConfig := Env{}
 	cfg := Config{}
 	if err := cleanenv.ReadConfig(configPath, &serverConfig); err != nil {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
@@ -97,10 +108,14 @@ func MustLoadByPath(configPath string) Config {
 	if err := cleanenv.ReadConfig(configPath, &minioConfig); err != nil {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
+	if err := cleanenv.ReadConfig(configPath, &envConfig); err != nil {
+		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
+	}
 	cfg.Server = &serverConfig
 	cfg.Postgres = &postgresConfig
 	cfg.Email = &emailConfig
 	cfg.Minio = &minioConfig
+	cfg.Env = &envConfig
 	return cfg
 }
 
