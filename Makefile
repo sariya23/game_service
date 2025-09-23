@@ -12,3 +12,9 @@ migrate:
 	"postgresql://$(POSTGRES_USERNAME):$(POSTRGRES_PASSWORD)\
 	@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=disable" up
+
+unit_test:
+	go test -tags=unit ./...
+
+integration_test:
+	go test -tags=integrations ./...
