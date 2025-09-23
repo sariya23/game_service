@@ -12,7 +12,7 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
-	"github.com/sariya23/game_service/tests/checkers"
+	checkers "github.com/sariya23/game_service/tests/checkers/handlers"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
