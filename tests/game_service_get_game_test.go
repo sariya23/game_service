@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"io"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -31,8 +32,12 @@ func TestGetGame(t *testing.T) {
 		require.NotZero(t, addResp.GetGameId())
 
 		getResp, err := suite.GrpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: addResp.GetGameId()})
-		// не передавать s3
-		checkers.AssertGetGame(ctx, t, gameToAdd, getResp, suite.S3, err)
+		require.NoError(t, err)
+		obj, err := suite.S3.GetObject(ctx, getResp.Game.GetCoverImageUrl())
+		require.NoError(t, err)
+		imageBytes, err := io.ReadAll(obj)
+		require.NoError(t, err)
+		checkers.AssertGetGame(ctx, t, gameToAdd, getResp, imageBytes, err)
 	})
 	t.Run("Тест ручки GetGame; Ошибка при получени несуществующей игры", func(t *testing.T) {
 		resp, err := suite.GrpcClient.GetGame(ctx, &gamev4.GetGameRequest{GameId: uint64(gofakeit.IntRange(10000, 40000))})

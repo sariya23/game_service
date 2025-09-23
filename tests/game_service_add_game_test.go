@@ -1,10 +1,12 @@
 package tests
 
 import (
+	"io"
 	"testing"
 
 	"github.com/sariya23/game_service/internal/lib/random"
 	"github.com/sariya23/game_service/internal/model"
+	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	checkers "github.com/sariya23/game_service/tests/checkers"
 	hadlerchecker "github.com/sariya23/game_service/tests/checkers/handlers"
 	"github.com/sariya23/game_service/tests/suite"
@@ -32,8 +34,12 @@ func TestAddGame(t *testing.T) {
 
 		gameDB, err := suite.Db.GetGameByID(ctx, resp.GetGameId())
 		require.NoError(t, err)
-		// Не передавать s3
-		checkers.AssertAddGameRequestAndDB(ctx, t, &request, *gameDB, suite.S3)
+
+		image, err := suite.S3.GetObject(ctx, minioclient.GameKey(request.Game.GetTitle(), int(request.Game.ReleaseDate.GetYear())))
+		require.NoError(t, err)
+		imageBytes, err := io.ReadAll(image)
+		require.NoError(t, err)
+		checkers.AssertAddGameRequestAndDB(ctx, t, &request, *gameDB, imageBytes)
 
 	})
 	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий тэг", func(t *testing.T) {

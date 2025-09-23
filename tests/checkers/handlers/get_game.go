@@ -2,11 +2,9 @@ package checkers
 
 import (
 	"context"
-	"io"
 	"testing"
 
 	"github.com/sariya23/game_service/internal/outerror"
-	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +17,7 @@ func AssertGetGame(ctx context.Context,
 	t *testing.T,
 	expected *gamev4.GameRequest,
 	response *gamev4.GetGameResponse,
-	s3 *minioclient.Minio,
+	expctedImageS3 []byte,
 	err error,
 ) {
 	t.Helper()
@@ -31,11 +29,7 @@ func AssertGetGame(ctx context.Context,
 	assert.Equal(t, expected.GetReleaseDate().GetDay(), response.Game.GetReleaseDate().GetDay())
 	assert.Equal(t, expected.GetGenres(), response.Game.GetGenres())
 	assert.Equal(t, expected.GetTags(), response.Game.GetTags())
-	obj, err := s3.GetObject(ctx, response.Game.GetCoverImageUrl())
-	require.NoError(t, err)
-	imageBytes, err := io.ReadAll(obj)
-	require.NoError(t, err)
-	assert.Equal(t, expected.GetCoverImage(), imageBytes)
+	assert.Equal(t, expected.GetCoverImage(), expctedImageS3)
 }
 
 // AssertGetGameNotFound проверяет ответ ручки GetGame при попытке получить несуществующую игру
