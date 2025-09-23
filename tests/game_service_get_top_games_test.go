@@ -14,6 +14,7 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
+	"github.com/sariya23/game_service/tests/checkers"
 	"github.com/sariya23/game_service/tests/helpers"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/assert"
@@ -48,14 +49,7 @@ func TestGetTopGames(t *testing.T) {
 		for i := 0; i < len(expctedGames); i++ {
 			gameDB := expctedGames[i]
 			gameSRV := response.Games[i]
-
-			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
-			assert.Equal(t, gameDB.Title, gameSRV.Title)
-			assert.Equal(t, gameDB.Description, gameSRV.Description)
-			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
-			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+			checkers.AssertShortGameTopGame(t, gameDB, gameSRV)
 		}
 	})
 	t.Run("Тест ручки GetTopGame; Фильтрация по жанрам, без лимита", func(t *testing.T) {
@@ -86,13 +80,7 @@ func TestGetTopGames(t *testing.T) {
 			require.NoError(t, err)
 			fullGameGenreNames := model.GetGenreNames(fullGame.Genres)
 			assert.True(t, helpers.HasIntersection(expectedGenreNames, fullGameGenreNames))
-			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
-			assert.Equal(t, gameDB.Title, gameSRV.Title)
-			assert.Equal(t, gameDB.Description, gameSRV.Description)
-			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
-			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+			checkers.AssertShortGameTopGame(t, gameDB, gameSRV)
 		}
 	})
 	t.Run("Тест ручки GetTopGame; Фильтрация по тэгам, без лимита", func(t *testing.T) {
@@ -125,13 +113,7 @@ func TestGetTopGames(t *testing.T) {
 			fullGameTagsNames := model.GetTagNames(fullGame.Tags)
 
 			assert.True(t, helpers.HasIntersection(expectedTagNames, fullGameTagsNames))
-			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
-			assert.Equal(t, gameDB.Title, gameSRV.Title)
-			assert.Equal(t, gameDB.Description, gameSRV.Description)
-			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
-			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+			checkers.AssertShortGameTopGame(t, gameDB, gameSRV)
 		}
 	})
 	t.Run("Тест ручки GetTopGame; Фильтрация по тэгам и жанрам", func(t *testing.T) {
@@ -173,12 +155,7 @@ func TestGetTopGames(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, helpers.HasIntersection(fullGame.Game.Genres, gameGenreNames))
 			assert.True(t, helpers.HasIntersection(fullGame.Game.Tags, gameTagNames))
-			assert.Equal(t, gameDB.Title, gameSRV.Title)
-			assert.Equal(t, gameDB.Description, gameSRV.Description)
-			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
-			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+			checkers.AssertShortGameTopGame(t, gameDB, gameSRV)
 		}
 	})
 	t.Run("Тест ручки GetTopGame; Фильтрация по тэгам, жанрам и году", func(t *testing.T) {
@@ -222,12 +199,7 @@ func TestGetTopGames(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, helpers.HasIntersection(fullGame.Game.Genres, gameGenreNames))
 			assert.True(t, helpers.HasIntersection(fullGame.Game.Tags, gameTagNames))
-			assert.Equal(t, gameDB.Title, gameSRV.Title)
-			assert.Equal(t, gameDB.Description, gameSRV.Description)
-			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
-			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+			checkers.AssertShortGameTopGame(t, gameDB, gameSRV)
 		}
 	})
 	t.Run("Тест ручки GetTopGame; Указан только лимит", func(t *testing.T) {
@@ -242,14 +214,7 @@ func TestGetTopGames(t *testing.T) {
 		for i := 0; i < len(expctedGames); i++ {
 			gameDB := expctedGames[i]
 			gameSRV := response.Games[i]
-
-			assert.Equal(t, int(gameDB.GameID), int(gameSRV.ID))
-			assert.Equal(t, gameDB.Title, gameSRV.Title)
-			assert.Equal(t, gameDB.Description, gameSRV.Description)
-			assert.Equal(t, int32(gameDB.ReleaseDate.Year()), gameSRV.GetReleaseDate().GetYear())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Month()), gameSRV.GetReleaseDate().GetMonth())
-			assert.Equal(t, int32(gameDB.ReleaseDate.Day()), gameSRV.GetReleaseDate().GetDay())
-			assert.Equal(t, gameDB.ImageURL, gameSRV.CoverImageUrl)
+			checkers.AssertShortGameTopGame(t, gameDB, gameSRV)
 		}
 	})
 }
