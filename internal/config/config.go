@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TestEnvType = "string"
+	TestEnvType = "test"
 )
 
 type Config struct {

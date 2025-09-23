@@ -25,17 +25,21 @@ func main() {
 		slog.Int("grpc port", cfg.Server.GrpcServerPort),
 		slog.Int("htpp port", cfg.Server.HttpServerPort),
 	)
+	log.Info("env is", slog.String("env", cfg.Env.EnvType))
 	grpcServer := grpc.NewServer()
 	db := postgresql.MustNewConnection(ctx, log, cfg.Postgres.PostgresURL)
 	s3Client := minioclient.MustPrepareMinio(ctx, log, cfg.Minio, false)
 	var sender gameservice.GameValidationSender
 	if cfg.Env.EnvType == config.TestEnvType {
+		log.Info("sender is mocked")
 		sender = email.NewDialerMock(cfg.Email)
 	} else {
+		log.Info("sender is not mocked")
 		sender = email.NewDialer(cfg.Email)
 	}
 	gameService := gameservice.NewGameService(log, db, db, db, s3Client, sender)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
+	log.Info("server ready to get connections")
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.GrpcServerPort))
 	if err != nil {
 		panic(fmt.Sprintf("%v", err))
