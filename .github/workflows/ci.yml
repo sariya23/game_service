@@ -10,7 +10,7 @@ jobs:
   lint:
     name: Run linters
     runs-on: ubuntu-latest
-    continue-on-error: true 
+    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -30,11 +30,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Generate mocks
+        run: go generate ./...
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.54.2
+          version: v1.55.2
           args: --timeout=5m --out-format=colored-line-number ./...
+
 
   test:
     name: Run unit tests
