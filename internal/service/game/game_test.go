@@ -23,16 +23,6 @@ import (
 
 const GameNotSaveID uint64 = 0
 
-type mockEmailAlerter struct {
-	mock.Mock
-}
-
-func (m *mockEmailAlerter) SendMessage(subject string, body string) error {
-	args := m.Called(subject, body)
-
-	return args.Error(0)
-}
-
 type mockTagRepository struct {
 	mock.Mock
 }
@@ -63,8 +53,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		expectedError := outerror.ErrGameAlreadyExist
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Genres = nil
@@ -94,8 +83,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		expectedError := outerror.ErrTagNotFound
 		gameToAdd := random.RandomAddGameRequest()
 		tags := gameToAdd.Tags
@@ -116,8 +104,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		expectedError := outerror.ErrGenreNotFound
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.CoverImage = nil
@@ -139,8 +126,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Genres = nil
 		gameToAdd.Tags = nil
@@ -175,8 +161,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Genres = nil
 		gameToAdd.Tags = nil
@@ -206,7 +191,6 @@ func TestAddGame(t *testing.T) {
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedError).Once()
-		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(GameNotSaveID, nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
@@ -217,8 +201,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Genres = nil
 		gameToAdd.Tags = nil
@@ -249,7 +232,6 @@ func TestAddGame(t *testing.T) {
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return(string(gameToAdd.CoverImage), nil).Once()
-		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
@@ -260,8 +242,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Tags = []string{"TAG"}
 		gameToAdd.Genres = []string{"GENRE"}
@@ -297,7 +278,6 @@ func TestAddGame(t *testing.T) {
 		).Return(game.ImageURL, nil).Once()
 		tagMockRepo.On("GetTagByNames", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
 		genreMockRepo.On("GetGenreByNames", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
-		mailerMock.On("SendMessage", mock.Anything, mock.Anything).Return(nil).Once()
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
@@ -308,8 +288,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameToAdd := random.RandomAddGameRequest()
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
@@ -334,8 +313,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Tags = nil
 		gameMockRepo.On(
@@ -364,8 +342,7 @@ func TestGetGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(1)
 		expectedError := outerror.ErrGameNotFound
 		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
@@ -378,8 +355,7 @@ func TestGetGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(1)
 		expectedError := errors.New("some error")
 		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(nil, expectedError).Once()
@@ -392,8 +368,7 @@ func TestGetGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(1)
 		expectedGame := random.NewRandomGame()
 		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(expectedGame, nil).Once()
@@ -409,8 +384,7 @@ func TestDeleteGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(4)
 		deletedGame := random.NewRandomGame()
 		gameKey := minioclient.GameKey(deletedGame.Title, int(deletedGame.ReleaseDate.Year()))
@@ -426,8 +400,7 @@ func TestDeleteGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(4)
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(nil, outerror.ErrGameNotFound).Once()
 		deletedGameID, err := gameService.DeleteGame(context.Background(), gameID)
@@ -439,8 +412,7 @@ func TestDeleteGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(4)
 		someErr := errors.New("some err")
 		gameMockRepo.On("DaleteGame", mock.Anything, gameID).Return(nil, someErr).Once()
@@ -453,8 +425,7 @@ func TestDeleteGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(4)
 		deletedGame := random.NewRandomGame()
 		deletedGame.ImageURL = ""
@@ -470,8 +441,7 @@ func TestDeleteGame(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		gameID := uint64(4)
 		deletedGame := random.NewRandomGame()
 		someErr := errors.New("some error")
@@ -490,8 +460,7 @@ func TestGetTopGames(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		filters := dto.GameFilters{ReleaseYear: 2020}
 		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), errors.New("err")).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
@@ -503,8 +472,7 @@ func TestGetTopGames(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		filters := dto.GameFilters{ReleaseYear: 2020}
 		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), nil).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))
@@ -516,8 +484,7 @@ func TestGetTopGames(t *testing.T) {
 		tagMockRepo := new(mockTagRepository)
 		genreMockRepo := new(mockGenreRepository)
 		s3Mock := new(mockS3Storager)
-		mailerMock := new(mockEmailAlerter)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock, mailerMock)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
 		filters := dto.GameFilters{ReleaseYear: 2020}
 		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return([]model.ShortGame{{GameID: 1, Title: "qwe", Description: "qe"}}, nil).Once()
 		games, err := gameService.gameRepository.GetTopGames(context.Background(), filters, uint32(10))

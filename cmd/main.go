@@ -9,7 +9,6 @@ import (
 
 	"github.com/sariya23/game_service/internal/config"
 	"github.com/sariya23/game_service/internal/grpchandlers"
-	"github.com/sariya23/game_service/internal/lib/email"
 	gameservice "github.com/sariya23/game_service/internal/service/game"
 	"github.com/sariya23/game_service/internal/storage/postgresql"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
@@ -29,15 +28,8 @@ func main() {
 	grpcServer := grpc.NewServer()
 	db := postgresql.MustNewConnection(ctx, log, cfg.Postgres.PostgresURL)
 	s3Client := minioclient.MustPrepareMinio(ctx, log, cfg.Minio, false)
-	var sender gameservice.GameValidationSender
-	if cfg.Env.EnvType == config.TestEnvType {
-		log.Info("sender is mocked")
-		sender = email.NewDialerMock(cfg.Email)
-	} else {
-		log.Info("sender is not mocked")
-		sender = email.NewDialer(cfg.Email)
-	}
-	gameService := gameservice.NewGameService(log, db, db, db, s3Client, sender)
+
+	gameService := gameservice.NewGameService(log, db, db, db, s3Client)
 	grpchandlers.RegisterGrpcHandlers(grpcServer, gameService)
 	log.Info("server ready to get connections")
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.GrpcServerPort))

@@ -39,17 +39,12 @@ type S3Storager interface {
 	DeleteObject(ctx context.Context, name string) error
 }
 
-type GameValidationSender interface {
-	SendMessage(subject string, body string) error
-}
-
 type GameService struct {
 	log             *slog.Logger
 	gameRepository  GameReposetory
 	tagReposetory   TagRepository
 	genreReposetory GenreRepository
 	s3Storager      S3Storager
-	mailer          GameValidationSender
 }
 
 func NewGameService(
@@ -58,7 +53,6 @@ func NewGameService(
 	tagReposetory TagRepository,
 	genreReposetory GenreRepository,
 	s3Storager S3Storager,
-	mailer GameValidationSender,
 
 ) *GameService {
 	return &GameService{
@@ -67,7 +61,6 @@ func NewGameService(
 		tagReposetory:   tagReposetory,
 		genreReposetory: genreReposetory,
 		gameRepository:  gameReposiroy,
-		mailer:          mailer,
 	}
 }
 
@@ -141,13 +134,6 @@ func (gameService *GameService) AddGame(
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	log.Info("game save successfully")
-	err = gameService.mailer.SendMessage(
-		"Добавлена игра",
-		fmt.Sprintf("Добавлена игра %s %d года", game.Title, game.ReleaseDate.Year()),
-	)
-	if err != nil {
-		log.Warn(fmt.Sprintf("cannot send alert; err = %v", err))
-	}
 	return gameID, errSaveImage
 }
 
