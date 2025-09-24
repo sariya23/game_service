@@ -217,6 +217,8 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := random.RandomAddGameRequest()
 		gameToAdd.Tags = []string{"TAG"}
 		gameToAdd.Genres = []string{"GENRE"}
+		modelTags := []model.Tag{{TagID: 1, TagName: "TAG"}}
+		modelGenres := []model.Genre{{GenreID: 1, GenreName: "GENRE"}}
 		game := model.Game{
 			Title:       gameToAdd.Title,
 			Description: gameToAdd.Description,
@@ -231,8 +233,8 @@ func TestAddGame(t *testing.T) {
 				time.UTC,
 			),
 			ImageURL: string(gameToAdd.CoverImage),
-			Tags:     []model.Tag{{1, "TAG"}},
-			Genres:   []model.Genre{{1, "GENRE"}},
+			Tags:     modelTags,
+			Genres:   modelGenres,
 		}
 		expectedGameID := uint64(288)
 		gameMockRepo.On(
@@ -247,8 +249,8 @@ func TestAddGame(t *testing.T) {
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return(game.ImageURL, nil).Once()
-		tagMockRepo.On("GetTagByNames", mock.Anything, gameToAdd.GetTags()).Return([]model.Tag{{1, "TAG"}}, nil)
-		genreMockRepo.On("GetGenreByNames", mock.Anything, gameToAdd.GetGenres()).Return([]model.Genre{{1, "GENRE"}}, nil)
+		tagMockRepo.On("GetTagByNames", mock.Anything, gameToAdd.GetTags()).Return(modelTags, nil)
+		genreMockRepo.On("GetGenreByNames", mock.Anything, gameToAdd.GetGenres()).Return(modelGenres, nil)
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
