@@ -15,7 +15,6 @@ const (
 type Config struct {
 	Server   *Server
 	Postgres *Postgres
-	Email    *Email
 	Minio    *Minio
 	Env      *Env
 }
@@ -37,14 +36,6 @@ type Postgres struct {
 	PostgresPassword string `env:"POSTRGRES_PASSWORD"`
 }
 
-type Email struct {
-	SmtpHost      string `env:"SMTP_HOST"`
-	SmtpPort      int    `env:"SMTP_PORT"`
-	EmailUser     string `env:"EMAIL_USER"`
-	EmailPassword string `env:"EMAIL_PASSWORD"`
-	AdminEmail    string `env:"ADMIN_EMAIl"`
-}
-
 type Minio struct {
 	MinioUser     string `env:"MINIO_USER"`
 	MinioPassword string `env:"MINIO_PASSWORD"`
@@ -61,7 +52,6 @@ func MustLoad() Config {
 	}
 	serverConfig := Server{}
 	postgresConfig := Postgres{}
-	emailConfig := Email{}
 	minioConfig := Minio{}
 	envConfig := Env{}
 	cfg := Config{}
@@ -69,9 +59,6 @@ func MustLoad() Config {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
 	if err := cleanenv.ReadConfig(configPath, &postgresConfig); err != nil {
-		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
-	}
-	if err := cleanenv.ReadConfig(configPath, &emailConfig); err != nil {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
 	if err := cleanenv.ReadConfig(configPath, &minioConfig); err != nil {
@@ -82,7 +69,6 @@ func MustLoad() Config {
 	}
 	cfg.Server = &serverConfig
 	cfg.Postgres = &postgresConfig
-	cfg.Email = &emailConfig
 	cfg.Minio = &minioConfig
 	cfg.Env = &envConfig
 	return cfg
@@ -96,7 +82,6 @@ func MustLoadByPath(configPath string) Config {
 
 	serverConfig := Server{}
 	postgresConfig := Postgres{}
-	emailConfig := Email{}
 	minioConfig := Minio{}
 	envConfig := Env{}
 	cfg := Config{}
@@ -104,9 +89,6 @@ func MustLoadByPath(configPath string) Config {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
 	if err := cleanenv.ReadConfig(configPath, &postgresConfig); err != nil {
-		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
-	}
-	if err := cleanenv.ReadConfig(configPath, &emailConfig); err != nil {
 		panic(fmt.Sprintf("cannot read config from file; err=%s", err.Error()))
 	}
 	if err := cleanenv.ReadConfig(configPath, &minioConfig); err != nil {
@@ -117,7 +99,6 @@ func MustLoadByPath(configPath string) Config {
 	}
 	cfg.Server = &serverConfig
 	cfg.Postgres = &postgresConfig
-	cfg.Email = &emailConfig
 	cfg.Minio = &minioConfig
 	cfg.Env = &envConfig
 	return cfg
