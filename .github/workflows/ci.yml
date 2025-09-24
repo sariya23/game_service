@@ -41,7 +41,7 @@ jobs:
       - name: Install revive
         run: go install github.com/mgechev/revive@latest
       - name: Run revive
-        run: revive -config revive.toml ./...
+        run: revive ./...
   
   test:
     name: Run unit tests
