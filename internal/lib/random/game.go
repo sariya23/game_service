@@ -9,7 +9,7 @@ func NewRandomGame() *model.Game {
 	var res model.Game
 	fakeit := gofakeit.New(0)
 	res.GameID = gofakeit.Uint64()
-	res.Title = fakeit.Book().Title
+	res.Title = fakeit.LetterN(20)
 	res.Description = fakeit.LetterN(20)
 	res.ReleaseDate = fakeit.Date()
 	res.ImageURL = fakeit.URL()
