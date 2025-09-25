@@ -61,7 +61,7 @@ func TestDeteteGame(t *testing.T) {
 		checkers.AssertDeleteGame(t, err, addResp.GameId, respDelete)
 	})
 	t.Run("Тест ручки DeleteGame; Игра не найдена", func(t *testing.T) {
-		resp, err := suite.GrpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: uint64(gofakeit.Uint64())})
+		resp, err := suite.GrpcClient.DeleteGame(ctx, &gamev4.DeleteGameRequest{GameId: uint64(gofakeit.Int64())})
 		checkers.AssertDeleteGameNotFound(t, err, resp)
 	})
 }

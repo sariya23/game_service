@@ -1,6 +1,9 @@
 package random
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/sariya23/game_service/internal/model"
 )
@@ -8,8 +11,8 @@ import (
 func NewRandomGame() *model.Game {
 	var res model.Game
 	fakeit := gofakeit.New(0)
-	res.GameID = gofakeit.Uint64()
-	res.Title = fakeit.LetterN(20)
+	res.GameID = uint64(gofakeit.Int64())
+	res.Title = fmt.Sprintf("%v_%v", fakeit.LetterN(20), time.Now().UTC())
 	res.Description = fakeit.LetterN(20)
 	res.ReleaseDate = fakeit.Date()
 	res.ImageURL = fakeit.URL()

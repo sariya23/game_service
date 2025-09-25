@@ -16,12 +16,13 @@ import (
 func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error) {
 	const operationPlace = "postgresql.GetGameByTitleAndReleaseYear"
 	log := postgresql.log.With("operationPlace", operationPlace).With("title", title).With("releaseYear", releaseYear)
-	getGameQuery := fmt.Sprintf("select %s, %s, %s, %s, %s from game where %s=$1 and extract(year from %s)=$2",
+	getGameQuery := fmt.Sprintf("select %s, %s, %s, %s, %s, %s from game where %s=$1 and extract(year from %s)=$2",
 		gameGameIDFieldName,
 		gameTitleFieldName,
 		gameDescriptionFieldName,
 		gameReleaseDateFieldName,
 		gameImageURLFieldName,
+		gameIsPublishedFieldName,
 		gameTitleFieldName,
 		gameReleaseDateFieldName,
 	)
@@ -53,6 +54,7 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 		&game.Description,
 		&game.ReleaseDate,
 		&game.ImageURL,
+		&game.IsPublished,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -108,12 +110,13 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 	const operationPlace = "postgresql.GetGameByID"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	getGameMainInfoQuery := fmt.Sprintf(
-		"select %s, %s, %s, %s, %s from game where %s=$1",
+		"select %s, %s, %s, %s, %s, %s from game where %s=$1",
 		gameGameIDFieldName,
 		gameTitleFieldName,
 		gameDescriptionFieldName,
 		gameReleaseDateFieldName,
 		gameImageURLFieldName,
+		gameIsPublishedFieldName,
 		gameGameIDFieldName,
 	)
 	getGameGenresQuery := fmt.Sprintf(`
@@ -144,6 +147,7 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 		&game.Description,
 		&game.ReleaseDate,
 		&game.ImageURL,
+		&game.IsPublished,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -300,7 +304,8 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 		gameImageURLFieldName,
 	).
 		From("game").
-		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...))
+		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...)).
+		Where(sq.Eq{gameIsPublishedFieldName: true})
 
 	yearArgs := make([]interface{}, 0, 1)
 	if filters.ReleaseYear > 0 {
@@ -366,7 +371,7 @@ func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*dt
 			log.Warn("cannot delete game because it is not found", slog.Int("gameID", int(gameID)))
 			return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameNotFound)
 		}
-		log.Error("cannot delete game", slog.Int("gameID", int(gameID)), slog.String("err", err.Error()))
+		log.Error("cannot delete game", slog.Any("gameID", gameID), slog.String("err", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	log.Info("game deleted successfully", slog.Int("gameID", int(gameID)))
