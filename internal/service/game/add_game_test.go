@@ -12,6 +12,7 @@ import (
 	"github.com/sariya23/game_service/internal/lib/random"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
+	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -149,6 +150,7 @@ func TestAddGame(t *testing.T) {
 				0,
 				time.UTC),
 		}
+		savedGameID := uint64(23)
 		expectedError := outerror.ErrCannotSaveGameImage
 		gameMockRepo.On(
 			"GetGameByTitleAndReleaseYear",
@@ -162,10 +164,11 @@ func TestAddGame(t *testing.T) {
 			fmt.Sprintf("%s_%d", gameToAdd.GetTitle(), int(gameToAdd.GetReleaseDate().Year)),
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return("", expectedError).Once()
-		gameMockRepo.On("SaveGame", mock.Anything, game).Return(GameNotSaveID, nil).Once()
+		gameMockRepo.On("SaveGame", mock.Anything, game).Return(savedGameID, nil).Once()
+		gameMockRepo.On("UpdateGameStatus", mock.Anything, savedGameID, gamev4.GameStatusType_PENDING).Return(nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.ErrorIs(t, err, expectedError)
-		require.Zero(t, gameID)
+		require.Equal(t, savedGameID, gameID)
 	})
 	t.Run("Сохранение игры без ошибок", func(t *testing.T) {
 		gameMockRepo := new(mockGameReposiroy)
@@ -204,6 +207,7 @@ func TestAddGame(t *testing.T) {
 			bytes.NewReader(gameToAdd.GetCoverImage()),
 		).Return(string(gameToAdd.CoverImage), nil).Once()
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
+		gameMockRepo.On("UpdateGameStatus", mock.Anything, expectedGameID, gamev4.GameStatusType_PENDING).Return(nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
 		require.Equal(t, expectedGameID, gameID)
@@ -252,6 +256,7 @@ func TestAddGame(t *testing.T) {
 		tagMockRepo.On("GetTagByNames", mock.Anything, gameToAdd.GetTags()).Return(modelTags, nil)
 		genreMockRepo.On("GetGenreByNames", mock.Anything, gameToAdd.GetGenres()).Return(modelGenres, nil)
 		gameMockRepo.On("SaveGame", mock.Anything, game).Return(expectedGameID, nil).Once()
+		gameMockRepo.On("UpdateGameStatus", mock.Anything, expectedGameID, gamev4.GameStatusType_PENDING).Return(nil).Once()
 		gameID, err := gameService.AddGame(context.Background(), gameToAdd)
 		require.NoError(t, err)
 		require.Equal(t, expectedGameID, gameID)

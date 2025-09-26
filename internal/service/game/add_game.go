@@ -83,6 +83,11 @@ func (gameService *GameService) AddGame(
 		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
+	err = gameService.gameRepository.UpdateGameStatus(ctx, gameID, gamev4.GameStatusType_PENDING)
+	if err != nil {
+		log.Warn("cannot update game status to pending", slog.String("err", err.Error()), slog.Int("gameID", int(gameID)))
+	}
+	// Отправка сообщения в кафку
 	log.Info("game save successfully")
 	return gameID, errSaveImage
 }

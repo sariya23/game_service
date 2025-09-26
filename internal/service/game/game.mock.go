@@ -5,6 +5,7 @@ import (
 
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
+	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -44,4 +45,9 @@ func (m *mockGameReposiroy) DaleteGame(ctx context.Context, gameID uint64) (*dto
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*dto.DeletedGame), args.Error(1)
+}
+
+func (m *mockGameReposiroy) UpdateGameStatus(ctx context.Context, gameID uint64, newStatus gamev4.GameStatusType) error {
+	args := m.Called(ctx, gameID, newStatus)
+	return args.Error(0)
 }
