@@ -126,7 +126,9 @@ func (srvAPI *serverAPI) UpdateGameStatus(
 	err = srvAPI.gameServicer.UpdateGameStatus(ctx, request.GetGameId(), request.GetNewStautus())
 	if err != nil {
 		if errors.Is(err, outerror.ErrUnknownGameStatus) {
-			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.InvalidArgument, outerror.UnknownGameStatusMessage)
+			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.NotFound, outerror.UnknownGameStatusMessage)
+		} else if errors.Is(err, outerror.ErrInvalidNewGameStatus) {
+			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.InvalidArgument, outerror.InvalidNewGameStatusMessage)
 		}
 		return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}

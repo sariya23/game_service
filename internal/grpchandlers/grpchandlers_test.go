@@ -51,6 +51,11 @@ func (m *mockGameServicer) DeleteGame(ctx context.Context, gameID uint64) (uint6
 	return args.Get(0).(uint64), args.Error(1)
 }
 
+func (m *mockGameServicer) UpdateGameStatus(ctx context.Context, gameID uint64, newGameStatus gamev4.GameStatusType) error {
+	args := m.Called(ctx, gameID, newGameStatus)
+	return args.Error(0)
+}
+
 func TestAddGameHandler(t *testing.T) {
 	t.Run("Успешное добавление игры", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
@@ -274,5 +279,85 @@ func TestGetTopGames(t *testing.T) {
 		resp, err := srv.GetTopGames(ctx, &req)
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.GetGames())
+	})
+}
+
+func TestUpdateGameStatus(t *testing.T) {
+	t.Run("Игра не найдена; возвращается NotFound", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		req := &gamev4.UpdateGameStatusRequest{GameId: uint64(2), NewStautus: 0}
+		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(nil, outerror.ErrGameNotFound).Once()
+		_, err := srv.UpdateGameStatus(ctx, req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.NotFound, s.Code())
+		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
+	})
+	t.Run("Internal ошибка при получении игры; вовзвращается Internal", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		req := &gamev4.UpdateGameStatusRequest{GameId: uint64(2), NewStautus: 0}
+		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(nil, errors.New("err")).Once()
+		_, err := srv.UpdateGameStatus(ctx, req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.Internal, s.Code())
+		require.Equal(t, outerror.InternalMessage, s.Message())
+	})
+	t.Run("Неизвестный новый статус; возвращается Unknown", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		expectedGame := random.NewRandomGame()
+		req := &gamev4.UpdateGameStatusRequest{GameId: expectedGame.GameID, NewStautus: gamev4.GameStatusType(10)}
+		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(expectedGame, nil).Once()
+		mockGameService.On("UpdateGameStatus", ctx, expectedGame.GameID, gamev4.GameStatusType(10)).
+			Return(outerror.ErrUnknownGameStatus).Once()
+		_, err := srv.UpdateGameStatus(ctx, req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.NotFound, s.Code())
+		require.Equal(t, outerror.UnknownGameStatusMessage, s.Message())
+	})
+	t.Run("Переход на неверный статус; возвращается Invalid", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		expectedGame := random.NewRandomGame()
+		req := &gamev4.UpdateGameStatusRequest{GameId: expectedGame.GameID, NewStautus: gamev4.GameStatusType_PUBLISH}
+		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(expectedGame, nil).Once()
+		mockGameService.On("UpdateGameStatus", ctx, expectedGame.GameID, gamev4.GameStatusType_PUBLISH).
+			Return(outerror.ErrInvalidNewGameStatus).Once()
+		_, err := srv.UpdateGameStatus(ctx, req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.InvalidArgument, s.Code())
+		require.Equal(t, outerror.InvalidNewGameStatusMessage, s.Message())
+	})
+	t.Run("Internal ошибка при изменении статуса; возвращается Internal", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		expectedGame := random.NewRandomGame()
+		req := &gamev4.UpdateGameStatusRequest{GameId: expectedGame.GameID, NewStautus: gamev4.GameStatusType_PUBLISH}
+		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(expectedGame, nil).Once()
+		mockGameService.On("UpdateGameStatus", ctx, expectedGame.GameID, gamev4.GameStatusType_PUBLISH).
+			Return(errors.New("err")).Once()
+		_, err := srv.UpdateGameStatus(ctx, req)
+		s, _ := status.FromError(err)
+		require.Equal(t, codes.Internal, s.Code())
+		require.Equal(t, outerror.InternalMessage, s.Message())
+	})
+
+	t.Run("Успешное обновление статуса", func(t *testing.T) {
+		mockGameService := new(mockGameServicer)
+		srv := serverAPI{gameServicer: mockGameService}
+		ctx := context.Background()
+		expectedGame := random.NewRandomGame()
+		req := &gamev4.UpdateGameStatusRequest{GameId: expectedGame.GameID, NewStautus: gamev4.GameStatusType_PUBLISH}
+		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(expectedGame, nil).Once()
+		mockGameService.On("UpdateGameStatus", ctx, expectedGame.GameID, gamev4.GameStatusType_PUBLISH).
+			Return(nil).Once()
+		_, err := srv.UpdateGameStatus(ctx, req)
+		require.NoError(t, err)
 	})
 }
