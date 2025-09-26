@@ -63,8 +63,8 @@ github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0t
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/rs/xid v1.6.0 h1:fV591PaemRlL6JfRxGDEPl69wICngIQ3shQtzfy2gxU=
 github.com/rs/xid v1.6.0/go.mod h1:7XoLgs4eV+QndskICGsho+ADou8ySMSjJKDIan90Nz0=
-github.com/sariya23/proto_api_games/v4 v4.0.30 h1:waG+AG3yh+7e71MmLP6385NCeP/f8pTuqnZ2GDNLjIs=
-github.com/sariya23/proto_api_games/v4 v4.0.30/go.mod h1:3t1BXvyTbBEDj/4Y/XliQTDcIMJ71E30JTlw7MwlV9g=
+github.com/sariya23/proto_api_games/v4 v4.0.31 h1:UHGfqhZtIwmxv13PTWB87nOjTAv3+lrLyxnEoNAhECE=
+github.com/sariya23/proto_api_games/v4 v4.0.31/go.mod h1:3t1BXvyTbBEDj/4Y/XliQTDcIMJ71E30JTlw7MwlV9g=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.5.2 h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=
 github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/8L+MA=

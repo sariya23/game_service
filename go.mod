@@ -8,7 +8,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/minio/minio-go/v7 v7.0.91
-	github.com/sariya23/proto_api_games/v4 v4.0.30
+	github.com/sariya23/proto_api_games/v4 v4.0.31
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto v0.0.0-20250313205543-e70fdf4c4cb4
 	google.golang.org/grpc v1.71.0
