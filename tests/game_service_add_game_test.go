@@ -42,7 +42,7 @@ func TestAddGame(t *testing.T) {
 		require.NoError(t, err)
 		imageBytes, err := io.ReadAll(image)
 		require.NoError(t, err)
-		checkers.AssertAddGameRequestAndDB(ctx, t, &request, *gameDB, imageBytes)
+		checkers.AssertAddGameRequestAndDB(ctx, t, &request, *gameDB, imageBytes, gamev4.GameStatusType_DRAFT)
 
 	})
 	t.Run("Тест ручки AddGame; Игра не создается если передан хотя бы один несущетвующий тэг", func(t *testing.T) {

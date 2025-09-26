@@ -378,3 +378,7 @@ func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*dt
 	log.Info("game deleted successfully", slog.Int("gameID", int(gameID)))
 	return &deltedGameInfo, nil
 }
+
+func (postgresql PostgreSQL) UpdateGameStatus(ctx context.Context, gameID uint64, newStatus gamev4.GameStatusType) error {
+	return nil
+}

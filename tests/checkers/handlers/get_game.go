@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 	"github.com/stretchr/testify/assert"
@@ -15,21 +16,19 @@ import (
 // AssertGetGame проверяет ответ ручки GetGame
 func AssertGetGame(ctx context.Context,
 	t *testing.T,
-	expected *gamev4.GameRequest,
+	expected *model.Game,
 	response *gamev4.GetGameResponse,
-	expctedImageS3 []byte,
-	err error,
+	imageDB []byte,
+	expectedImage []byte,
 ) {
 	t.Helper()
-	require.NoError(t, err)
-	assert.Equal(t, expected.GetTitle(), response.Game.GetTitle())
-	assert.Equal(t, expected.GetDescription(), response.Game.GetDescription())
-	assert.Equal(t, expected.GetReleaseDate().GetYear(), response.Game.GetReleaseDate().GetYear())
-	assert.Equal(t, expected.GetReleaseDate().GetMonth(), response.Game.GetReleaseDate().GetMonth())
-	assert.Equal(t, expected.GetReleaseDate().GetDay(), response.Game.GetReleaseDate().GetDay())
-	assert.Equal(t, expected.GetGenres(), response.Game.GetGenres())
-	assert.Equal(t, expected.GetTags(), response.Game.GetTags())
-	assert.Equal(t, expected.GetCoverImage(), expctedImageS3)
+	assert.Equal(t, expected.Title, response.Game.GetTitle())
+	assert.Equal(t, expected.Description, response.Game.GetDescription())
+	assert.Equal(t, int32(expected.ReleaseDate.Year()), response.Game.GetReleaseDate().GetYear())
+	assert.Equal(t, int32(expected.ReleaseDate.Month()), response.Game.GetReleaseDate().GetMonth())
+	assert.Equal(t, int32(expected.ReleaseDate.Day()), response.Game.GetReleaseDate().GetDay())
+	assert.Equal(t, model.GetGenreNames(expected.Genres), response.Game.GetGenres())
+	assert.Equal(t, model.GetTagNames(expected.Tags), response.Game.GetTags())
 }
 
 // AssertGetGameNotFound проверяет ответ ручки GetGame при попытке получить несуществующую игру

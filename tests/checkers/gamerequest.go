@@ -15,6 +15,7 @@ func AssertAddGameRequestAndDB(ctx context.Context,
 	request *gamev4.AddGameRequest,
 	gameDB model.Game,
 	expctedImageS3 []byte,
+	expctedStatus gamev4.GameStatusType,
 ) {
 	t.Helper()
 	assert.Equal(t, request.Game.GetTitle(), gameDB.Title)
@@ -25,4 +26,5 @@ func AssertAddGameRequestAndDB(ctx context.Context,
 	assert.Equal(t, request.Game.GetTags(), model.GetTagNames(gameDB.Tags))
 	assert.Equal(t, request.Game.GetGenres(), model.GetGenreNames(gameDB.Genres))
 	assert.Equal(t, request.Game.CoverImage, expctedImageS3)
+	assert.Equal(t, int(expctedStatus), gameDB.GameStatus)
 }
