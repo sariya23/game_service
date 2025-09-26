@@ -11,6 +11,7 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
+	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
 )
 
 func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error) {
@@ -22,7 +23,7 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 		gameDescriptionFieldName,
 		gameReleaseDateFieldName,
 		gameImageURLFieldName,
-		gameIsPublishedFieldName,
+		gameGameStatusIDFieldName,
 		gameTitleFieldName,
 		gameReleaseDateFieldName,
 	)
@@ -54,7 +55,7 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 		&game.Description,
 		&game.ReleaseDate,
 		&game.ImageURL,
-		&game.IsPublished,
+		&game.GameStatus,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -116,7 +117,7 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 		gameDescriptionFieldName,
 		gameReleaseDateFieldName,
 		gameImageURLFieldName,
-		gameIsPublishedFieldName,
+		gameGameStatusIDFieldName,
 		gameGameIDFieldName,
 	)
 	getGameGenresQuery := fmt.Sprintf(`
@@ -147,7 +148,7 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID uint64) (*m
 		&game.Description,
 		&game.ReleaseDate,
 		&game.ImageURL,
-		&game.IsPublished,
+		&game.GameStatus,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -305,7 +306,7 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 	).
 		From("game").
 		Where(sq.Expr(fmt.Sprintf("%s in %s", gameGameIDFieldName, intersectGameID), args...)).
-		Where(sq.Eq{gameIsPublishedFieldName: true})
+		Where(sq.Eq{gameGameStatusIDFieldName: gamev4.GameStatusType_PUBLISH})
 
 	yearArgs := make([]interface{}, 0, 1)
 	if filters.ReleaseYear > 0 {

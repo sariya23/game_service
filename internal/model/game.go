@@ -43,5 +43,5 @@ type Game struct {
 	ImageURL    string
 	Tags        []Tag
 	Genres      []Genre
-	IsPublished bool
+	GameStatus  int
 }

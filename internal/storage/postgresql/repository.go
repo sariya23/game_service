@@ -11,12 +11,12 @@ import (
 
 const (
 	// Game table field names
-	gameGameIDFieldName      = "game_id"
-	gameTitleFieldName       = "title"
-	gameDescriptionFieldName = "description"
-	gameReleaseDateFieldName = "release_date"
-	gameImageURLFieldName    = "image_url"
-	gameIsPublishedFieldName = "published"
+	gameGameIDFieldName       = "game_id"
+	gameTitleFieldName        = "title"
+	gameDescriptionFieldName  = "description"
+	gameReleaseDateFieldName  = "release_date"
+	gameImageURLFieldName     = "image_url"
+	gameGameStatusIDFieldName = "game_status_id"
 
 	// GameGenre table field names
 	gameGenreGameIDFieldName  = "game_id"
