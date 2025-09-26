@@ -19,6 +19,7 @@ type GameServicer interface {
 	GetGame(ctx context.Context, gameID uint64) (game *model.Game, err error)
 	GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) (games []model.ShortGame, err error)
 	DeleteGame(ctx context.Context, gameID uint64) (deletedGameID uint64, err error)
+	UpdateGameStatus(ctx context.Context, gameID uint64, newStatus gamev4.GameStatusType) error
 }
 
 type serverAPI struct {
@@ -109,4 +110,25 @@ func (srvAPI *serverAPI) DeleteGame(
 		return &gamev4.DeleteGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
 	return &gamev4.DeleteGameResponse{GameId: gameID}, nil
+}
+
+func (srvAPI *serverAPI) UpdateGameStatus(
+	ctx context.Context,
+	request *gamev4.UpdateGameStatusRequest,
+) (*gamev4.UpdateGameStatusReponse, error) {
+	_, err := srvAPI.gameServicer.GetGame(ctx, request.GetGameId())
+	if err != nil {
+		if errors.Is(err, outerror.ErrGameNotFound) {
+			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
+		}
+		return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.Internal, outerror.InternalMessage)
+	}
+	err = srvAPI.gameServicer.UpdateGameStatus(ctx, request.GetGameId(), request.GetNewStautus())
+	if err != nil {
+		if errors.Is(err, outerror.ErrUnknownGameStatus) {
+			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.InvalidArgument, outerror.UnknownGameStatusMessage)
+		}
+		return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.Internal, outerror.InternalMessage)
+	}
+	return &gamev4.UpdateGameStatusReponse{}, nil
 }

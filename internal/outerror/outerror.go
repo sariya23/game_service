@@ -10,6 +10,7 @@ var (
 	ErrCannotStartGameTransaction = errors.New("cannot start game transaction")
 	ErrCannotSaveGameImage        = errors.New("cannot save image in s3")
 	ErrImageNotFoundS3            = errors.New("game image not found in s3")
+	ErrUnknownGameStatus          = errors.New("unknown game status")
 )
 
 var (
@@ -23,4 +24,5 @@ var (
 	GameSavedWithoutImageMessage      = "Game saved but without image. Store is not response"
 	GenreNotFoundMessage              = "Unknown genre name"
 	TagNotFoundMessage                = "Unknown tag name"
+	UnknownGameStatusMessage          = "Unknown game status"
 )
