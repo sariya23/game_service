@@ -8,7 +8,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/stretchr/testify/mock"
@@ -17,38 +16,26 @@ import (
 
 func TestGetTopGames(t *testing.T) {
 	t.Run("Internal ошибка", func(t *testing.T) {
-		gameMockRepo := new(mockGameReposiroy)
-		tagMockRepo := new(mockTagRepository)
-		genreMockRepo := new(mockGenreRepository)
-		s3Mock := new(mockS3Storager)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
+		suite := NewSuite()
 		filters := dto.GameFilters{ReleaseYear: 2020}
-		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), errors.New("err")).Once()
-		games, err := gameService.GetTopGames(context.Background(), filters, uint32(10))
+		suite.gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), errors.New("err")).Once()
+		games, err := suite.gameService.GetTopGames(context.Background(), filters, uint32(10))
 		require.Error(t, err)
 		require.Nil(t, games)
 	})
 	t.Run("Если игр под фильтры не нашлось, ошибки нет", func(t *testing.T) {
-		gameMockRepo := new(mockGameReposiroy)
-		tagMockRepo := new(mockTagRepository)
-		genreMockRepo := new(mockGenreRepository)
-		s3Mock := new(mockS3Storager)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
+		suite := NewSuite()
 		filters := dto.GameFilters{ReleaseYear: 2020}
-		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), nil).Once()
-		games, err := gameService.GetTopGames(context.Background(), filters, uint32(10))
+		suite.gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return(([]model.ShortGame)(nil), nil).Once()
+		games, err := suite.gameService.GetTopGames(context.Background(), filters, uint32(10))
 		require.NoError(t, err)
 		require.Nil(t, games)
 	})
 	t.Run("Успешное получение топа игр", func(t *testing.T) {
-		gameMockRepo := new(mockGameReposiroy)
-		tagMockRepo := new(mockTagRepository)
-		genreMockRepo := new(mockGenreRepository)
-		s3Mock := new(mockS3Storager)
-		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
+		suite := NewSuite()
 		filters := dto.GameFilters{ReleaseYear: 2020}
-		gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return([]model.ShortGame{{GameID: 1, Title: "qwe", Description: "qe"}}, nil).Once()
-		games, err := gameService.GetTopGames(context.Background(), filters, uint32(10))
+		suite.gameMockRepo.On("GetTopGames", mock.Anything, filters, uint32(10)).Return([]model.ShortGame{{GameID: 1, Title: "qwe", Description: "qe"}}, nil).Once()
+		games, err := suite.gameService.GetTopGames(context.Background(), filters, uint32(10))
 		require.NoError(t, err)
 		require.Equal(t, games, []model.ShortGame{{GameID: 1, Title: "qwe", Description: "qe"}})
 	})
