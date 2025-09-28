@@ -33,6 +33,11 @@ const (
 	// Tag table field names
 	tagTagIDFieldName   = "tag_id"
 	tagTagNameFieldName = "tag_name"
+
+	// GameStatus table
+	gameStatusTable                 = "game_status"
+	gameStatusGameStatusIDFieldName = "game_status_id"
+	gameStatusGameNameFieldName     = "name"
 )
 
 type PostgreSQL struct {
