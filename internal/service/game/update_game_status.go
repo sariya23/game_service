@@ -29,6 +29,9 @@ func (gameService *GameService) UpdateGameStatus(ctx context.Context, gameID uin
 	} else if game.GameStatus == int(gamev4.GameStatusType_PUBLISH) && newStatus == gamev4.GameStatusType_PENDING {
 		log.Warn("cannot update status from PUBLISH to PENDING", slog.Uint64("gameID", gameID))
 		return fmt.Errorf("%s: %w", operationPlace, outerror.ErrInvalidNewGameStatus)
+	} else if game.GameStatus == int(gamev4.GameStatusType_PUBLISH) && newStatus == gamev4.GameStatusType_DRAFT {
+		log.Warn("cannot update status from PUBLISH to DRAFT", slog.Uint64("gameID", gameID))
+		return fmt.Errorf("%s: %w", operationPlace, outerror.ErrInvalidNewGameStatus)
 	}
 	return nil
 }
