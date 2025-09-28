@@ -380,5 +380,13 @@ func (postgresql PostgreSQL) DaleteGame(ctx context.Context, gameID uint64) (*dt
 }
 
 func (postgresql PostgreSQL) UpdateGameStatus(ctx context.Context, gameID uint64, newStatus gamev4.GameStatusType) error {
+	const operationPlace = "postgresql.UpdateGameStatus"
+	log := postgresql.log.With("operationPlace", operationPlace)
+	queryUpdateStatusQuery := fmt.Sprintf("update game set %s=$1 where %s=$2", gameGameStatusIDFieldName, gameGameIDFieldName)
+	_, err := postgresql.connection.Exec(ctx, queryUpdateStatusQuery, newStatus, gameID)
+	if err != nil {
+		log.Error("cannot update game status", slog.Uint64("gameID", gameID), slog.Any("newStatus", newStatus))
+		return fmt.Errorf("%s: %w", operationPlace, err)
+	}
 	return nil
 }
