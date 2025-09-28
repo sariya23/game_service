@@ -18,6 +18,12 @@ import (
 func (gameService *GameService) UpdateGameStatus(ctx context.Context, gameID uint64, newStatus gamev4.GameStatusType) error {
 	const operationPlace = "gameservice.UpdateGameStatus"
 	log := gameService.log.With("operationPlace", operationPlace)
+
+	if _, ok := gamev4.GameStatusType_name[int32(newStatus)]; !ok {
+		log.Warn("pass unknown status", slog.Uint64("gameID", gameID), slog.Any("newStatus", newStatus))
+		return fmt.Errorf("%s: %w", operationPlace, outerror.ErrUnknownGameStatus)
+	}
+
 	game, err := gameService.gameRepository.GetGameByID(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
@@ -38,5 +44,12 @@ func (gameService *GameService) UpdateGameStatus(ctx context.Context, gameID uin
 		log.Warn("cannot update status from PUBLISH to DRAFT", slog.Uint64("gameID", gameID))
 		return fmt.Errorf("%s: %w", operationPlace, outerror.ErrInvalidNewGameStatus)
 	}
+
+	err = gameService.gameRepository.UpdateGameStatus(ctx, gameID, newStatus)
+	if err != nil {
+		log.Error("cannot update game status", slog.Any("newStatus", newStatus), slog.Uint64("gameID", gameID))
+		return fmt.Errorf("%s: %w", operationPlace, err)
+	}
+
 	return nil
 }
