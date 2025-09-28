@@ -116,19 +116,14 @@ func (srvAPI *serverAPI) UpdateGameStatus(
 	ctx context.Context,
 	request *gamev4.UpdateGameStatusRequest,
 ) (*gamev4.UpdateGameStatusReponse, error) {
-	_, err := srvAPI.gameServicer.GetGame(ctx, request.GetGameId())
-	if err != nil {
-		if errors.Is(err, outerror.ErrGameNotFound) {
-			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
-		}
-		return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.Internal, outerror.InternalMessage)
-	}
-	err = srvAPI.gameServicer.UpdateGameStatus(ctx, request.GetGameId(), request.GetNewStautus())
+	err := srvAPI.gameServicer.UpdateGameStatus(ctx, request.GetGameId(), request.GetNewStautus())
 	if err != nil {
 		if errors.Is(err, outerror.ErrUnknownGameStatus) {
 			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.NotFound, outerror.UnknownGameStatusMessage)
 		} else if errors.Is(err, outerror.ErrInvalidNewGameStatus) {
 			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.InvalidArgument, outerror.InvalidNewGameStatusMessage)
+		} else if errors.Is(err, outerror.ErrGameNotFound) {
+			return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
 		}
 		return &gamev4.UpdateGameStatusReponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}

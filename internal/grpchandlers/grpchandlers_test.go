@@ -1,6 +1,3 @@
-//go:build unit
-// +build unit
-
 package grpchandlers
 
 import (
@@ -288,22 +285,12 @@ func TestUpdateGameStatus(t *testing.T) {
 		srv := serverAPI{gameServicer: mockGameService}
 		ctx := context.Background()
 		req := &gamev4.UpdateGameStatusRequest{GameId: uint64(2), NewStautus: 0}
-		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(nil, outerror.ErrGameNotFound).Once()
+		mockGameService.On("UpdateGameStatus", mock.Anything, req.GameId, req.NewStautus).Return(outerror.ErrGameNotFound).Once()
 		_, err := srv.UpdateGameStatus(ctx, req)
+		require.Error(t, err)
 		s, _ := status.FromError(err)
 		require.Equal(t, codes.NotFound, s.Code())
 		require.Equal(t, outerror.GameNotFoundMessage, s.Message())
-	})
-	t.Run("Internal ошибка при получении игры; вовзвращается Internal", func(t *testing.T) {
-		mockGameService := new(mockGameServicer)
-		srv := serverAPI{gameServicer: mockGameService}
-		ctx := context.Background()
-		req := &gamev4.UpdateGameStatusRequest{GameId: uint64(2), NewStautus: 0}
-		mockGameService.On("GetGame", mock.Anything, req.GameId).Return(nil, errors.New("err")).Once()
-		_, err := srv.UpdateGameStatus(ctx, req)
-		s, _ := status.FromError(err)
-		require.Equal(t, codes.Internal, s.Code())
-		require.Equal(t, outerror.InternalMessage, s.Message())
 	})
 	t.Run("Неизвестный новый статус; возвращается Unknown", func(t *testing.T) {
 		mockGameService := new(mockGameServicer)
