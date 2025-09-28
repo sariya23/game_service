@@ -19,6 +19,8 @@ func (gameService *GameService) UpdateGameStatus(ctx context.Context, gameID uin
 			log.Warn("game not found to update status", slog.Uint64("gameID", gameID))
 			return fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		log.Error("cannot get game by id to set new status", slog.String("err", err.Error()))
+		return fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return nil
 }
