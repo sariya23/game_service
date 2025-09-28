@@ -29,3 +29,17 @@ func RandomAddGameRequest() *gamev4.GameRequest {
 	res.Genres = genres
 	return &res
 }
+
+func WithOnlyRequireFields() *gamev4.GameRequest {
+	var res gamev4.GameRequest
+	fakeit := gofakeit.New(0)
+	res.Title = fakeit.LetterN(rand.UintN(40) + 1)
+	res.Description = fakeit.LetterN(20)
+	randomDate := fakeit.Date()
+	res.ReleaseDate = &date.Date{
+		Year:  int32(randomDate.Year()),
+		Month: int32(randomDate.Month()),
+		Day:   int32(randomDate.Day()),
+	}
+	return &res
+}

@@ -12,6 +12,9 @@ type Tag struct {
 
 // GetTagNames возвращает имена тэгов.
 func GetTagNames(t []Tag) []string {
+	if t == nil {
+		return nil
+	}
 	res := make([]string, 0, len(t))
 	for _, v := range t {
 		res = append(res, v.TagName)
@@ -27,6 +30,9 @@ type Genre struct {
 
 // GetGenreNames возвращает имена жанров.
 func GetGenreNames(g []Genre) []string {
+	if g == nil {
+		return nil
+	}
 	res := make([]string, 0, len(g))
 	for _, v := range g {
 		res = append(res, v.GenreName)

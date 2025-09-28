@@ -8,7 +8,6 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/sariya23/game_service/internal/lib/random"
-	"github.com/sariya23/game_service/internal/model"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 	checkers "github.com/sariya23/game_service/tests/checkers/handlers"
 	"github.com/sariya23/game_service/tests/suite"
@@ -19,13 +18,7 @@ import (
 func TestDeteteGame(t *testing.T) {
 	ctx, suite := suite.NewSuite(t)
 	t.Run("Тест ручки DeleteGame; Успешное удаление игры", func(t *testing.T) {
-		gameToAdd := random.RandomAddGameRequest()
-		tags, err := suite.Db.GetTags(ctx)
-		require.NoError(t, err)
-		genres, err := suite.Db.GetGenres(ctx)
-		require.NoError(t, err)
-		gameToAdd.Tags = model.GetTagNames(tags)
-		gameToAdd.Genres = model.GetGenreNames(genres)
+		gameToAdd := random.WithOnlyRequireFields()
 		expectedImage, err := random.Image()
 		require.NoError(t, err)
 		gameToAdd.CoverImage = expectedImage
@@ -44,14 +37,10 @@ func TestDeteteGame(t *testing.T) {
 		require.Empty(t, obj)
 	})
 	t.Run("Тест ручки DeleteGame; Удаление игры без обложки", func(t *testing.T) {
-		gameToAdd := random.RandomAddGameRequest()
-		tags, err := suite.Db.GetTags(ctx)
+		gameToAdd := random.WithOnlyRequireFields()
+		expectedImage, err := random.Image()
 		require.NoError(t, err)
-		genres, err := suite.Db.GetGenres(ctx)
-		require.NoError(t, err)
-		gameToAdd.Tags = model.GetTagNames(tags)
-		gameToAdd.Genres = model.GetGenreNames(genres)
-		gameToAdd.CoverImage = nil
+		gameToAdd.CoverImage = expectedImage
 
 		request := gamev4.AddGameRequest{Game: gameToAdd}
 		addResp, err := suite.GrpcClient.AddGame(ctx, &request)
