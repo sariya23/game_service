@@ -53,4 +53,19 @@ func TestUpdateGameStatus(t *testing.T) {
 		err := gameService.UpdateGameStatus(context.Background(), gameID, newStatus)
 		require.ErrorIs(t, err, outerror.ErrInvalidNewGameStatus)
 	})
+	t.Run("Нельзя сменить статус из PUBLISH в PENDING", func(t *testing.T) {
+		gameMockRepo := new(mockGameReposiroy)
+		tagMockRepo := new(mockTagRepository)
+		genreMockRepo := new(mockGenreRepository)
+		s3Mock := new(mockS3Storager)
+		gameService := NewGameService(mockslog.NewDiscardLogger(), gameMockRepo, tagMockRepo, genreMockRepo, s3Mock)
+
+		gameID := uint64(228)
+		newStatus := gamev4.GameStatusType_PENDING
+		expectedGame := model.Game{GameStatus: int(gamev4.GameStatusType_PUBLISH)}
+
+		gameMockRepo.On("GetGameByID", mock.Anything, gameID).Return(&expectedGame, nil).Once()
+		err := gameService.UpdateGameStatus(context.Background(), gameID, newStatus)
+		require.ErrorIs(t, err, outerror.ErrInvalidNewGameStatus)
+	})
 }
