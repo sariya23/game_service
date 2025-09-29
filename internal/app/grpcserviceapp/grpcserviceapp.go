@@ -38,3 +38,7 @@ func (g *GrpcServer) MustRun() {
 		panic(fmt.Sprintf("%s: %v", operationPlace, err))
 	}
 }
+
+func (g *GrpcServer) Stop() {
+	g.server.GracefulStop()
+}

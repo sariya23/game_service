@@ -2,7 +2,11 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"os"
+	"sync"
+	"time"
 
 	"github.com/sariya23/game_service/internal/app/grcpgatewayapp"
 	"github.com/sariya23/game_service/internal/app/grpcserviceapp"
@@ -13,6 +17,7 @@ import (
 )
 
 type App struct {
+	log            *slog.Logger
 	Config         *config.Config
 	Db             postgresql.PostgreSQL
 	Minio          *minioclient.Minio
@@ -32,5 +37,44 @@ func NewApp(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 		Minio:          s3Client,
 		GrpcApp:        grpcApp,
 		GrpcGateWayApp: gwApp,
+		log:            log,
 	}
+}
+
+func (a *App) MustRun() {
+	runActions := []struct {
+		action func()
+		errMsg string
+	}{
+		{action: a.GrpcApp.MustRun, errMsg: "Error while starting gRPC server"},
+		{action: a.GrpcGateWayApp.MustRun, errMsg: "Error while starting grpc-gateway"},
+	}
+	wg := sync.WaitGroup{}
+	wg.Add(len(runActions))
+
+	for _, action := range runActions {
+		go func() {
+			defer wg.Done()
+			action.action()
+		}()
+	}
+
+	wg.Wait()
+	a.log.Info("App is running")
+}
+
+func (a *App) Stop(ctx context.Context, cancel context.CancelFunc, sigchan <-chan os.Signal) {
+	const operationPlace = "app.Stop"
+	log := a.log.With("operationPlace", operationPlace)
+	sig := <-sigchan
+	log.Info(fmt.Sprintf("Received signal: %v, shutting down...\n", sig))
+	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer shutdownCancel()
+	defer cancel()
+	a.GrpcGateWayApp.Stop(shutdownCtx)
+	log.Info("Grpc gateway server stopped")
+	a.GrpcApp.Stop()
+	log.Info("GRPC server stopped")
+	a.Db.Close()
+	log.Info("DB closed")
 }

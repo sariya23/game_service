@@ -63,3 +63,7 @@ func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) Post
 	localLog.Info("Postgres ready to get connections")
 	return PostgreSQL{log: log, connection: conn}
 }
+
+func (p *PostgreSQL) Close() {
+	p.connection.Close()
+}
