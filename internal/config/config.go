@@ -47,7 +47,7 @@ type Minio struct {
 }
 
 // MustLoad - загрузка данных из .env в конфиг.
-func MustLoad() Config {
+func MustLoad() *Config {
 	configPath := fetchConfigPath()
 	if configPath == "" {
 		panic("config path is not specified")
@@ -73,7 +73,7 @@ func MustLoad() Config {
 	cfg.Postgres = &postgresConfig
 	cfg.Minio = &minioConfig
 	cfg.Env = &envConfig
-	return cfg
+	return &cfg
 }
 
 // MustLoadByPath - загрузка конфига по пути.
