@@ -3,7 +3,7 @@ package grpchandlers
 import (
 	"context"
 
-	"github.com/sariya23/game_service/internal/lib/errorhandler"
+	errorhandler "github.com/sariya23/game_service/internal/lib/errorhandler/handlers"
 	"github.com/sariya23/game_service/internal/lib/validators"
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"google.golang.org/grpc/codes"
