@@ -42,7 +42,7 @@ func GetGenreNames(g []Genre) []string {
 
 // Game...
 type Game struct {
-	GameID      uint64
+	GameID      int64
 	Title       string
 	Description string
 	ReleaseDate time.Time
