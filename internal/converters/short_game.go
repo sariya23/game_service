@@ -2,11 +2,11 @@ package converters
 
 import (
 	"github.com/sariya23/game_service/internal/model"
-	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
+	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
-func ToShortGameResponse(game model.ShortGame) *gamev4.GetTopGamesResponse_ShortGame {
-	return &gamev4.GetTopGamesResponse_ShortGame{
+func ToShortGameResponse(game model.ShortGame) *gamev2.GameListResponse_ShortGame {
+	return &gamev2.GameListResponse_ShortGame{
 		ID:            game.GameID,
 		Title:         game.Title,
 		Description:   game.Description,

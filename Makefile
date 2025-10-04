@@ -13,8 +13,5 @@ migrate:
 	@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=disable" up
 
-unit_test:
-	go test -tags=unit ./...
-
-integration_test:
-	go test -tags=integrations ./...
+make run:
+	go run cmd/main.go --config config/local.env

@@ -4,7 +4,7 @@ import "time"
 
 // ShortGame...
 type ShortGame struct {
-	GameID             uint64
+	GameID             int64
 	Title, Description string
 	ReleaseDate        time.Time
 	ImageURL           string

@@ -11,13 +11,14 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
-	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
+	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 func (gameService *GameService) AddGame(
 	ctx context.Context,
-	gameToAdd *gamev4.GameRequest,
-) (uint64, error) {
+	// В DTO
+	gameToAdd *gamev2.GameRequest,
+) (int64, error) {
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
 	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.GetTitle(), gameToAdd.GetReleaseDate().Year)

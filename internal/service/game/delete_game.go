@@ -11,8 +11,8 @@ import (
 
 func (gameService *GameService) DeleteGame(
 	ctx context.Context,
-	gameID uint64,
-) (uint64, error) {
+	gameID int64,
+) (int64, error) {
 	const operationPlace = "gameservice.DeleteGame"
 	log := gameService.log.With("operationPlace", operationPlace)
 	deletedGame, err := gameService.gameRepository.DaleteGame(ctx, gameID)

@@ -8,7 +8,7 @@ import (
 	"github.com/sariya23/game_service/internal/model/dto"
 )
 
-func (gameService *GameService) GetTopGames(
+func (gameService *GameService) GameList(
 	ctx context.Context,
 	gameFilters dto.GameFilters,
 	limit uint32,

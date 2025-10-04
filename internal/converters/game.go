@@ -2,12 +2,12 @@ package converters
 
 import (
 	"github.com/sariya23/game_service/internal/model"
-	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
+	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 // ToGame...
-func ToProtoGame(modelGame model.Game) *gamev4.DomainGame {
-	game := gamev4.DomainGame{}
+func ToProtoGame(modelGame model.Game) *gamev2.DomainGame {
+	game := gamev2.DomainGame{}
 	game.Title = modelGame.Title
 	game.Description = modelGame.Description
 	game.CoverImageUrl = modelGame.ImageURL

@@ -3,7 +3,7 @@ package dto
 import "github.com/sariya23/game_service/internal/model"
 
 type DeletedGame struct {
-	GameID      uint64
+	GameID      int64
 	Title       string
 	ReleaseYear uint64
 }

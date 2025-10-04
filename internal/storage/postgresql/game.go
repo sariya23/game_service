@@ -67,7 +67,7 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 	}
 	genreRows, err := postgresql.connection.Query(ctx, getGameGenresQuery, game.GameID)
 	if err != nil {
-		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err), slog.int64("gameID", game.GameID))
+		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err), slog.Int64("gameID", game.GameID))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer genreRows.Close()
@@ -316,7 +316,7 @@ func (postgresql PostgreSQL) GetTopGames(ctx context.Context, filters dto.GameFi
 	}
 	filteredGameID = filteredGameID.
 		OrderBy(gameTitleFieldName, gameReleaseDateFieldName).
-		Limit(int64(limit))
+		Limit(uint64(limit))
 	finalSQL, finalArgs, err := filteredGameID.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		log.Error("cannot translate final query to sql string", slog.String("err", err.Error()))

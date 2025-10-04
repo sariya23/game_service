@@ -17,7 +17,7 @@ import (
 type GameServicer interface {
 	AddGame(ctx context.Context, game *gamev2.GameRequest) (gameID int64, err error)
 	GetGame(ctx context.Context, gameID int64) (game *model.Game, err error)
-	GetTopGames(ctx context.Context, gameFilters dto.GameFilters, limit uint32) (games []model.ShortGame, err error)
+	GameList(ctx context.Context, gameFilters dto.GameFilters, limit uint32) (games []model.ShortGame, err error)
 	DeleteGame(ctx context.Context, gameID int64) (deletedGameID int64, err error)
 	UpdateGameStatus(ctx context.Context, gameID int64, newStatus gamev2.GameStatusType) error
 }
@@ -75,11 +75,11 @@ func (srvApi *serverAPI) GetGame(
 	return &gamev2.GetGameResponse{Game: converters.ToProtoGame(*game)}, nil
 }
 
-func (srvApi *serverAPI) ListGames(
+func (srvApi *serverAPI) GameList(
 	ctx context.Context,
 	request *gamev2.GameListRequest,
 ) (*gamev2.GameListResponse, error) {
-	games, err := srvApi.gameServicer.GetTopGames(
+	games, err := srvApi.gameServicer.GameList(
 		ctx,
 		dto.GameFilters{
 			ReleaseYear: request.GetYear(),
