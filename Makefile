@@ -1,5 +1,6 @@
 .PHONY: run migrate
 
+MOCKGEN_BIN= ""
 ENV ?= local
 ENV_FILE = ./config/$(ENV).env
 
@@ -20,3 +21,8 @@ run:
 .PHONY: test
 test:
 	go test ./...
+
+.PHONY: .mock
+mock:
+	find . -name '*_mock.go' -delete
+	mockgen -source internal/service/game/game.go -destination=internal/service/game/mocks/game.go -package=mock_gameservice
