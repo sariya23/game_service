@@ -31,20 +31,6 @@ func RegisterGrpcHandlers(grpcServer *grpc.Server, gameServicer GameServicer) {
 	gamev2.RegisterGameServiceServer(grpcServer, &serverAPI{gameServicer: gameServicer})
 }
 
-func (srvApi *serverAPI) GetGame(
-	ctx context.Context,
-	request *gamev2.GetGameRequest,
-) (*gamev2.GetGameResponse, error) {
-	game, err := srvApi.gameServicer.GetGame(ctx, request.GetGameId())
-	if err != nil {
-		if errors.Is(err, outerror.ErrGameNotFound) {
-			return &gamev2.GetGameResponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
-		}
-		return &gamev2.GetGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
-	}
-	return &gamev2.GetGameResponse{Game: converters.ToProtoGame(*game)}, nil
-}
-
 func (srvApi *serverAPI) GameList(
 	ctx context.Context,
 	request *gamev2.GameListRequest,

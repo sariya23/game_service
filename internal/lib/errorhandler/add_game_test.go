@@ -2,6 +2,7 @@ package errorhandler
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/sariya23/game_service/internal/outerror"
@@ -22,28 +23,28 @@ func TestAddGame_errorhandler(t *testing.T) {
 	}{
 		{
 			name:             "GameAlreadyExist",
-			err:              outerror.ErrGameAlreadyExist,
+			err:              fmt.Errorf("%s: %w", "qweo", outerror.ErrGameAlreadyExist),
 			gameID:           0,
 			expectedError:    status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage),
 			expectedResponse: &gamev2.AddGameResponse{},
 		},
 		{
 			name:             "ErrCannotSaveGameImage",
-			err:              outerror.ErrCannotSaveGameImage,
+			err:              fmt.Errorf("%s: %w", "qweo", outerror.ErrCannotSaveGameImage),
 			gameID:           23,
 			expectedError:    nil,
 			expectedResponse: &gamev2.AddGameResponse{GameId: 23},
 		},
 		{
 			name:             "GenreNotFound",
-			err:              outerror.ErrGenreNotFound,
+			err:              fmt.Errorf("%s: %w", "qweo", outerror.ErrGenreNotFound),
 			gameID:           0,
 			expectedError:    status.Error(codes.InvalidArgument, outerror.GenreNotFoundMessage),
 			expectedResponse: &gamev2.AddGameResponse{},
 		},
 		{
 			name:             "TagNotFound",
-			err:              outerror.ErrTagNotFound,
+			err:              fmt.Errorf("%s: %w", "qweo", outerror.ErrTagNotFound),
 			gameID:           0,
 			expectedError:    status.Error(codes.InvalidArgument, outerror.TagNotFoundMessage),
 			expectedResponse: &gamev2.AddGameResponse{},
