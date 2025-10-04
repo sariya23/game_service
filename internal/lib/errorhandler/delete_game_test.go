@@ -12,31 +12,31 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func TestGetGame_errorhandler(t *testing.T) {
+func TestDeleteGame_errorhandler(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
 		name             string
 		err              error
-		expectedResponse *gamev2.GetGameResponse
+		expectedResponse *gamev2.DeleteGameResponse
 		expectedError    error
 	}{
 		{
 			name:             "GameNotFound",
 			err:              fmt.Errorf("%s: %w", "qwe", outerror.ErrGameNotFound),
-			expectedResponse: &gamev2.GetGameResponse{},
+			expectedResponse: &gamev2.DeleteGameResponse{},
 			expectedError:    status.Error(codes.NotFound, outerror.GameNotFoundMessage),
 		},
 		{
 			name:             "SomeErr",
 			err:              fmt.Errorf("%s: %w", "qwe", errors.New("some error")),
-			expectedResponse: &gamev2.GetGameResponse{},
+			expectedResponse: &gamev2.DeleteGameResponse{},
 			expectedError:    status.Error(codes.Internal, outerror.InternalMessage),
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			gotResp, gotErr := GetGame(tc.err)
+			gotResp, gotErr := DeleteGame(tc.err)
 			assert.Equal(t, tc.expectedResponse, gotResp)
 			assert.Equal(t, tc.expectedError, gotErr)
 		})

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/sariya23/game_service/internal/converters"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -29,43 +28,6 @@ type serverAPI struct {
 
 func RegisterGrpcHandlers(grpcServer *grpc.Server, gameServicer GameServicer) {
 	gamev2.RegisterGameServiceServer(grpcServer, &serverAPI{gameServicer: gameServicer})
-}
-
-func (srvApi *serverAPI) GameList(
-	ctx context.Context,
-	request *gamev2.GameListRequest,
-) (*gamev2.GameListResponse, error) {
-	games, err := srvApi.gameServicer.GameList(
-		ctx,
-		dto.GameFilters{
-			ReleaseYear: request.GetYear(),
-			Genres:      request.GetGenres(),
-			Tags:        request.GetTags(),
-		},
-		request.GetLimit(),
-	)
-	if err != nil {
-		return &gamev2.GameListResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
-	}
-	result := make([]*gamev2.GameListResponse_ShortGame, 0, len(games))
-	for _, g := range games {
-		result = append(result, converters.ToShortGameResponse(g))
-	}
-	return &gamev2.GameListResponse{Games: result}, nil
-}
-
-func (srvAPI *serverAPI) DeleteGame(
-	ctx context.Context,
-	request *gamev2.DeleteGameRequest,
-) (*gamev2.DeleteGameResponse, error) {
-	gameID, err := srvAPI.gameServicer.DeleteGame(ctx, request.GetGameId())
-	if err != nil {
-		if errors.Is(err, outerror.ErrGameNotFound) {
-			return &gamev2.DeleteGameResponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)
-		}
-		return &gamev2.DeleteGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
-	}
-	return &gamev2.DeleteGameResponse{GameId: gameID}, nil
 }
 
 func (srvAPI *serverAPI) UpdateGameStatus(
