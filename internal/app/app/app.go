@@ -19,7 +19,7 @@ import (
 type App struct {
 	log            *slog.Logger
 	Config         *config.Config
-	Db             postgresql.PostgreSQL
+	Db             *postgresql.PostgreSQL
 	Minio          *minioclient.Minio
 	GrpcApp        *grpcserviceapp.GrpcServer
 	GrpcGateWayApp *grcpgatewayapp.GrpcGatewayApp
