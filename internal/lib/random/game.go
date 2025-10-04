@@ -11,7 +11,7 @@ import (
 func NewRandomGame() *model.Game {
 	var res model.Game
 	fakeit := gofakeit.New(0)
-	res.GameID = uint64(gofakeit.Int64())
+	res.GameID = gofakeit.Int64()
 	res.Title = fmt.Sprintf("%v_%v", fakeit.LetterN(20), time.Now().UTC())
 	res.Description = fakeit.LetterN(20)
 	res.ReleaseDate = fakeit.Date()

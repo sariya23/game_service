@@ -3,7 +3,7 @@ package grpchandlers
 import (
 	"context"
 
-	"github.com/sariya23/game_service/internal/converters"
+	"github.com/sariya23/game_service/internal/lib/converters"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"

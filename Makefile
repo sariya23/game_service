@@ -13,5 +13,10 @@ migrate:
 	@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=disable" up
 
-make run:
+.PHONY: run
+run:
 	go run cmd/main.go --config config/local.env
+
+.PHONY: test
+test:
+	go test ./...
