@@ -16,5 +16,5 @@ func (srvApi *serverAPI) GetGame(
 	if err != nil {
 		return errorhandler.GetGame(err)
 	}
-	return &gamev2.GetGameResponse{Game: converters.ToProtoGame(*game)}, nil
+	return &gamev2.GetGameResponse{Game: converters.ToProtoGame(game)}, nil
 }

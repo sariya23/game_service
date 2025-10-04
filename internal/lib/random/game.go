@@ -17,10 +17,10 @@ func NewRandomGame() *model.Game {
 	res.ReleaseDate = fakeit.Date()
 	res.ImageURL = fakeit.URL()
 	for i := 0; i < fakeit.IntN(4); i++ {
-		res.Tags = append(res.Tags, *NewRandomTag())
+		res.Tags = append(res.Tags, NewRandomTag())
 	}
 	for i := 0; i < fakeit.IntN(4); i++ {
-		res.Genres = append(res.Genres, *NewRandomGenre())
+		res.Genres = append(res.Genres, NewRandomGenre())
 	}
 	return &res
 }

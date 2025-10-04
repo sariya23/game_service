@@ -9,7 +9,7 @@ import (
 )
 
 // GetTagByNames возвращает тэги по переданны именам.
-func (postgresql PostgreSQL) GetTagByNames(ctx context.Context, tags []string) ([]model.Tag, error) {
+func (postgresql PostgreSQL) GetTagByNames(ctx context.Context, tags []string) ([]*model.Tag, error) {
 	const operationPlace = "postgresql.GetTags"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	getTagsQuery := fmt.Sprintf("select %s, %s from tag where %s=any($1)", tagTagIDFieldName, tagTagNameFieldName, tagTagNameFieldName)
@@ -19,7 +19,7 @@ func (postgresql PostgreSQL) GetTagByNames(ctx context.Context, tags []string) (
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer tagRows.Close()
-	tagModels := make([]model.Tag, 0, len(tags))
+	tagModels := make([]*model.Tag, 0, len(tags))
 	for tagRows.Next() {
 		var modelTag model.Tag
 		err = tagRows.Scan(&modelTag.TagID, &modelTag.TagName)
@@ -27,7 +27,7 @@ func (postgresql PostgreSQL) GetTagByNames(ctx context.Context, tags []string) (
 			log.Error(fmt.Sprintf("Cannot scan tags from request, uncaught error: %v", err))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		tagModels = append(tagModels, modelTag)
+		tagModels = append(tagModels, &modelTag)
 	}
 	if tagRows.Err() != nil {
 		log.Error(fmt.Sprintf("Uncaught error: %v", err))
@@ -40,7 +40,7 @@ func (postgresql PostgreSQL) GetTagByNames(ctx context.Context, tags []string) (
 }
 
 // GetTags возвращает все тэги.
-func (postgresql PostgreSQL) GetTags(ctx context.Context) ([]model.Tag, error) {
+func (postgresql PostgreSQL) GetTags(ctx context.Context) ([]*model.Tag, error) {
 	const operationPlace = "postgresql.GetTags"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	getTagsQuery := fmt.Sprintf("select %s, %s from tag", tagTagIDFieldName, tagTagNameFieldName)
@@ -50,7 +50,7 @@ func (postgresql PostgreSQL) GetTags(ctx context.Context) ([]model.Tag, error) {
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer tagRows.Close()
-	var tagModels []model.Tag
+	var tagModels []*model.Tag
 	for tagRows.Next() {
 		var modelTag model.Tag
 		err = tagRows.Scan(&modelTag.TagID, &modelTag.TagName)
@@ -58,7 +58,7 @@ func (postgresql PostgreSQL) GetTags(ctx context.Context) ([]model.Tag, error) {
 			log.Error(fmt.Sprintf("Cannot scan tags, uncaught error: %v", err))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		tagModels = append(tagModels, modelTag)
+		tagModels = append(tagModels, &modelTag)
 	}
 	if tagRows.Err() != nil {
 		log.Error(fmt.Sprintf("Uncaught error: %v", err))

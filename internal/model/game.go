@@ -11,7 +11,7 @@ type Tag struct {
 }
 
 // GetTagNames возвращает имена тэгов.
-func GetTagNames(t []Tag) []string {
+func GetTagNames(t []*Tag) []string {
 	if t == nil {
 		return nil
 	}
@@ -29,7 +29,7 @@ type Genre struct {
 }
 
 // GetGenreNames возвращает имена жанров.
-func GetGenreNames(g []Genre) []string {
+func GetGenreNames(g []*Genre) []string {
 	if g == nil {
 		return nil
 	}
@@ -47,7 +47,7 @@ type Game struct {
 	Description string
 	ReleaseDate time.Time
 	ImageURL    string
-	Tags        []Tag
-	Genres      []Genre
+	Tags        []*Tag
+	Genres      []*Genre
 	GameStatus  int
 }

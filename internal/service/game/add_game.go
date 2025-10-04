@@ -46,7 +46,7 @@ func (gameService *GameService) AddGame(
 	} else {
 		log.Info("no image data in game")
 	}
-	var tags []model.Tag
+	var tags []*model.Tag
 	if t := gameToAdd.Tags; len(t) != 0 {
 		tags, err = gameService.tagReposetory.GetTagByNames(ctx, t)
 		if err != nil {
@@ -58,7 +58,7 @@ func (gameService *GameService) AddGame(
 			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
-	var genres []model.Genre
+	var genres []*model.Genre
 	if g := gameToAdd.Genres; len(g) != 0 {
 		genres, err = gameService.genreReposetory.GetGenreByNames(ctx, g)
 		if err != nil {
@@ -78,7 +78,7 @@ func (gameService *GameService) AddGame(
 		Genres:      genres,
 		ImageURL:    imageURL,
 	}
-	gameID, err := gameService.gameRepository.SaveGame(ctx, game)
+	gameID, err := gameService.gameRepository.SaveGame(ctx, &game)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)

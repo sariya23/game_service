@@ -10,15 +10,15 @@ import (
 
 func (gameService *GameService) GameList(
 	ctx context.Context,
-	gameFilters dto.GameFilters,
+	gameFilters *dto.GameFilters,
 	limit uint32,
-) ([]model.ShortGame, error) {
+) ([]*model.ShortGame, error) {
 	const operationPlace = "gameservice.GetTopGames"
 	log := gameService.log.With("operationPlace", operationPlace)
 	if limit == 0 {
 		limit = 10
 	}
-	games, err := gameService.gameRepository.GetTopGames(ctx, gameFilters, limit)
+	games, err := gameService.gameRepository.GameList(ctx, gameFilters, limit)
 	if err != nil {
 		log.Error(fmt.Sprintf("unexcpected error; err=%v", err))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)

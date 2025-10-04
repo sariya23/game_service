@@ -6,7 +6,7 @@ import (
 )
 
 // ToGame...
-func ToProtoGame(modelGame model.Game) *gamev2.DomainGame {
+func ToProtoGame(modelGame *model.Game) *gamev2.DomainGame {
 	game := gamev2.DomainGame{}
 	game.Title = modelGame.Title
 	game.Description = modelGame.Description
@@ -27,6 +27,6 @@ func ToProtoGame(modelGame model.Game) *gamev2.DomainGame {
 		}
 		game.Tags = tags
 	}
-	game.ReleaseDate = ToProtoDate(modelGame.ReleaseDate)
+	game.ReleaseDate = ToProtoDate(&modelGame.ReleaseDate)
 	return &game
 }
