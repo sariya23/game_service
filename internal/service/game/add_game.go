@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
@@ -16,22 +15,22 @@ import (
 
 func (gameService *GameService) AddGame(
 	ctx context.Context,
-	gameToAdd dto.AddGame,
+	gameToAdd dto.AddGameHandler,
 ) (int64, error) {
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
-	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.Title, gameToAdd.ReleaseDate.Year)
+	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.Title, int32(gameToAdd.ReleaseDate.Year()))
 	if err == nil {
-		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.Title, gameToAdd.ReleaseDate.Year))
+		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.Title, gameToAdd.ReleaseDate.Year()))
 		return 0, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameAlreadyExist)
 	} else if !errors.Is(err, outerror.ErrGameNotFound) {
-		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.Title, gameToAdd.ReleaseDate.Year))
+		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.Title, gameToAdd.ReleaseDate.Year()))
 		return 0, fmt.Errorf("%s:%w", operationPlace, err)
 	}
 	var errSaveImage error
 	var imageURL string
 	if len(gameToAdd.CoverImage) != 0 {
-		gameKey := minioclient.GameKey(gameToAdd.Title, int(gameToAdd.ReleaseDate.GetYear()))
+		gameKey := minioclient.GameKey(gameToAdd.Title, gameToAdd.ReleaseDate.Year())
 		imageURL, err = gameService.s3Storager.SaveObject(
 			ctx,
 			gameKey,
@@ -46,9 +45,9 @@ func (gameService *GameService) AddGame(
 	} else {
 		log.Info("no image data in game")
 	}
-	var tags []model.Tag
+	var tagIDs []int64
 	if t := gameToAdd.Tags; len(t) != 0 {
-		tags, err = gameService.tagReposetory.GetTagByNames(ctx, t)
+		tags, err := gameService.tagReposetory.GetTagByNames(ctx, t)
 		if err != nil {
 			if errors.Is(err, outerror.ErrTagNotFound) {
 				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", t)))
@@ -57,10 +56,11 @@ func (gameService *GameService) AddGame(
 			log.Error(fmt.Sprintf("cannot get tags, err=%v", err))
 			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		tagIDs = model.TagIDs(tags)
 	}
-	var genres []model.Genre
+	var genreIDs []int64
 	if g := gameToAdd.Genres; len(g) != 0 {
-		genres, err = gameService.genreReposetory.GetGenreByNames(ctx, g)
+		genres, err := gameService.genreReposetory.GetGenreByNames(ctx, g)
 		if err != nil {
 			if errors.Is(err, outerror.ErrGenreNotFound) {
 				log.Warn("genres with this names not found", slog.String("genres", fmt.Sprintf("%#v", g)))
@@ -69,16 +69,18 @@ func (gameService *GameService) AddGame(
 			log.Error(fmt.Sprintf("cannot get genres, err=%v", err))
 			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		genreIDs = model.GenreIDs(genres)
 	}
-	game := model.Game{
+
+	addGameService := dto.AddGameService{
 		Title:       gameToAdd.Title,
+		ReleaseDate: gameToAdd.ReleaseDate,
 		Description: gameToAdd.Description,
-		ReleaseDate: time.Date(int(gameToAdd.ReleaseDate.Year), time.Month(gameToAdd.ReleaseDate.Month), int(gameToAdd.ReleaseDate.Day), 0, 0, 0, 0, time.UTC),
-		Tags:        tags,
-		Genres:      genres,
+		TagIDs:      tagIDs,
+		GenreIDs:    genreIDs,
 		ImageURL:    imageURL,
 	}
-	gameID, err := gameService.gameRepository.SaveGame(ctx, game)
+	gameID, err := gameService.gameRepository.SaveGame(ctx, addGameService)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)

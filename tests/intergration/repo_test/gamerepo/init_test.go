@@ -5,14 +5,15 @@ package gamerepo
 import (
 	"context"
 
+	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/postgresql"
 )
 
 var (
 	db     *postgresql.TestDB
 	tables = []string{"game", "game_genre", "game_tag"}
-	genres []string
-	tags   []string
+	genres []model.Genre
+	tags   []model.Tag
 )
 
 func init() {

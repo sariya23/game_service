@@ -3,6 +3,7 @@ package grpchandlers
 import (
 	"context"
 
+	"github.com/sariya23/game_service/internal/lib/converters"
 	errorhandler "github.com/sariya23/game_service/internal/lib/errorhandler/handlers"
 	"github.com/sariya23/game_service/internal/lib/validators"
 	"github.com/sariya23/game_service/internal/model/dto"
@@ -18,11 +19,11 @@ func (srvApi *serverAPI) AddGame(
 	if valid, msg := validators.AddGame(request); !valid {
 		return &gamev2.AddGameResponse{}, status.Error(codes.InvalidArgument, msg)
 	}
-	newGame := dto.AddGame{
+	newGame := dto.AddGameHandler{
 		Title:       request.Game.Title,
 		Genres:      request.Game.Genres,
 		Description: request.Game.Description,
-		ReleaseDate: request.Game.ReleaseDate,
+		ReleaseDate: converters.FromProtoDate(request.Game.ReleaseDate),
 		CoverImage:  request.Game.CoverImage,
 		Tags:        request.Game.Tags,
 	}

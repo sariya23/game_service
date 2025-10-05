@@ -15,7 +15,7 @@ type GameReposetory interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error)
 	GetGameByID(ctx context.Context, gameID int64) (*model.Game, error)
 	GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error)
-	SaveGame(ctx context.Context, game model.Game) (int64, error)
+	SaveGame(ctx context.Context, game dto.AddGameService) (int64, error)
 	DaleteGame(ctx context.Context, gameID int64) (*dto.DeletedGame, error)
 	UpdateGameStatus(ctx context.Context, gameID int64, newStatus gamev2.GameStatusType) error
 }

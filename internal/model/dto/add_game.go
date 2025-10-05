@@ -1,14 +1,23 @@
 package dto
 
 import (
-	"google.golang.org/genproto/googleapis/type/date"
+	"time"
 )
 
-type AddGame struct {
+type AddGameHandler struct {
 	Title       string
 	Genres      []string
 	Description string
-	ReleaseDate *date.Date
+	ReleaseDate time.Time
 	CoverImage  []byte
 	Tags        []string
+}
+
+type AddGameService struct {
+	Title       string
+	GenreIDs    []int64
+	Description string
+	ReleaseDate time.Time
+	ImageURL    string
+	TagIDs      []int64
 }

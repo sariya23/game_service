@@ -6,10 +6,10 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/dto"
 )
 
-func (gr *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64, error) {
+func (gr *GameRepository) SaveGame(ctx context.Context, game dto.AddGameService) (int64, error) {
 	const operationPlace = "postgresql.gamerepo.SaveGame"
 	log := gr.log.With("operationPlace", operationPlace)
 	saveGameArgs := pgx.NamedArgs{
@@ -30,16 +30,6 @@ func (gr *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64,
 		GameGameIDFieldName)
 	addTagsForGameQuery := "insert into game_tag values ($1, $2)"
 	addGenresForGameQuery := "insert into game_genre values ($1, $2)"
-	genreIDs := make([]int, 0, len(game.Genres))
-	tagIDs := make([]int, 0, len(game.Tags))
-
-	for _, g := range game.Genres {
-		genreIDs = append(genreIDs, int(g.GenreID))
-	}
-
-	for _, t := range game.Tags {
-		tagIDs = append(tagIDs, int(t.TagID))
-	}
 
 	tx, err := gr.conn.GetPool().Begin(ctx)
 	if err != nil {
@@ -61,18 +51,18 @@ func (gr *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64,
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
-	for _, tagID := range tagIDs {
+	for _, tagID := range game.TagIDs {
 		_, err = tx.Exec(ctx, addTagsForGameQuery, savedGameID, tagID)
 		if err != nil {
-			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int("tagID", tagID), slog.Int("gameID", int(savedGameID)))
+			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int64("tagID", tagID), slog.Int("gameID", int(savedGameID)))
 			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 
-	for _, genreID := range genreIDs {
+	for _, genreID := range game.GenreIDs {
 		_, err = tx.Exec(ctx, addGenresForGameQuery, savedGameID, genreID)
 		if err != nil {
-			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int("genreID", genreID), slog.Int("gameID", int(savedGameID)))
+			log.Error(fmt.Sprintf("cannot link tag with game, unexpected error = %v", err), slog.Int64("genreID", genreID), slog.Int("gameID", int(savedGameID)))
 			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
