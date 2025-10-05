@@ -18,7 +18,7 @@ func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) *Dat
 	localLog := log.With("operationPlace", opearationPlace)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*4)
 	defer cancel()
-	conn, err := pgxpool.New(ctx, dbURL)
+	conn, err := NewConnection(ctx, dbURL)
 	if err != nil {
 		localLog.Error(fmt.Sprintf("%s: cannot connect to db with URL: %s, with error: %v", opearationPlace, dbURL, err))
 		panic(fmt.Sprintf("%s: cannot connect to db with URL: %s, with error: %v", opearationPlace, dbURL, err))
