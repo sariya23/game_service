@@ -18,7 +18,7 @@ func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) *Dat
 	localLog := log.With("operationPlace", opearationPlace)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*4)
 	defer cancel()
-	conn, err := NewConnection(ctx, dbURL)
+	conn, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		localLog.Error(fmt.Sprintf("%s: cannot connect to db with URL: %s, with error: %v", opearationPlace, dbURL, err))
 		panic(fmt.Sprintf("%s: cannot connect to db with URL: %s, with error: %v", opearationPlace, dbURL, err))
@@ -30,6 +30,11 @@ func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) *Dat
 	}
 	localLog.Info("Postgres ready to get connections")
 	return &Database{cluster: conn}
+}
+
+func NewConnection(ctx context.Context, dbURL string) (*Database, error) {
+	pool, err := pgxpool.New(ctx, dbURL)
+	return &Database{cluster: pool}, err
 }
 
 func (d *Database) Close() {

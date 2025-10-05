@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	db       *postgresql.TestDB
+	dbT      *postgresql.TestDB
 	tables   = []string{"game", "game_genre", "game_tag"}
 	genreIDs []int64
 	tagIDs   []int64
@@ -17,8 +17,8 @@ var (
 
 func init() {
 	ctx := context.Background()
-	db = postgresql.NewTestDB()
-	rows, err := db.GetPool().Query(ctx, "select genre_id from genre")
+	dbT = postgresql.NewTestDB()
+	rows, err := dbT.DB.GetPool().Query(ctx, "select genre_id from genre")
 	if err != nil {
 		panic(err)
 	}
@@ -34,7 +34,7 @@ func init() {
 		panic(err)
 	}
 
-	rows, err = db.GetPool().Query(ctx, "select tag_id from tag")
+	rows, err = dbT.DB.GetPool().Query(ctx, "select tag_id from tag")
 	if err != nil {
 		panic(err)
 	}
