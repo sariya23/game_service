@@ -5,27 +5,26 @@ package gamerepo
 import (
 	"context"
 
-	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/postgresql"
 )
 
 var (
-	db     *postgresql.TestDB
-	tables = []string{"game", "game_genre", "game_tag"}
-	genres []model.Genre
-	tags   []model.Tag
+	db       *postgresql.TestDB
+	tables   = []string{"game", "game_genre", "game_tag"}
+	genreIDs []int64
+	tagIDs   []int64
 )
 
 func init() {
 	ctx := context.Background()
 	db = postgresql.NewTestDB()
-	rows, err := db.GetPool().Query(ctx, "select genre_name from genre")
+	rows, err := db.GetPool().Query(ctx, "select genre_id from genre")
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var genre string
+		var genre int64
 		if err := rows.Scan(&genre); err != nil {
 			panic(err)
 		}
@@ -35,13 +34,13 @@ func init() {
 		panic(err)
 	}
 
-	rows, err = db.GetPool().Query(ctx, "select tag_name from tag")
+	rows, err = db.GetPool().Query(ctx, "select tag_id from tag")
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var tag string
+		var tag int64
 		if err := rows.Scan(&tag); err != nil {
 			panic(err)
 		}
