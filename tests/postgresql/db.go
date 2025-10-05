@@ -20,7 +20,7 @@ type TestDB struct {
 }
 
 func NewTestDB() *TestDB {
-	cfg := config.MustLoadByPath(filepath.Join("..", "..", "config", "test.env"))
+	cfg := config.MustLoadByPath(filepath.Join("..", "..", "..", "..", "config", "test.env"))
 	conn, err := db.NewConnection(
 		context.Background(),
 		db.GenerateDBUrl(
