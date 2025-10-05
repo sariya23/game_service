@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/sariya23/game_service/internal/storage/db"
 )
 
 const (
@@ -42,7 +43,7 @@ const (
 
 type PostgreSQL struct {
 	log        *slog.Logger
-	connection *pgxpool.Pool
+	connection *db.Database
 }
 
 func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) *PostgreSQL {
