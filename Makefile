@@ -1,5 +1,6 @@
 .PHONY: run migrate
 
+MOCKGEN_BIN= ""
 ENV ?= local
 ENV_FILE = ./config/$(ENV).env
 
@@ -13,8 +14,15 @@ migrate:
 	@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=disable" up
 
-unit_test:
-	go test -tags=unit ./...
+.PHONY: run
+run:
+	go run cmd/main.go --config config/local.env
 
-integration_test:
-	go test -tags=integrations ./...
+.PHONY: test
+test:
+	go test ./...
+
+.PHONY: .mock
+mock:
+	find . -name '*_mock.go' -delete
+	mockgen -source internal/service/game/game.go -destination=internal/service/game/mocks/game.go -package=mock_gameservice

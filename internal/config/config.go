@@ -77,7 +77,7 @@ func MustLoad() *Config {
 }
 
 // MustLoadByPath - загрузка конфига по пути.
-func MustLoadByPath(configPath string) Config {
+func MustLoadByPath(configPath string) *Config {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		panic("config file does not exists: " + configPath)
 	}
@@ -103,7 +103,7 @@ func MustLoadByPath(configPath string) Config {
 	cfg.Postgres = &postgresConfig
 	cfg.Minio = &minioConfig
 	cfg.Env = &envConfig
-	return cfg
+	return &cfg
 }
 
 // fetchConfigPath - парсит пусть до файла с конфигом.

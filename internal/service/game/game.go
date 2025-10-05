@@ -8,16 +8,16 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
-	gamev4 "github.com/sariya23/proto_api_games/v4/gen/game"
+	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 type GameReposetory interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error)
-	GetGameByID(ctx context.Context, gameID uint64) (*model.Game, error)
-	GetTopGames(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error)
-	SaveGame(ctx context.Context, game model.Game) (uint64, error)
-	DaleteGame(ctx context.Context, gameID uint64) (*dto.DeletedGame, error)
-	UpdateGameStatus(ctx context.Context, gameID uint64, newStatus gamev4.GameStatusType) error
+	GetGameByID(ctx context.Context, gameID int64) (*model.Game, error)
+	GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error)
+	SaveGame(ctx context.Context, game model.Game) (int64, error)
+	DaleteGame(ctx context.Context, gameID int64) (*dto.DeletedGame, error)
+	UpdateGameStatus(ctx context.Context, gameID int64, newStatus gamev2.GameStatusType) error
 }
 
 type TagRepository interface {

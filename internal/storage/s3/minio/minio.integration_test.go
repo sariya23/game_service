@@ -1,5 +1,4 @@
 //go:build integrations
-// +build integrations
 
 package minioclient
 

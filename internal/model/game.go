@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 // Tag...
@@ -11,7 +13,7 @@ type Tag struct {
 }
 
 // GetTagNames возвращает имена тэгов.
-func GetTagNames(t []Tag) []string {
+func GetTagNames(t []*Tag) []string {
 	if t == nil {
 		return nil
 	}
@@ -29,7 +31,7 @@ type Genre struct {
 }
 
 // GetGenreNames возвращает имена жанров.
-func GetGenreNames(g []Genre) []string {
+func GetGenreNames(g []*Genre) []string {
 	if g == nil {
 		return nil
 	}
@@ -42,12 +44,12 @@ func GetGenreNames(g []Genre) []string {
 
 // Game...
 type Game struct {
-	GameID      uint64
+	GameID      int64
 	Title       string
 	Description string
 	ReleaseDate time.Time
 	ImageURL    string
 	Tags        []Tag
 	Genres      []Genre
-	GameStatus  int
+	GameStatus  gamev2.GameStatusType
 }

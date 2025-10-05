@@ -11,7 +11,7 @@ import (
 
 func (gameService *GameService) GetGame(
 	ctx context.Context,
-	gameID uint64,
+	gameID int64,
 ) (*model.Game, error) {
 	const operationPlace = "gameservice.GetGame"
 	log := gameService.log.With("operationPlace", operationPlace)
