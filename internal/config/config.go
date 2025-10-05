@@ -35,7 +35,7 @@ type Postgres struct {
 	PostgresURL      string `env:"POSTGRES_URL"`
 	PostgresDBName   string `env:"POSTGRES_DB"`
 	PostgresUsername string `env:"POSTGRES_USERNAME"`
-	PostgresPassword string `env:"POSTRGRES_PASSWORD"`
+	PostgresPassword string `env:"POSTGRES_PASSWORD"`
 }
 
 type Minio struct {

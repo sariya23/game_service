@@ -1,6 +1,4 @@
-.PHONY: run migrate
 
-MOCKGEN_BIN= ""
 ENV ?= local
 ENV_FILE = ./config/$(ENV).env
 
@@ -8,9 +6,10 @@ include ${ENV_FILE}
 
 # usage: Нужно указать префикс env файла. То есть
 # если используем local.env, то пишем make migrate ENV=local.
+.PHONY: migrate
 migrate:
 	goose -dir migrations postgres \
-	"postgresql://$(POSTGRES_USERNAME):$(POSTRGRES_PASSWORD)\
+	"postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)\
 	@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=disable" up
 
@@ -22,7 +21,18 @@ run:
 test:
 	go test ./...
 
-.PHONY: .mock
+.PHONY: mock
 mock:
 	find . -name '*_mock.go' -delete
-	mockgen -source internal/service/game/game.go -destination=internal/service/game/mocks/game.go -package=mock_gameservice
+	mockgen -source internal/service/game/game.go \
+	-destination=internal/service/game/mocks/game.go -package=mock_gameservice
+
+.PHONY: test_compose_up
+test_compose_up:
+	docker-compose -p test_game_service -f deployments/docker/test/docker-compose.yaml  \
+	--env-file ./config/test.env up -d
+
+.PHONY: test_compose_down
+test_compose_down:
+	docker-compose -p test_game_service -f deployments/docker/test/docker-compose.yaml \
+	--env-file ./config/test.env rm -fvs
