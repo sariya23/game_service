@@ -14,7 +14,7 @@ type Database struct {
 }
 
 func MustNewConnection(ctx context.Context, log *slog.Logger, dbURL string) *Database {
-	const opearationPlace = "postgresql.MustNewConnection"
+	const opearationPlace = "db.MustNewConnection"
 	localLog := log.With("operationPlace", opearationPlace)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*4)
 	defer cancel()
