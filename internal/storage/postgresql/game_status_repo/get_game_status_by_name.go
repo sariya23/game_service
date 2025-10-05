@@ -1,4 +1,4 @@
-package postgresql
+package gamestatusrepo
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 )
 
-func (postgresql PostgreSQL) GetGameStatusByName(ctx context.Context, statusName string) (*model.GameStatus, error) {
+func (gs *GameStatusRepository) GetGameStatusByName(ctx context.Context, statusName string) (*model.GameStatus, error) {
 	const operationPlace = "postgresql.GetGameStatusByName"
-	log := postgresql.log.With("operationPlace", operationPlace)
+	log := gs.log.With("operationPlace", operationPlace)
 
 	getStatusQuery := fmt.Sprintf("select %s, %s from %s where name=$1",
-		gameStatusGameStatusIDFieldName,
-		gameStatusGameNameFieldName,
-		gameStatusTable,
+		GameStatusGameStatusIDFieldName,
+		GameStatusGameNameFieldName,
+		GameStatusTable,
 	)
 	var gameStatus model.GameStatus
-	statusRow := postgresql.connection.QueryRow(ctx, getStatusQuery, statusName)
+	statusRow := gs.conn.GetPool().QueryRow(ctx, getStatusQuery, statusName)
 	err := statusRow.Scan(
 		&gameStatus.ID,
 		&gameStatus.Name,
