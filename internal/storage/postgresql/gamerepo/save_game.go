@@ -33,16 +33,12 @@ func (gr *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64,
 	genreIDs := make([]int, 0, len(game.Genres))
 	tagIDs := make([]int, 0, len(game.Tags))
 
-	if len(game.Genres) != 0 {
-		for _, g := range game.Genres {
-			genreIDs = append(genreIDs, int(g.GenreID))
-		}
+	for _, g := range game.Genres {
+		genreIDs = append(genreIDs, int(g.GenreID))
 	}
 
-	if len(game.Tags) != 0 {
-		for _, t := range game.Tags {
-			tagIDs = append(tagIDs, int(t.TagID))
-		}
+	for _, t := range game.Tags {
+		tagIDs = append(tagIDs, int(t.TagID))
 	}
 
 	tx, err := gr.conn.GetPool().Begin(ctx)

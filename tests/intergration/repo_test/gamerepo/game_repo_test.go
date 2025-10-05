@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSaveGame(t *testing.T) {
+func TestSaveGame_success(t *testing.T) {
 	ctx := context.Background()
 	db.SetUp(ctx, t, tables...)
 	defer db.TearDown(t)
