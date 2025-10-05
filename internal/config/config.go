@@ -32,8 +32,10 @@ type Server struct {
 }
 
 type Postgres struct {
-	PostgresURL      string `env:"POSTGRES_URL"`
+	PostgresPort     string `env:"POSTGRES_PORT"`
 	PostgresDBName   string `env:"POSTGRES_DB"`
+	PostgresHost     string `env:"POSTGRES_HOST"`
+	SSLMode          string `env:"SSL_MODE"`
 	PostgresUsername string `env:"POSTGRES_USERNAME"`
 	PostgresPassword string `env:"POSTGRES_PASSWORD"`
 }

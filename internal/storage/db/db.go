@@ -39,3 +39,9 @@ func (d *Database) Close() {
 func (d *Database) GetPool() *pgxpool.Pool {
 	return d.cluster
 }
+
+// GenerateDBUrl генерирует URL подключения к БД в формате
+// postgresql://username:password@host:port/dbName?sslmode=disable/enable
+func GenerateDBUrl(username, password, host, port, dbName, sslMode string) string {
+	return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s", username, password, host, port, dbName, sslMode)
+}

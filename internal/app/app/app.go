@@ -30,7 +30,14 @@ type App struct {
 }
 
 func NewApp(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
-	db := db.MustNewConnection(ctx, log, cfg.Postgres.PostgresURL)
+	dbURL := db.GenerateDBUrl(
+		cfg.Postgres.PostgresUsername,
+		cfg.Postgres.PostgresPassword,
+		cfg.Postgres.PostgresHost,
+		cfg.Postgres.PostgresPort,
+		cfg.Postgres.PostgresDBName,
+		cfg.Postgres.SSLMode)
+	db := db.MustNewConnection(ctx, log, dbURL)
 	gameRepo := gamerepo.NewGameRepository(db, log)
 	tagRepo := tagrepo.NewTagRepository(db, log)
 	genreRepo := genrerepo.NewGenreRepository(db, log)
