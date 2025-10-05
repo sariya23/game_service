@@ -9,7 +9,7 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 )
 
-func (r GameRepository) SaveGame(ctx context.Context, game model.Game) (int64, error) {
+func (r *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64, error) {
 	const operationPlace = "postgresql.gamerepo.SaveGame"
 	log := r.log.With("operationPlace", operationPlace)
 	saveGameArgs := pgx.NamedArgs{
@@ -45,12 +45,17 @@ func (r GameRepository) SaveGame(ctx context.Context, game model.Game) (int64, e
 		}
 	}
 
-	tx, err := r.conn.StartTransaction(ctx)
+	tx, err := r.conn.GetPool().Begin(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot start transaction, unexpected error = %v", err))
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		err = tx.Rollback(ctx)
+		if err != nil {
+			log.Error("cannot rollback transaction, unexpected error", slog.String("error", err.Error()))
+		}
+	}()
 
 	var savedGameID int64
 	saveGameRow := tx.QueryRow(ctx, saveMainGameInfoQuery, saveGameArgs)

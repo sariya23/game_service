@@ -49,7 +49,7 @@ func (r *GameRepository) GetGameByTitleAndReleaseYear(ctx context.Context, title
 		GameGameIDFieldName,
 	)
 	var game model.Game
-	gameRow := r.conn.Get(ctx, getGameQuery, title, releaseYear)
+	gameRow := r.conn.GetPool().QueryRow(ctx, getGameQuery, title, releaseYear)
 	err := gameRow.Scan(
 		&game.GameID,
 		&game.Title,
@@ -66,7 +66,7 @@ func (r *GameRepository) GetGameByTitleAndReleaseYear(ctx context.Context, title
 		log.Error(fmt.Sprintf("cannot get game, unexpected error = %v", err))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	genreRows, err := r.conn.Select(ctx, getGameGenresQuery, game.GameID)
+	genreRows, err := r.conn.GetPool().Query(ctx, getGameGenresQuery, game.GameID)
 	if err != nil {
 		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err), slog.Int64("gameID", game.GameID))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
@@ -86,7 +86,7 @@ func (r *GameRepository) GetGameByTitleAndReleaseYear(ctx context.Context, title
 		game.Genres = append(game.Genres, gameGenre)
 	}
 
-	tagRows, err := r.conn.Select(ctx, getGameTagsQuery, game.GameID)
+	tagRows, err := r.conn.GetPool().Query(ctx, getGameTagsQuery, game.GameID)
 	if err != nil {
 		log.Error(fmt.Sprintf("Cannot get tags, uncaught error: %v", err), slog.Int64("gameID", game.GameID))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
