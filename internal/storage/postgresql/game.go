@@ -82,7 +82,7 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Int64("gameID", game.GameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		game.Genres = append(game.Genres, &gameGenre)
+		game.Genres = append(game.Genres, gameGenre)
 	}
 
 	tagRows, err := postgresql.connection.Query(ctx, getGameTagsQuery, game.GameID)
@@ -102,7 +102,7 @@ func (postgresql PostgreSQL) GetGameByTitleAndReleaseYear(ctx context.Context, t
 			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Int64("gameID", game.GameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		game.Tags = append(game.Tags, &gameTag)
+		game.Tags = append(game.Tags, gameTag)
 	}
 	return &game, nil
 }
@@ -176,7 +176,7 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID int64) (*mo
 			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Int64("gameID", gameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		game.Genres = append(game.Genres, &gameGenre)
+		game.Genres = append(game.Genres, gameGenre)
 	}
 
 	tagRows, err := postgresql.connection.Query(ctx, getGameTagsQuery, gameID)
@@ -196,13 +196,13 @@ func (postgresql PostgreSQL) GetGameByID(ctx context.Context, gameID int64) (*mo
 			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Int64("gameID", gameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		game.Tags = append(game.Tags, &gameTag)
+		game.Tags = append(game.Tags, gameTag)
 	}
 
 	return &game, nil
 }
 
-func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *model.Game) (int64, error) {
+func (postgresql PostgreSQL) SaveGame(ctx context.Context, game model.Game) (int64, error) {
 	const operationPlace = "postgresql.SaveGame"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	saveGameArgs := pgx.NamedArgs{
@@ -271,7 +271,7 @@ func (postgresql PostgreSQL) SaveGame(ctx context.Context, game *model.Game) (in
 	return savedGameID, nil
 }
 
-func (postgresql PostgreSQL) GameList(ctx context.Context, filters *dto.GameFilters, limit uint32) ([]*model.ShortGame, error) {
+func (postgresql PostgreSQL) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
 	const operationPlace = "postgresql.GetTopGames"
 	log := postgresql.log.With("operationPlave", operationPlace)
 	gameGenresQuery := sq.Select(gameGameIDFieldName).From("game")
@@ -324,7 +324,7 @@ func (postgresql PostgreSQL) GameList(ctx context.Context, filters *dto.GameFilt
 	}
 	finalArgs = append(finalArgs, yearArgs...)
 
-	var games []*model.ShortGame
+	var games []model.ShortGame
 	gameRows, err := postgresql.connection.Query(ctx, finalSQL, finalArgs...)
 	if err != nil {
 		log.Error("cannot execute query to get game ids", slog.String("err", err.Error()))
@@ -348,7 +348,7 @@ func (postgresql PostgreSQL) GameList(ctx context.Context, filters *dto.GameFilt
 			log.Error("cannot prepare next row", slog.String("err", err.Error()))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		games = append(games, &game)
+		games = append(games, game)
 	}
 
 	return games, nil

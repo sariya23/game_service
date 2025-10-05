@@ -10,9 +10,9 @@ import (
 
 func (gameService *GameService) GameList(
 	ctx context.Context,
-	gameFilters *dto.GameFilters,
+	gameFilters dto.GameFilters,
 	limit uint32,
-) ([]*model.ShortGame, error) {
+) ([]model.ShortGame, error) {
 	const operationPlace = "gameservice.GetTopGames"
 	log := gameService.log.With("operationPlace", operationPlace)
 	if limit == 0 {

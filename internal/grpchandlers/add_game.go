@@ -18,7 +18,7 @@ func (srvApi *serverAPI) AddGame(
 	if valid, msg := validators.AddGame(request); !valid {
 		return &gamev2.AddGameResponse{}, status.Error(codes.InvalidArgument, msg)
 	}
-	newGame := &dto.AddGame{
+	newGame := dto.AddGame{
 		Title:       request.Game.Title,
 		Genres:      request.Game.Genres,
 		Description: request.Game.Description,

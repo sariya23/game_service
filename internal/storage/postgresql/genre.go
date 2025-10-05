@@ -8,7 +8,7 @@ import (
 	"github.com/sariya23/game_service/internal/outerror"
 )
 
-func (postgresql PostgreSQL) GetGenreByNames(ctx context.Context, genres []string) ([]*model.Genre, error) {
+func (postgresql PostgreSQL) GetGenreByNames(ctx context.Context, genres []string) ([]model.Genre, error) {
 	const operationPlace = "postgresql.GetGenres"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	getGenresQuery := fmt.Sprintf("select %s, %s from genre where %s=any($1)", genreGenreIDFieldName, genreGenreNameFieldName, genreGenreNameFieldName)
@@ -18,7 +18,7 @@ func (postgresql PostgreSQL) GetGenreByNames(ctx context.Context, genres []strin
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer genreRows.Close()
-	genreModels := make([]*model.Genre, 0, len(genres))
+	genreModels := make([]model.Genre, 0, len(genres))
 	for genreRows.Next() {
 		var modelGenre model.Genre
 		err = genreRows.Scan(&modelGenre.GenreID, &modelGenre.GenreName)
@@ -26,7 +26,7 @@ func (postgresql PostgreSQL) GetGenreByNames(ctx context.Context, genres []strin
 			log.Error(fmt.Sprintf("Cannot scan game tags, uncaught error: %v", err))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		genreModels = append(genreModels, &modelGenre)
+		genreModels = append(genreModels, modelGenre)
 	}
 	if genreRows.Err() != nil {
 		log.Error(fmt.Sprintf("Uncaught error: %v", err))
@@ -39,7 +39,7 @@ func (postgresql PostgreSQL) GetGenreByNames(ctx context.Context, genres []strin
 }
 
 // GetGenres возвращает все жанры.
-func (postgresql PostgreSQL) GetGenres(ctx context.Context) ([]*model.Genre, error) {
+func (postgresql PostgreSQL) GetGenres(ctx context.Context) ([]model.Genre, error) {
 	const operationPlace = "postgresql.GetGenres"
 	log := postgresql.log.With("operationPlace", operationPlace)
 	getGenreQuery := fmt.Sprintf("select %s, %s from genre", genreGenreIDFieldName, genreGenreNameFieldName)
@@ -49,7 +49,7 @@ func (postgresql PostgreSQL) GetGenres(ctx context.Context) ([]*model.Genre, err
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer genreRows.Close()
-	var genreModels []*model.Genre
+	var genreModels []model.Genre
 	for genreRows.Next() {
 		var modelGenre model.Genre
 		err = genreRows.Scan(&modelGenre.GenreID, &modelGenre.GenreName)
@@ -57,7 +57,7 @@ func (postgresql PostgreSQL) GetGenres(ctx context.Context) ([]*model.Genre, err
 			log.Error(fmt.Sprintf("Cannot scan tags, uncaught error: %v", err))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		genreModels = append(genreModels, &modelGenre)
+		genreModels = append(genreModels, modelGenre)
 	}
 	if genreRows.Err() != nil {
 		log.Error(fmt.Sprintf("Uncaught error: %v", err))

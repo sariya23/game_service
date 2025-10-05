@@ -49,7 +49,7 @@ type Game struct {
 	Description string
 	ReleaseDate time.Time
 	ImageURL    string
-	Tags        []*Tag
-	Genres      []*Genre
+	Tags        []Tag
+	Genres      []Genre
 	GameStatus  gamev2.GameStatusType
 }

@@ -8,7 +8,7 @@ type DeletedGame struct {
 	ReleaseYear uint64
 }
 
-func DeletedGameFromGame(game *model.Game) *DeletedGame {
+func DeletedGameFromGame(game model.Game) *DeletedGame {
 	return &DeletedGame{
 		GameID:      game.GameID,
 		ReleaseYear: uint64(game.ReleaseDate.Year()),

@@ -17,7 +17,7 @@ func (srvApi *serverAPI) GameList(
 ) (*gamev2.GameListResponse, error) {
 	games, err := srvApi.gameServicer.GameList(
 		ctx,
-		&dto.GameFilters{
+		dto.GameFilters{
 			ReleaseYear: request.GetYear(),
 			Genres:      request.GetGenres(),
 			Tags:        request.GetTags(),
