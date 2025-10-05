@@ -28,7 +28,7 @@ func init() {
 		if err := rows.Scan(&genre); err != nil {
 			panic(err)
 		}
-		genres = append(genres, genre)
+		genreIDs = append(genreIDs, genre)
 	}
 	if err := rows.Err(); err != nil {
 		panic(err)
@@ -44,7 +44,7 @@ func init() {
 		if err := rows.Scan(&tag); err != nil {
 			panic(err)
 		}
-		tags = append(tags, tag)
+		tagIDs = append(tagIDs, tag)
 	}
 	if err := rows.Err(); err != nil {
 		panic(err)
