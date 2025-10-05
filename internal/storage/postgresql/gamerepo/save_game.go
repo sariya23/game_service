@@ -9,9 +9,9 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 )
 
-func (r *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64, error) {
+func (gr *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64, error) {
 	const operationPlace = "postgresql.gamerepo.SaveGame"
-	log := r.log.With("operationPlace", operationPlace)
+	log := gr.log.With("operationPlace", operationPlace)
 	saveGameArgs := pgx.NamedArgs{
 		"title":        game.Title,
 		"description":  game.Description,
@@ -45,7 +45,7 @@ func (r *GameRepository) SaveGame(ctx context.Context, game model.Game) (int64, 
 		}
 	}
 
-	tx, err := r.conn.GetPool().Begin(ctx)
+	tx, err := gr.conn.GetPool().Begin(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("cannot start transaction, unexpected error = %v", err))
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)

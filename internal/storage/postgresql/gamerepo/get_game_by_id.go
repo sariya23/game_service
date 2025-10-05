@@ -15,9 +15,9 @@ import (
 	"github.com/sariya23/game_service/internal/storage/postgresql/tagrepo"
 )
 
-func (r *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.Game, error) {
+func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.Game, error) {
 	const operationPlace = "postgresql.gamerepo.GetGameByID"
-	log := r.log.With("operationPlace", operationPlace)
+	log := gr.log.With("operationPlace", operationPlace)
 	getGameMainInfoQuery := fmt.Sprintf(
 		"select %s, %s, %s, %s, %s, %s from game where %s=$1",
 		GameGameIDFieldName,
@@ -49,7 +49,7 @@ func (r *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.
 		GameGameIDFieldName,
 	)
 	var game model.Game
-	gameRow := r.conn.GetPool().QueryRow(ctx, getGameMainInfoQuery, gameID)
+	gameRow := gr.conn.GetPool().QueryRow(ctx, getGameMainInfoQuery, gameID)
 	err := gameRow.Scan(
 		&game.GameID,
 		&game.Title,
@@ -67,7 +67,7 @@ func (r *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
-	genreRows, err := r.conn.GetPool().Query(ctx, getGameGenresQuery, gameID)
+	genreRows, err := gr.conn.GetPool().Query(ctx, getGameGenresQuery, gameID)
 	if err != nil {
 		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err), slog.Int64("gameID", gameID))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
@@ -87,7 +87,7 @@ func (r *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.
 		game.Genres = append(game.Genres, gameGenre)
 	}
 
-	tagRows, err := r.conn.GetPool().Query(ctx, getGameTagsQuery, gameID)
+	tagRows, err := gr.conn.GetPool().Query(ctx, getGameTagsQuery, gameID)
 	if err != nil {
 		log.Error(fmt.Sprintf("Cannot get tags, uncaught error: %v", err), slog.Int64("gameID", gameID))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)

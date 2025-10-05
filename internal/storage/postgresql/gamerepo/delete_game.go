@@ -11,9 +11,9 @@ import (
 	"github.com/sariya23/game_service/internal/outerror"
 )
 
-func (r *GameRepository) DaleteGame(ctx context.Context, gameID int64) (*dto.DeletedGame, error) {
+func (gr *GameRepository) DaleteGame(ctx context.Context, gameID int64) (*dto.DeletedGame, error) {
 	const operationPlace = "postgresql.DeleteGame"
-	log := r.log.With("operationPlace", operationPlace)
+	log := gr.log.With("operationPlace", operationPlace)
 	deleteGameQuery := fmt.Sprintf(
 		"delete from game where %s=$1 returning %s, extract(year from %s), %s",
 		GameGameIDFieldName,
@@ -22,7 +22,7 @@ func (r *GameRepository) DaleteGame(ctx context.Context, gameID int64) (*dto.Del
 		GameTitleFieldName,
 	)
 	var deltedGameInfo dto.DeletedGame
-	deleteGameRow := r.conn.GetPool().QueryRow(ctx, deleteGameQuery, gameID)
+	deleteGameRow := gr.conn.GetPool().QueryRow(ctx, deleteGameQuery, gameID)
 	err := deleteGameRow.Scan(&deltedGameInfo.GameID, &deltedGameInfo.ReleaseYear, &deltedGameInfo.Title)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

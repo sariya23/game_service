@@ -15,9 +15,9 @@ import (
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
-func (r *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
+func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
 	const operationPlace = "postgresql.GetTopGames"
-	log := r.log.With("operationPlave", operationPlace)
+	log := gr.log.With("operationPlave", operationPlace)
 	gameGenresQuery := sq.Select(GameGameIDFieldName).From("game")
 	gameTagsQuery := sq.Select(GameGameIDFieldName).From("game")
 
@@ -69,7 +69,7 @@ func (r *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, 
 	finalArgs = append(finalArgs, yearArgs...)
 
 	var games []model.ShortGame
-	gameRows, err := r.conn.GetPool().Query(ctx, finalSQL, finalArgs...)
+	gameRows, err := gr.conn.GetPool().Query(ctx, finalSQL, finalArgs...)
 	if err != nil {
 		log.Error("cannot execute query to get game ids", slog.String("err", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
