@@ -7,8 +7,10 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/outerror"
 	"github.com/sariya23/game_service/internal/storage/postgresql/gamerepo"
 	"github.com/sariya23/game_service/tests/utils/random"
 	"github.com/stretchr/testify/assert"
@@ -47,5 +49,15 @@ func TestGetGameByID(t *testing.T) {
 		})
 		assert.Equal(t, gameToAdd.TagIDs, model.TagIDs(game.Tags))
 		assert.Equal(t, gameToAdd.GenreIDs, model.GenreIDs(game.Genres))
+	})
+	t.Run("Игра не найдена", func(t *testing.T) {
+		ctx := context.Background()
+		sl := mockslog.NewDiscardLogger()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		gameRepo := gamerepo.NewGameRepository(dbT.DB, sl)
+		game, err := gameRepo.GetGameByID(ctx, gofakeit.Int64())
+		require.ErrorIs(t, err, outerror.ErrGameNotFound)
+		assert.Nil(t, game)
 	})
 }
