@@ -10,7 +10,7 @@ import (
 )
 
 type GameServicer interface {
-	AddGame(ctx context.Context, game dto.AddGame) (gameID int64, err error)
+	AddGame(ctx context.Context, game dto.AddGameHandler) (gameID int64, err error)
 	GetGame(ctx context.Context, gameID int64) (game *model.Game, err error)
 	GameList(ctx context.Context, gameFilters dto.GameFilters, limit uint32) (games []model.ShortGame, err error)
 	DeleteGame(ctx context.Context, gameID int64) (deletedGameID int64, err error)
