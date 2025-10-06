@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetGameByID(t *testing.T) {
-	t.Run("Успешное получение игры", func(t *testing.T) {
+func TestGetGameByTitleAndReleaseYear(t *testing.T) {
+	t.Run("Успешное получение игры по названию и году выпуска", func(t *testing.T) {
 		// Arrange
 		ctx := context.Background()
 		sl := mockslog.NewDiscardLogger()
@@ -31,7 +31,7 @@ func TestGetGameByID(t *testing.T) {
 		assert.NotZero(t, gameID)
 
 		// Act
-		game, err := gameRepo.GetGameByID(ctx, gameID)
+		game, err := gameRepo.GetGameByTitleAndReleaseYear(ctx, gameToAdd.Title, int32(gameToAdd.ReleaseDate.Year()))
 
 		// Assert
 		require.NoError(t, err)
@@ -54,6 +54,7 @@ func TestGetGameByID(t *testing.T) {
 		assert.Equal(t, gameToAdd.TagIDs, model.TagIDs(game.Tags))
 		assert.Equal(t, gameToAdd.GenreIDs, model.GenreIDs(game.Genres))
 	})
+
 	t.Run("Игра не найдена", func(t *testing.T) {
 		// Arrange
 		ctx := context.Background()
@@ -63,7 +64,7 @@ func TestGetGameByID(t *testing.T) {
 		gameRepo := gamerepo.NewGameRepository(dbT.DB, sl)
 
 		// Act
-		game, err := gameRepo.GetGameByID(ctx, gofakeit.Int64())
+		game, err := gameRepo.GetGameByTitleAndReleaseYear(ctx, gofakeit.LetterN(10), gofakeit.Int32())
 
 		// Assert
 		require.ErrorIs(t, err, outerror.ErrGameNotFound)

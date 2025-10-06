@@ -15,6 +15,7 @@ import (
 
 func TestSaveGame(t *testing.T) {
 	t.Run("Успешное сохранение игры со всеми полями", func(t *testing.T) {
+		// Arrange
 		ctx := context.Background()
 		sl := mockslog.NewDiscardLogger()
 		dbT.SetUp(ctx, t, tables...)
@@ -22,7 +23,10 @@ func TestSaveGame(t *testing.T) {
 		gameRepo := gamerepo.NewGameRepository(dbT.DB, sl)
 		gameToAdd := random.GameToAddService(genreIDs, tagIDs)
 
+		// Act
 		gameID, err := gameRepo.SaveGame(ctx, gameToAdd)
+
+		// Assert
 		require.NoError(t, err)
 		assert.NotZero(t, gameID)
 	})
