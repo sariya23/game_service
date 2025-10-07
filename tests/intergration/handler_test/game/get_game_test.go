@@ -4,9 +4,11 @@ package game_test
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/sariya23/game_service/internal/lib/converters"
+	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
 	"github.com/sariya23/game_service/tests/utils/random"
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
@@ -34,5 +36,14 @@ func TestGetGame(t *testing.T) {
 		assert.Equal(t, converters.ToProtoDate(gameToAdd.ReleaseDate), response.GetGame().ReleaseDate)
 		assert.Equal(t, gameToAdd.ImageURL, response.GetGame().CoverImageUrl)
 
+		expectedGenres := dbT.GetGenresByIDs(ctx, genreIDs)
+		sort.Slice(expectedGenres, func(i, j int) bool {
+			return expectedGenres[i].GenreName < expectedGenres[j].GenreName
+		})
+		actualGenres := response.GetGame().GetGenres()
+		sort.Slice(actualGenres, func(i, j int) bool {
+			return actualGenres[i] < actualGenres[j]
+		})
+		assert.Equal(t, model.GenreNames(expectedGenres), actualGenres)
 	})
 }
