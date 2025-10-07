@@ -14,7 +14,7 @@ import (
 
 func InsertGame(ctx context.Context, db *postgresql.TestDB, game dto.AddGameService) int64 {
 	query := fmt.Sprintf(
-		"insert into game (%s, %s, %s, %s, %s) values ($1, $2, $3, $4, $5) returning id;",
+		"insert into game (%s, %s, %s, %s, %s) values ($1, $2, $3, $4, $5) returning game_id;",
 		gamerepo.GameTitleFieldName,
 		gamerepo.GameDescriptionFieldName,
 		gamerepo.GameReleaseDateFieldName,

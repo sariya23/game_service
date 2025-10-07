@@ -27,7 +27,7 @@ func MustPrepareMinio(
 	const operationPlace = "minioclient.MustPrepareMinio"
 	innerLog := log.With("operationPlace", operationPlace)
 	min, err := newMinioClient(log,
-		minioConfig.MinioHost,
+		minioConfig.MinioHostInner,
 		minioConfig.MinioPort,
 		minioConfig.MinioBucket,
 		minioConfig.MinioUser,

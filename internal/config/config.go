@@ -34,19 +34,20 @@ type Server struct {
 type Postgres struct {
 	PostgresPort      string `env:"POSTGRES_PORT"`
 	PostgresDBName    string `env:"POSTGRES_DB"`
-	PostgresHostOuter string `env:"POSTGRES_HOST_OUTER_OUTER_HOST"`
-	PostgresHostInner string `env:"POSTGRES_HOST_OUTER_INNER_HOST"`
+	PostgresHostOuter string `env:"POSTGRES_HOST_OUTER_HOST"`
+	PostgresHostInner string `env:"POSTGRES_HOST_INNER_HOST"`
 	SSLMode           string `env:"SSL_MODE"`
 	PostgresUsername  string `env:"POSTGRES_USERNAME"`
 	PostgresPassword  string `env:"POSTGRES_PASSWORD"`
 }
 
 type Minio struct {
-	MinioUser     string `env:"MINIO_USER"`
-	MinioPassword string `env:"MINIO_PASSWORD"`
-	MinioPort     int    `env:"MINIO_PORT"`
-	MinioHost     string `env:"MINIO_SERVICE_NAME_FOR_CONNECTION"`
-	MinioBucket   string `env:"MINIO_BUCKET"`
+	MinioUser      string `env:"MINIO_USER"`
+	MinioPassword  string `env:"MINIO_PASSWORD"`
+	MinioPort      int    `env:"MINIO_PORT"`
+	MinioHostOuter string `env:"MINIO_HOST_OUTER_HOST"`
+	MinioHostInner string `env:"MINIO_HOST_INNER_HOST"`
+	MinioBucket    string `env:"MINIO_BUCKET"`
 }
 
 // MustLoad - загрузка данных из .env в конфиг.
