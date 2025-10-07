@@ -31,6 +31,10 @@ func NewGameServiceTestClient() *GameServiceTestClient {
 	return &GameServiceTestClient{grpcClient}
 }
 
+func (g *GameServiceTestClient) GetClient() gamev2.GameServiceClient {
+	return g.cl
+}
+
 func (g *GameServiceTestClient) SetUp(t *testing.T) {
 	t.Helper()
 }

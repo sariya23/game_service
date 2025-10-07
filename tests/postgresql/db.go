@@ -52,3 +52,5 @@ func (d *TestDB) Truncate(ctx context.Context, tables ...string) {
 		panic(err)
 	}
 }
+
+func (d *TestDB) InsertGame(ctx context.Context) {}
