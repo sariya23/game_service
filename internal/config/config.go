@@ -32,12 +32,13 @@ type Server struct {
 }
 
 type Postgres struct {
-	PostgresPort     string `env:"POSTGRES_PORT"`
-	PostgresDBName   string `env:"POSTGRES_DB"`
-	PostgresHost     string `env:"POSTGRES_SERVICE_NAME_FOR_CONNECTION"`
-	SSLMode          string `env:"SSL_MODE"`
-	PostgresUsername string `env:"POSTGRES_USERNAME"`
-	PostgresPassword string `env:"POSTGRES_PASSWORD"`
+	PostgresPort      string `env:"POSTGRES_PORT"`
+	PostgresDBName    string `env:"POSTGRES_DB"`
+	PostgresHostOuter string `env:"POSTGRES_HOST_OUTER_OUTER_HOST"`
+	PostgresHostInner string `env:"POSTGRES_HOST_OUTER_INNER_HOST"`
+	SSLMode           string `env:"SSL_MODE"`
+	PostgresUsername  string `env:"POSTGRES_USERNAME"`
+	PostgresPassword  string `env:"POSTGRES_PASSWORD"`
 }
 
 type Minio struct {

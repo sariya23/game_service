@@ -1,6 +1,6 @@
 //go:build integrations
 
-package handler_test
+package game_test
 
 import (
 	"context"
@@ -34,6 +34,5 @@ func TestGetGame(t *testing.T) {
 		assert.Equal(t, gameToAdd.Description, response.GetGame().Description)
 		assert.Equal(t, gameToAdd.ReleaseDate, converters.FromProtoDate(response.GetGame().ReleaseDate))
 		assert.Equal(t, gameToAdd.ImageURL, response.GetGame().CoverImageUrl)
-
 	})
 }

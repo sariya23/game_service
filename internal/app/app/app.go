@@ -33,7 +33,7 @@ func NewApp(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 	dbURL := db.GenerateDBUrl(
 		cfg.Postgres.PostgresUsername,
 		cfg.Postgres.PostgresPassword,
-		cfg.Postgres.PostgresHost,
+		cfg.Postgres.PostgresHostInner,
 		cfg.Postgres.PostgresPort,
 		cfg.Postgres.PostgresDBName,
 		cfg.Postgres.SSLMode)

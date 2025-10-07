@@ -1,6 +1,6 @@
 //go:build integrations
 
-package handler_test
+package game_test
 
 import (
 	"context"

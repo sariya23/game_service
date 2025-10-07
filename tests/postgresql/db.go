@@ -25,7 +25,7 @@ func NewTestDB() *TestDB {
 		db.GenerateDBUrl(
 			cfg.Postgres.PostgresUsername,
 			cfg.Postgres.PostgresPassword,
-			cfg.Postgres.PostgresHost,
+			cfg.Postgres.PostgresHostOuter,
 			cfg.Postgres.PostgresPort,
 			cfg.Postgres.PostgresDBName,
 			cfg.Postgres.SSLMode,
