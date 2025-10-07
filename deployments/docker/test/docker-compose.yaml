@@ -30,5 +30,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  app:
+    build:
+      dockerfile: deployments/docker/test/Dockerfile
+      context: ../../..
+      target: dev
+    restart: "always"
+    ports:
+      - "${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}"
+      - "${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ./api --config=${CONFIG_PATH}
 volumes:
   minio-storage:

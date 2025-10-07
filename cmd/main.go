@@ -15,6 +15,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	cfg := config.MustLoad()
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
+	log.Info("starting app", slog.String("env", cfg.Env.EnvType))
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
