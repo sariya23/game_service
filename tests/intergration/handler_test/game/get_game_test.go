@@ -36,14 +36,24 @@ func TestGetGame(t *testing.T) {
 		assert.Equal(t, converters.ToProtoDate(gameToAdd.ReleaseDate), response.GetGame().ReleaseDate)
 		assert.Equal(t, gameToAdd.ImageURL, response.GetGame().CoverImageUrl)
 
-		expectedGenres := dbT.GetGenresByIDs(ctx, genreIDs)
+		expectedGenres := dbT.GetGenresByIDs(ctx, gameToAdd.GenreIDs)
 		sort.Slice(expectedGenres, func(i, j int) bool {
 			return expectedGenres[i].GenreName < expectedGenres[j].GenreName
 		})
-		actualGenres := response.GetGame().GetGenres()
+		actualGenres := response.GetGame().Genres
 		sort.Slice(actualGenres, func(i, j int) bool {
 			return actualGenres[i] < actualGenres[j]
 		})
 		assert.Equal(t, model.GenreNames(expectedGenres), actualGenres)
+
+		expectedTags := dbT.GetTagsByIDs(ctx, gameToAdd.TagIDs)
+		sort.Slice(expectedTags, func(i, j int) bool {
+			return expectedTags[i].TagName < expectedTags[j].TagName
+		})
+		actualTags := response.GetGame().Tags
+		sort.Slice(actualTags, func(i, j int) bool {
+			return actualTags[i] < actualTags[j]
+		})
+		assert.Equal(t, model.TagNames(expectedTags), actualTags)
 	})
 }
