@@ -44,7 +44,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "until pg_isready -h db -p ${POSTGRES_PORT}; do sleep 1; done; make test_migrate ENV=test"
+    command: sh -c "until pg_isready -h ${POSTGRES_HOST_INNER_HOST} -p ${POSTGRES_PORT}; do sleep 1; done; make test_migrate ENV=test"
 
   app:
     build:

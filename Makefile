@@ -40,11 +40,12 @@ test_compose_up:
 test_migrate:
 	goose -dir migrations postgres \
 	"postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)\
-	@$(POSTGRES_SERVICE_NAME_FOR_CONNECTION):$(POSTGRES_PORT)/$(POSTGRES_DB)\
+	@$(POSTGRES_HOST_INNER_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=$(SSL_MODE)" up
 
 .PHONY: test_compose_down
 test_compose_down:
 	docker-compose -p test_game_service -f deployments/docker/test/docker-compose.yaml \
 	--env-file ./config/test.env rm -fvs
-	docker rmi test_game_service_app || true
+	docker rmi test_game_service-app || true
+	docker rmi test_game_service-migration || true

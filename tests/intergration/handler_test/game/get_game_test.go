@@ -74,7 +74,18 @@ func TestGetGame(t *testing.T) {
 		assert.Equal(t, codes.NotFound, st.Code())
 		assert.Nil(t, response)
 	})
-	t.Run("Невалидный ID", func(t *testing.T) {
-		// TODO
+	t.Run("Отрицательный ID", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		nonExistGameID := gofakeit.Uint32()
+		request := gamev2.GetGameRequest{GameId: -int64(nonExistGameID)}
+
+		response, err := client.GetClient().GetGame(ctx, &request)
+		require.Error(t, err)
+		st, _ := status.FromError(err)
+		assert.Equal(t, codes.InvalidArgument, st.Code())
+		assert.Nil(t, response)
 	})
 }
