@@ -27,6 +27,6 @@ func ToProtoGame(modelGame *model.Game) *gamev2.DomainGame {
 		}
 		game.Tags = tags
 	}
-	game.ReleaseDate = ToProtoDate(&modelGame.ReleaseDate)
+	game.ReleaseDate = ToProtoDate(modelGame.ReleaseDate)
 	return &game
 }

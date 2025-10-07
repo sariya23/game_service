@@ -32,7 +32,8 @@ func TestGetGame(t *testing.T) {
 		assert.Equal(t, gameID, response.GetGame().ID)
 		assert.Equal(t, gameToAdd.Title, response.GetGame().Title)
 		assert.Equal(t, gameToAdd.Description, response.GetGame().Description)
-		assert.Equal(t, gameToAdd.ReleaseDate, converters.FromProtoDate(response.GetGame().ReleaseDate))
+		assert.Equal(t, converters.ToProtoDate(gameToAdd.ReleaseDate), response.GetGame().ReleaseDate)
 		assert.Equal(t, gameToAdd.ImageURL, response.GetGame().CoverImageUrl)
+
 	})
 }

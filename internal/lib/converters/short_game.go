@@ -11,6 +11,6 @@ func ToShortGameResponse(game model.ShortGame) *gamev2.GameListResponse_ShortGam
 		Title:         game.Title,
 		Description:   game.Description,
 		CoverImageUrl: game.ImageURL,
-		ReleaseDate:   ToProtoDate(&game.ReleaseDate),
+		ReleaseDate:   ToProtoDate(game.ReleaseDate),
 	}
 }
