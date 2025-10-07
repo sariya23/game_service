@@ -7,6 +7,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
@@ -14,6 +15,8 @@ import (
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestGetGame(t *testing.T) {
@@ -29,6 +32,7 @@ func TestGetGame(t *testing.T) {
 		request := gamev2.GetGameRequest{GameId: gameID}
 
 		response, err := client.GetClient().GetGame(ctx, &request)
+
 		require.NoError(t, err)
 		assert.Equal(t, gameID, response.GetGame().ID)
 		assert.Equal(t, gameToAdd.Title, response.GetGame().Title)
@@ -55,5 +59,22 @@ func TestGetGame(t *testing.T) {
 			return actualTags[i] < actualTags[j]
 		})
 		assert.Equal(t, model.TagNames(expectedTags), actualTags)
+	})
+	t.Run("Нет игры с таким ID", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		nonExistGameID := gofakeit.Int64()
+		request := gamev2.GetGameRequest{GameId: nonExistGameID}
+
+		response, err := client.GetClient().GetGame(ctx, &request)
+		require.Error(t, err)
+		st, _ := status.FromError(err)
+		assert.Equal(t, codes.NotFound, st.Code())
+		assert.Nil(t, response)
+	})
+	t.Run("Невалидный ID", func(t *testing.T) {
+		// TODO
 	})
 }
