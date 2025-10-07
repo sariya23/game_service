@@ -44,7 +44,7 @@ type Minio struct {
 	MinioUser     string `env:"MINIO_USER"`
 	MinioPassword string `env:"MINIO_PASSWORD"`
 	MinioPort     int    `env:"MINIO_PORT"`
-	MinioHost     string `env:"MINIO_HOST"`
+	MinioHost     string `env:"MINIO_SERVICE_NAME_FOR_CONNECTION"`
 	MinioBucket   string `env:"MINIO_BUCKET"`
 }
 
