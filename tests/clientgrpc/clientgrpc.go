@@ -18,7 +18,7 @@ type GameServiceTestClient struct {
 func NewGameServiceTestClient() *GameServiceTestClient {
 	cfg := config.MustLoadByPath(filepath.Join("..", "..", "..", "..", "config", "test.env"))
 	conn, err := grpc.NewClient(
-		fmt.Sprintf("%s:%s", cfg.Server.GRPCServerHost, cfg.Server.GrpcServerPort),
+		fmt.Sprintf("%s:%d", cfg.Server.GRPCServerHost, cfg.Server.GrpcServerPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
