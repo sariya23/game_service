@@ -5,7 +5,6 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/minio/minio-go/v7"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
@@ -30,7 +29,6 @@ type GenreRepository interface {
 
 type S3Storager interface {
 	SaveObject(ctx context.Context, name string, data io.Reader) (string, error)
-	GetObject(ctx context.Context, name string) (*minio.Object, error)
 	DeleteObject(ctx context.Context, name string) error
 }
 
