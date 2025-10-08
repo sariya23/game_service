@@ -38,19 +38,21 @@ func TestAddGame(t *testing.T) {
 		assert.Equal(t, converters.FromProtoDate(gameToAdd.ReleaseDate), gameDB.ReleaseDate)
 		assert.Equal(t, gamev2.GameStatusType_DRAFT, gameDB.GameStatus)
 		sort.Slice(gameDB.Genres, func(i, j int) bool {
-			return gameDB.Genres[i].GenreName < gameDB.Genres[j].GenreName
+			return gameDB.Genres[i].GenreID < gameDB.Genres[j].GenreID
 		})
-		sort.Slice(gameToAdd.Genres, func(i, j int) bool {
-			return gameToAdd.Genres[i] < gameToAdd.Genres[j]
+		genresExpected := dbT.GetGenresByNames(ctx, gameToAdd.Genres)
+		sort.Slice(genresExpected, func(i, j int) bool {
+			return genresExpected[i].GenreID < genresExpected[j].GenreID
 		})
-		assert.Equal(t, gameToAdd.Genres, model.GenreNames(gameDB.Genres))
+		assert.Equal(t, genresExpected, gameDB.Genres)
+		tagsExpected := dbT.GetTagsByNames(ctx, gameToAdd.Tags)
+		sort.Slice(tagsExpected, func(i, j int) bool {
+			return tagsExpected[i].TagID < tagsExpected[j].TagID
+		})
 		sort.Slice(gameDB.Tags, func(i, j int) bool {
-			return gameDB.Tags[i].TagName < gameDB.Tags[j].TagName
+			return gameDB.Tags[i].TagID < gameDB.Tags[j].TagID
 		})
-		sort.Slice(gameToAdd.Tags, func(i, j int) bool {
-			return gameToAdd.Tags[i] < gameToAdd.Tags[j]
-		})
-		assert.Equal(t, gameToAdd.Tags, model.TagNames(gameDB.Tags))
+		assert.Equal(t, tagsExpected, gameDB.Tags)
 		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, gameDB.ImageURL, minio.GetObjectOptions{})
 		require.NoError(t, err)
 		defer reader.Close()

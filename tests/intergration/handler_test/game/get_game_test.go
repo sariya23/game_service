@@ -4,11 +4,12 @@ package game_test
 
 import (
 	"context"
+	"io"
 	"sort"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/sariya23/game_service/internal/lib/converters"
+	"github.com/minio/minio-go/v7"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
 	"github.com/sariya23/game_service/tests/utils/random"
@@ -25,22 +26,27 @@ func TestGetGame(t *testing.T) {
 		client := clientgrpc.NewGameServiceTestClient()
 		dbT.SetUp(ctx, t, tables...)
 		defer dbT.TearDown(t)
-		gameToAdd := random.GameToAddService(model.TagIDs(tags), model.GenreIDs(genres))
-		gameID := dbT.InsertGame(ctx, gameToAdd)
-		dbT.InsertGameGenre(ctx, gameID, gameToAdd.GenreIDs)
-		dbT.InsertGameTag(ctx, gameID, gameToAdd.TagIDs)
-		request := gamev2.GetGameRequest{GameId: gameID}
+		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
+		responseSave, err := client.GetClient().AddGame(ctx, &gamev2.AddGameRequest{Game: &gameToAdd})
+		require.NoError(t, err)
+		require.NotZero(t, responseSave.GameId)
+		request := gamev2.GetGameRequest{GameId: responseSave.GameId}
 
 		response, err := client.GetClient().GetGame(ctx, &request)
 
 		require.NoError(t, err)
-		assert.Equal(t, gameID, response.GetGame().ID)
+		assert.Equal(t, responseSave.GameId, response.GetGame().ID)
 		assert.Equal(t, gameToAdd.Title, response.GetGame().Title)
 		assert.Equal(t, gameToAdd.Description, response.GetGame().Description)
-		assert.Equal(t, converters.ToProtoDate(gameToAdd.ReleaseDate), response.GetGame().ReleaseDate)
-		assert.Equal(t, gameToAdd.ImageURL, response.GetGame().CoverImageUrl)
+		assert.Equal(t, gameToAdd.ReleaseDate.String(), response.GetGame().ReleaseDate.String())
+		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, response.Game.CoverImageUrl, minio.GetObjectOptions{})
+		require.NoError(t, err)
+		defer reader.Close()
+		imageData, err := io.ReadAll(reader)
+		require.NoError(t, err)
+		assert.Equal(t, gameToAdd.CoverImage, imageData)
 
-		expectedGenres := dbT.GetGenresByIDs(ctx, gameToAdd.GenreIDs)
+		expectedGenres := dbT.GetGenresByNames(ctx, gameToAdd.Genres)
 		sort.Slice(expectedGenres, func(i, j int) bool {
 			return expectedGenres[i].GenreName < expectedGenres[j].GenreName
 		})
@@ -50,7 +56,7 @@ func TestGetGame(t *testing.T) {
 		})
 		assert.Equal(t, model.GenreNames(expectedGenres), actualGenres)
 
-		expectedTags := dbT.GetTagsByIDs(ctx, gameToAdd.TagIDs)
+		expectedTags := dbT.GetTagsByNames(ctx, gameToAdd.Tags)
 		sort.Slice(expectedTags, func(i, j int) bool {
 			return expectedTags[i].TagName < expectedTags[j].TagName
 		})

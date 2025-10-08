@@ -123,6 +123,28 @@ func (d *TestDB) GetTagsByIDs(ctx context.Context, tagIDs []int64) []model.Tag {
 	return tags
 }
 
+func (d *TestDB) GetTagsByNames(ctx context.Context, tagNames []string) []model.Tag {
+	query := "select tag_id, tag_name from tag where tag_name = any($1)"
+	rows, err := d.DB.GetPool().Query(ctx, query, tagNames)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	tags := make([]model.Tag, 0, len(tagNames))
+	for rows.Next() {
+		var tag model.Tag
+		err = rows.Scan(&tag.TagID, &tag.TagName)
+		if err != nil {
+			panic(err)
+		}
+		if rows.Err() != nil {
+			panic(err)
+		}
+		tags = append(tags, tag)
+	}
+	return tags
+}
+
 func (d *TestDB) GetGenresByIDs(ctx context.Context, genreIDs []int64) []model.Genre {
 	query := "select genre_id, genre_name from genre where genre_id = any($1)"
 	rows, err := d.DB.GetPool().Query(ctx, query, genreIDs)
