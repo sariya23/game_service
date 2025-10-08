@@ -4,6 +4,7 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -75,7 +76,7 @@ func (d *TestDB) InsertGame(ctx context.Context, game dto.AddGameService) int64 
 }
 
 func (d *TestDB) InsertGameGenre(ctx context.Context, gameID int64, genreIDs []int64) {
-	query := fmt.Sprintf("insert into game_genre values ($1, $2)")
+	query := "insert into game_genre values ($1, $2)"
 	batch := &pgx.Batch{}
 	for _, genreID := range genreIDs {
 		batch.Queue(query, gameID, genreID)
@@ -88,7 +89,7 @@ func (d *TestDB) InsertGameGenre(ctx context.Context, gameID int64, genreIDs []i
 }
 
 func (d *TestDB) InsertGameTag(ctx context.Context, gameID int64, tagIDs []int64) {
-	query := fmt.Sprintf("insert into game_tag values ($1, $2)")
+	query := "insert into game_tag values ($1, $2)"
 	batch := &pgx.Batch{}
 	for _, genreID := range tagIDs {
 		batch.Queue(query, gameID, genreID)
@@ -101,7 +102,7 @@ func (d *TestDB) InsertGameTag(ctx context.Context, gameID int64, tagIDs []int64
 }
 
 func (d *TestDB) GetTagsByIDs(ctx context.Context, tagIDs []int64) []model.Tag {
-	query := fmt.Sprintf("select tag_id, tag_name from tag where tag_id = any($1)")
+	query := "select tag_id, tag_name from tag where tag_id = any($1)"
 	rows, err := d.DB.GetPool().Query(ctx, query, tagIDs)
 	if err != nil {
 		panic(err)
@@ -123,7 +124,7 @@ func (d *TestDB) GetTagsByIDs(ctx context.Context, tagIDs []int64) []model.Tag {
 }
 
 func (d *TestDB) GetGenresByIDs(ctx context.Context, genreIDs []int64) []model.Genre {
-	query := fmt.Sprintf("select genre_id, genre_name from genre where genre_id = any($1)")
+	query := "select genre_id, genre_name from genre where genre_id = any($1)"
 	rows, err := d.DB.GetPool().Query(ctx, query, genreIDs)
 	if err != nil {
 		panic(err)
@@ -142,4 +143,104 @@ func (d *TestDB) GetGenresByIDs(ctx context.Context, genreIDs []int64) []model.G
 		genres = append(genres, genre)
 	}
 	return genres
+}
+
+func (d *TestDB) GetGameGenreByGameID(ctx context.Context, gameID int64) []model.GameGenre {
+	query := "select game_id, genre_id from game_genre where game_id = $1"
+	rows, err := d.DB.GetPool().Query(ctx, query, gameID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var gameGenres []model.GameGenre
+	for rows.Next() {
+		var gameGenre model.GameGenre
+		err = rows.Scan(&gameGenre.GameID, &gameGenre.GenreID)
+		if err != nil {
+			panic(err)
+		}
+		if rows.Err() != nil {
+			panic(err)
+		}
+		gameGenres = append(gameGenres, gameGenre)
+	}
+	return gameGenres
+}
+
+func (d *TestDB) GetGameTagByGameID(ctx context.Context, gameID int64) []model.GameTag {
+	query := "select game_id, tag_id from game_tag where game_id = $1"
+	rows, err := d.DB.GetPool().Query(ctx, query, gameID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var gameTags []model.GameTag
+	for rows.Next() {
+		var gameTag model.GameTag
+		err = rows.Scan(&gameTag.GameID, &gameTag.TagID)
+		if err != nil {
+			panic(err)
+		}
+		if rows.Err() != nil {
+			panic(err)
+		}
+		gameTags = append(gameTags, gameTag)
+	}
+	return gameTags
+}
+
+func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.Game {
+	queryGame := "select game_id, title, description, release_date, image_url, game_status_id from game where game_id=$1"
+	queryGenre := "select genre_id, genre_name from game join game_genre using(game_id) where game_id=$1"
+	queryTag := "select tag_id, tag_name from game_tag where game_id=$1"
+	var game model.Game
+	err := d.DB.GetPool().QueryRow(ctx, queryGame, gameID).Scan(
+		&game.GameID,
+		&game.Title,
+		&game.Description,
+		&game.ReleaseDate,
+		&game.ImageURL,
+		&game.GameStatus)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		panic(err)
+	}
+
+	rows, err := d.DB.GetPool().Query(ctx, queryGenre, gameID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var genre model.Genre
+		err = rows.Scan(&genre.GenreID, &genre.GenreName)
+		if err != nil {
+			panic(err)
+		}
+		if rows.Err() != nil {
+			panic(err)
+		}
+		game.Genres = append(game.Genres, genre)
+	}
+
+	rows, err = d.DB.GetPool().Query(ctx, queryTag, gameID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var tag model.Tag
+		err = rows.Scan(&tag.TagID, &tag.TagName)
+		if err != nil {
+			panic(err)
+		}
+		if rows.Err() != nil {
+			panic(err)
+		}
+		game.Tags = append(game.Tags, tag)
+	}
+
+	return &game
 }
