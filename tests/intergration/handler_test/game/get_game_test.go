@@ -25,7 +25,7 @@ func TestGetGame(t *testing.T) {
 		client := clientgrpc.NewGameServiceTestClient()
 		dbT.SetUp(ctx, t, tables...)
 		defer dbT.TearDown(t)
-		gameToAdd := random.GameToAddService(tagIDs, genreIDs)
+		gameToAdd := random.GameToAddService(model.TagIDs(tags), model.GenreIDs(genres))
 		gameID := dbT.InsertGame(ctx, gameToAdd)
 		dbT.InsertGameGenre(ctx, gameID, gameToAdd.GenreIDs)
 		dbT.InsertGameTag(ctx, gameID, gameToAdd.TagIDs)

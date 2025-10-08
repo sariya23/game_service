@@ -191,8 +191,8 @@ func (d *TestDB) GetGameTagByGameID(ctx context.Context, gameID int64) []model.G
 
 func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.Game {
 	queryGame := "select game_id, title, description, release_date, image_url, game_status_id from game where game_id=$1"
-	queryGenre := "select genre_id, genre_name from game join game_genre using(game_id) where game_id=$1"
-	queryTag := "select tag_id, tag_name from game_tag where game_id=$1"
+	queryGenre := "select genre_id, genre_name from game join game_genre using(game_id) join genre using(genre_id) where game_id=$1"
+	queryTag := "select tag_id, tag_name from game_tag join game using(game_id) join tag using(tag_id) where game_id=$1"
 	var game model.Game
 	err := d.DB.GetPool().QueryRow(ctx, queryGame, gameID).Scan(
 		&game.GameID,
