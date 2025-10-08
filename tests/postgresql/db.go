@@ -145,6 +145,28 @@ func (d *TestDB) GetGenresByIDs(ctx context.Context, genreIDs []int64) []model.G
 	return genres
 }
 
+func (d *TestDB) GetGenresByNames(ctx context.Context, genreIDs []string) []model.Genre {
+	query := "select genre_id, genre_name from genre where genre_name = any($1)"
+	rows, err := d.DB.GetPool().Query(ctx, query, genreIDs)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	genres := make([]model.Genre, 0, len(genreIDs))
+	for rows.Next() {
+		var genre model.Genre
+		err = rows.Scan(&genre.GenreID, &genre.GenreName)
+		if err != nil {
+			panic(err)
+		}
+		if rows.Err() != nil {
+			panic(err)
+		}
+		genres = append(genres, genre)
+	}
+	return genres
+}
+
 func (d *TestDB) GetGameGenreByGameID(ctx context.Context, gameID int64) []model.GameGenre {
 	query := "select game_id, genre_id from game_genre where game_id = $1"
 	rows, err := d.DB.GetPool().Query(ctx, query, gameID)
