@@ -26,6 +26,7 @@ func TestGetGame(t *testing.T) {
 		client := clientgrpc.NewGameServiceTestClient()
 		dbT.SetUp(ctx, t, tables...)
 		defer dbT.TearDown(t)
+		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 		responseSave, err := client.GetClient().AddGame(ctx, &gamev2.AddGameRequest{Game: &gameToAdd})
 		require.NoError(t, err)

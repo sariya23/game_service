@@ -145,6 +145,26 @@ func (d *TestDB) GetTagsByNames(ctx context.Context, tagNames []string) []model.
 	return tags
 }
 
+func (d *TestDB) GetTags(ctx context.Context) []model.Tag {
+	rows, err := d.DB.GetPool().Query(ctx, "select tag_id, tag_name from tag")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var tags []model.Tag
+	for rows.Next() {
+		var tag model.Tag
+		if err := rows.Scan(&tag.TagID, &tag.TagName); err != nil {
+			panic(err)
+		}
+		tags = append(tags, tag)
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	return tags
+}
+
 func (d *TestDB) GetGenresByIDs(ctx context.Context, genreIDs []int64) []model.Genre {
 	query := "select genre_id, genre_name from genre where genre_id = any($1)"
 	rows, err := d.DB.GetPool().Query(ctx, query, genreIDs)
@@ -185,6 +205,26 @@ func (d *TestDB) GetGenresByNames(ctx context.Context, genreIDs []string) []mode
 			panic(err)
 		}
 		genres = append(genres, genre)
+	}
+	return genres
+}
+
+func (d *TestDB) GetGenres(ctx context.Context) []model.Genre {
+	rows, err := d.DB.GetPool().Query(ctx, "select genre_id, genre_name from genre")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var genres []model.Genre
+	for rows.Next() {
+		var genre model.Genre
+		if err := rows.Scan(&genre.GenreID, &genre.GenreName); err != nil {
+			panic(err)
+		}
+		genres = append(genres, genre)
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
 	}
 	return genres
 }
