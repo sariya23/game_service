@@ -8,6 +8,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/minio/minio-go/v7"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	"github.com/sariya23/game_service/internal/model"
@@ -132,5 +133,54 @@ func TestAddGame(t *testing.T) {
 				assert.Nil(t, response)
 			})
 		}
+	})
+	t.Run("Нельзя создать игру с таким же названием и датой выпуска (дубликат)", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
+		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
+		request := gamev2.AddGameRequest{Game: gameToAdd}
+		response, err := client.GetClient().AddGame(ctx, &request)
+		require.NoError(t, err)
+		assert.NotZero(t, response.GameId)
+
+		request = gamev2.AddGameRequest{Game: gameToAdd}
+		response, err = client.GetClient().AddGame(ctx, &request)
+
+		st, _ := status.FromError(err)
+		assert.Equal(t, codes.AlreadyExists, st.Code())
+		assert.Nil(t, response)
+	})
+	t.Run("Нельзя создать игру с несуществующими жанрами", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
+		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
+		gameToAdd.Genres = append(gameToAdd.Genres, gofakeit.LetterN(30))
+		request := gamev2.AddGameRequest{Game: gameToAdd}
+
+		response, err := client.GetClient().AddGame(ctx, &request)
+		st, _ := status.FromError(err)
+		assert.Equal(t, codes.InvalidArgument, st.Code())
+		assert.Nil(t, response)
+	})
+	t.Run("Нельзя создать игру с несуществующими тэгами", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
+		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
+		gameToAdd.Tags = append(gameToAdd.Tags, gofakeit.LetterN(30))
+		request := gamev2.AddGameRequest{Game: gameToAdd}
+
+		response, err := client.GetClient().AddGame(ctx, &request)
+		st, _ := status.FromError(err)
+		assert.Equal(t, codes.InvalidArgument, st.Code())
+		assert.Nil(t, response)
 	})
 }
