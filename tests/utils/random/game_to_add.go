@@ -12,6 +12,19 @@ import (
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
+type GameToAddFields int
+
+const (
+	All GameToAddFields = iota
+	OnlyRequired
+	NoTitle
+	NoDescription
+	NoReleaseDate
+	NoImage
+	NoTags
+	NoGenres
+)
+
 func GameToAddService(genresIDs, tagIDs []int64) dto.AddGameService {
 	var game dto.AddGameService
 
@@ -24,7 +37,7 @@ func GameToAddService(genresIDs, tagIDs []int64) dto.AddGameService {
 	return game
 }
 
-func GameToAddRequest(genres, tags []string) gamev2.GameRequest {
+func GameToAddRequest(genres, tags []string) *gamev2.GameRequest {
 	var game gamev2.GameRequest
 	game.Title = strings.ToLower(gofakeit.LetterN(20))
 	game.Description = gofakeit.Sentence(50)
@@ -36,5 +49,5 @@ func GameToAddRequest(genres, tags []string) gamev2.GameRequest {
 	game.CoverImage = img
 	game.Genres = Sample(genres, 2)
 	game.Tags = Sample(tags, 3)
-	return game
+	return &game
 }

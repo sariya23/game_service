@@ -16,6 +16,8 @@ import (
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestAddGame(t *testing.T) {
@@ -26,7 +28,7 @@ func TestAddGame(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-		request := gamev2.AddGameRequest{Game: &gameToAdd}
+		request := gamev2.AddGameRequest{Game: gameToAdd}
 
 		response, err := client.GetClient().AddGame(ctx, &request)
 
@@ -60,5 +62,75 @@ func TestAddGame(t *testing.T) {
 		imageData, err := io.ReadAll(reader)
 		require.NoError(t, err)
 		assert.Equal(t, gameToAdd.CoverImage, imageData)
+	})
+	t.Run("Успешное добавление игры, только обязательные поля", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
+		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
+		gameToAdd.Genres = []string{}
+		gameToAdd.Tags = []string{}
+		gameToAdd.CoverImage = []byte{}
+		request := gamev2.AddGameRequest{Game: gameToAdd}
+
+		response, err := client.GetClient().AddGame(ctx, &request)
+
+		require.NoError(t, err)
+		assert.NotZero(t, response.GameId)
+		gameDB := dbT.GetGameById(ctx, response.GameId)
+
+		assert.Equal(t, gameToAdd.Title, gameDB.Title)
+		assert.Equal(t, gameToAdd.Description, gameDB.Description)
+		assert.Equal(t, converters.FromProtoDate(gameToAdd.ReleaseDate), gameDB.ReleaseDate)
+		assert.Equal(t, gamev2.GameStatusType_DRAFT, gameDB.GameStatus)
+		assert.Nil(t, gameDB.Genres)
+		assert.Nil(t, gameDB.Tags)
+		assert.Empty(t, gameDB.ImageURL)
+	})
+	t.Run("Если не переданы обязательные поля, игра не создается", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
+		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
+		cases := []struct {
+			name      string
+			gameToAdd *gamev2.GameRequest
+		}{
+			{
+				name: "no title",
+				gameToAdd: func() *gamev2.GameRequest {
+					gameToAdd.Title = ""
+					return gameToAdd
+				}(),
+			},
+			{
+				name: "no description",
+				gameToAdd: func() *gamev2.GameRequest {
+					gameToAdd.Description = ""
+					return gameToAdd
+				}(),
+			},
+			{
+				name: "no release date",
+				gameToAdd: func() *gamev2.GameRequest {
+					gameToAdd.ReleaseDate = nil
+					return gameToAdd
+				}(),
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				request := gamev2.AddGameRequest{Game: tc.gameToAdd}
+				response, err := client.GetClient().AddGame(ctx, &request)
+				st, _ := status.FromError(err)
+				require.Error(t, err)
+				assert.Equal(t, codes.InvalidArgument, st.Code())
+				assert.Nil(t, response)
+			})
+		}
 	})
 }
