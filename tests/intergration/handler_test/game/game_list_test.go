@@ -37,8 +37,8 @@ func TestGameList(t *testing.T) {
 			assert.NotZero(t, responseAdd.GameId)
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, gamev2.GameStatusType_PUBLISH)
 		}
-
-		response, err := client.GetClient().GameList(ctx, &gamev2.GameListRequest{})
+		req := gamev2.GameListRequest{}
+		response, err := client.GetClient().GameList(ctx, &req)
 		require.NoError(t, err)
 		assert.Len(t, response.Games, 10)
 		expectedGames := make([]model.Game, 0, n)
@@ -91,6 +91,12 @@ func TestGameList(t *testing.T) {
 			}
 			return res
 		}()
+		sort.Slice(expectedGames, func(i, j int) bool {
+			if expectedGames[i].Title != expectedGames[j].Title {
+				return expectedGames[i].Title < expectedGames[j].Title
+			}
+			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
+		})
 		limit := 10
 		if len(expectedGames) < 10 {
 			limit = len(expectedGames)
@@ -101,12 +107,6 @@ func TestGameList(t *testing.T) {
 			GameList(ctx, &gamev2.GameListRequest{Year: targetYear})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
-		sort.Slice(expectedGames, func(i, j int) bool {
-			if expectedGames[i].Title != expectedGames[j].Title {
-				return expectedGames[i].Title < expectedGames[j].Title
-			}
-			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
-		})
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
@@ -147,6 +147,12 @@ func TestGameList(t *testing.T) {
 			}
 			return res
 		}()
+		sort.Slice(expectedGames, func(i, j int) bool {
+			if expectedGames[i].Title != expectedGames[j].Title {
+				return expectedGames[i].Title < expectedGames[j].Title
+			}
+			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
+		})
 		limit := 10
 		if len(expectedGames) < 10 {
 			limit = len(expectedGames)
@@ -157,12 +163,6 @@ func TestGameList(t *testing.T) {
 			GameList(ctx, &gamev2.GameListRequest{Genres: targetGenres})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
-		sort.Slice(expectedGames, func(i, j int) bool {
-			if expectedGames[i].Title != expectedGames[j].Title {
-				return expectedGames[i].Title < expectedGames[j].Title
-			}
-			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
-		})
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
@@ -203,6 +203,12 @@ func TestGameList(t *testing.T) {
 			}
 			return res
 		}()
+		sort.Slice(expectedGames, func(i, j int) bool {
+			if expectedGames[i].Title != expectedGames[j].Title {
+				return expectedGames[i].Title < expectedGames[j].Title
+			}
+			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
+		})
 		limit := 10
 		if len(expectedGames) < 10 {
 			limit = len(expectedGames)
@@ -213,12 +219,6 @@ func TestGameList(t *testing.T) {
 			GameList(ctx, &gamev2.GameListRequest{Tags: targetTags})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
-		sort.Slice(expectedGames, func(i, j int) bool {
-			if expectedGames[i].Title != expectedGames[j].Title {
-				return expectedGames[i].Title < expectedGames[j].Title
-			}
-			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
-		})
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
@@ -273,6 +273,12 @@ func TestGameList(t *testing.T) {
 			}
 			return res
 		}()
+		sort.Slice(expectedGames, func(i, j int) bool {
+			if expectedGames[i].Title != expectedGames[j].Title {
+				return expectedGames[i].Title < expectedGames[j].Title
+			}
+			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
+		})
 		limit := gofakeit.Number(3, 7)
 		if len(expectedGames) < limit {
 			limit = len(expectedGames)
@@ -283,12 +289,6 @@ func TestGameList(t *testing.T) {
 			GameList(ctx, &gamev2.GameListRequest{Tags: targetTags, Genres: targetGenres, Year: targetYear, Limit: uint32(limit)})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
-		sort.Slice(expectedGames, func(i, j int) bool {
-			if expectedGames[i].Title != expectedGames[j].Title {
-				return expectedGames[i].Title < expectedGames[j].Title
-			}
-			return expectedGames[i].ReleaseDate.Before(expectedGames[j].ReleaseDate)
-		})
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
