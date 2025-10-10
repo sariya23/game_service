@@ -47,7 +47,7 @@ func GameToAddRequest(genres, tags []string) *gamev2.GameRequest {
 		panic(err)
 	}
 	game.CoverImage = img
-	game.Genres = Sample(genres, 2)
-	game.Tags = Sample(tags, 3)
+	game.Genres = Sample(genres, 5)
+	game.Tags = Sample(tags, 5)
 	return &game
 }
