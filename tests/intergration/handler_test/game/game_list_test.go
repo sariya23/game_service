@@ -15,6 +15,8 @@ import (
 	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestGameList(t *testing.T) {
@@ -292,5 +294,15 @@ func TestGameList(t *testing.T) {
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
 			assert.Equal(t, expectedGame.ImageURL, response.Games[i].CoverImageUrl)
 		}
+	})
+	t.Run("Отрицательный год", func(t *testing.T) {
+		ctx := context.Background()
+		client := clientgrpc.NewGameServiceTestClient()
+		dbT.SetUp(ctx, t, tables...)
+		defer dbT.TearDown(t)
+		response, err := client.GetClient().GameList(ctx, &gamev2.GameListRequest{Year: -gofakeit.Int32()})
+		st, _ := status.FromError(err)
+		assert.Equal(t, codes.InvalidArgument, st.Code())
+		assert.Nil(t, response)
 	})
 }

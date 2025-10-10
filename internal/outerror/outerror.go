@@ -27,5 +27,6 @@ var (
 	TagNotFoundMessage                = "Unknown tag name"
 	UnknownGameStatusMessage          = "Unknown game status"
 	InvalidNewGameStatusMessage       = "Invalid new game status"
-	NegativeGameIDMessage             = "negative game id"
+	NegativeGameIDMessage             = "Negative game id"
+	NegativeYearMessage               = "Negative year"
 )

@@ -15,6 +15,9 @@ func (srvApi *serverAPI) GameList(
 	ctx context.Context,
 	request *gamev2.GameListRequest,
 ) (*gamev2.GameListResponse, error) {
+	if request.Year <= 0 {
+		return &gamev2.GameListResponse{}, status.Error(codes.InvalidArgument, outerror.NegativeYearMessage)
+	}
 	games, err := srvApi.gameServicer.GameList(
 		ctx,
 		dto.GameFilters{
