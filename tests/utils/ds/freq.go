@@ -1,6 +1,6 @@
 //go:build integrations
 
-package random
+package ds
 
 func PickMostFrequentValue[T comparable](values []T) T {
 	m := make(map[T]int)
