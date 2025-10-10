@@ -48,7 +48,7 @@ services:
 
   app:
     build:
-      dockerfile: deployments/docker/test/Dockerfile
+      dockerfile: deployments/docker/local/Dockerfile
       context: ../../..
       target: dev
     restart: "always"
