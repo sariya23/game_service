@@ -49,3 +49,31 @@ test_compose_down:
 	--env-file ./config/test.env rm -fvs
 	docker rmi test_game_service-app || true
 	docker rmi test_game_service-migration || true
+
+
+# ДЛЯ ЛОКАЛЬНОГО ЗАПУСКА
+.PHONY: service_compose_up
+test_compose_up:
+	docker-compose -p game_service -f deployments/docker/local/docker-compose.yaml  \
+	--env-file ./config/local.env up -d
+
+.PHONY: service_migrate_inner
+test_migrate:
+	goose -dir migrations postgres \
+	"postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)\
+	@$(POSTGRES_HOST_INNER_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
+	?sslmode=$(SSL_MODE)" up
+
+.PHONY: service_migrate_outer
+test_migrate:
+	goose -dir migrations postgres \
+	"postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)\
+	@$(POSTGRES_HOST_OUTER_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
+	?sslmode=$(SSL_MODE)" up
+
+.PHONY: service_compose_down
+test_compose_down:
+	docker-compose -p test_game_service -f deployments/docker/local/docker-compose.yaml \
+	--env-file ./config/local.env rm -fvs
+	docker rmi game_service-app || true
+	docker rmi game_service-migration || true
