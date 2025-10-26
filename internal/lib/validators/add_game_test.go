@@ -3,8 +3,8 @@ package validators
 import (
 	"testing"
 
+	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/genproto/googleapis/type/date"
 )
@@ -13,13 +13,13 @@ func TestAddGame_validation(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
 		name            string
-		request         *gamev2.AddGameRequest
+		request         *game.AddGameRequest
 		expectedValid   bool
 		expectedMessage string
 	}{
 		{
 			name: "no title",
-			request: &gamev2.AddGameRequest{Game: &gamev2.GameRequest{
+			request: &game.AddGameRequest{Game: &game.GameRequest{
 				Title:       "",
 				Genres:      nil,
 				Description: "qwe",
@@ -32,7 +32,7 @@ func TestAddGame_validation(t *testing.T) {
 		},
 		{
 			name: "no description",
-			request: &gamev2.AddGameRequest{Game: &gamev2.GameRequest{
+			request: &game.AddGameRequest{Game: &game.GameRequest{
 				Title:       "qwe",
 				Genres:      nil,
 				Description: "",
@@ -45,7 +45,7 @@ func TestAddGame_validation(t *testing.T) {
 		},
 		{
 			name: "no date",
-			request: &gamev2.AddGameRequest{Game: &gamev2.GameRequest{
+			request: &game.AddGameRequest{Game: &game.GameRequest{
 				Title:       "qwe",
 				Genres:      nil,
 				Description: "qwe",
@@ -58,7 +58,7 @@ func TestAddGame_validation(t *testing.T) {
 		},
 		{
 			name: "no year",
-			request: &gamev2.AddGameRequest{Game: &gamev2.GameRequest{
+			request: &game.AddGameRequest{Game: &game.GameRequest{
 				Title:       "qwe",
 				Genres:      nil,
 				Description: "qwe",
@@ -71,7 +71,7 @@ func TestAddGame_validation(t *testing.T) {
 		},
 		{
 			name: "no month",
-			request: &gamev2.AddGameRequest{Game: &gamev2.GameRequest{
+			request: &game.AddGameRequest{Game: &game.GameRequest{
 				Title:       "qwe",
 				Genres:      nil,
 				Description: "qwe",
@@ -84,7 +84,7 @@ func TestAddGame_validation(t *testing.T) {
 		},
 		{
 			name: "no day",
-			request: &gamev2.AddGameRequest{Game: &gamev2.GameRequest{
+			request: &game.AddGameRequest{Game: &game.GameRequest{
 				Title:       "qwe",
 				Genres:      nil,
 				Description: "qwe",
@@ -97,7 +97,7 @@ func TestAddGame_validation(t *testing.T) {
 		},
 		{
 			name: "valid",
-			request: &gamev2.AddGameRequest{Game: &gamev2.GameRequest{
+			request: &game.AddGameRequest{Game: &game.GameRequest{
 				Title:       "qwe",
 				Genres:      nil,
 				Description: "qwe",

@@ -3,21 +3,21 @@ package grpchandlers
 import (
 	"context"
 
+	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	errorhandler "github.com/sariya23/game_service/internal/lib/errorhandler/handlers"
 	"github.com/sariya23/game_service/internal/lib/validators"
 	"github.com/sariya23/game_service/internal/model/dto"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (srvApi *serverAPI) AddGame(
 	ctx context.Context,
-	request *gamev2.AddGameRequest,
-) (*gamev2.AddGameResponse, error) {
+	request *game.AddGameRequest,
+) (*game.AddGameResponse, error) {
 	if valid, msg := validators.AddGame(request); !valid {
-		return &gamev2.AddGameResponse{}, status.Error(codes.InvalidArgument, msg)
+		return &game.AddGameResponse{}, status.Error(codes.InvalidArgument, msg)
 	}
 	newGame := dto.AddGameHandler{
 		Title:       request.Game.Title,
@@ -32,5 +32,5 @@ func (srvApi *serverAPI) AddGame(
 		return errorhandler.AddGame(err, gameID)
 	}
 
-	return &gamev2.AddGameResponse{GameId: gameID}, nil
+	return &game.AddGameResponse{GameId: gameID}, nil
 }

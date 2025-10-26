@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,25 +16,25 @@ func TestUpdateGameStatus_errorhandler(t *testing.T) {
 	cases := []struct {
 		name         string
 		err          error
-		expectedResp *gamev2.UpdateGameStatusResponse
+		expectedResp *game.UpdateGameStatusResponse
 		expectedErr  error
 	}{
 		{
 			name:         "UnknownGameStatus",
 			err:          fmt.Errorf("%s: %w", "qwe", outerror.ErrUnknownGameStatus),
-			expectedResp: &gamev2.UpdateGameStatusResponse{},
+			expectedResp: &game.UpdateGameStatusResponse{},
 			expectedErr:  status.Error(codes.InvalidArgument, outerror.UnknownGameStatusMessage),
 		},
 		{
 			name:         "InvalidNewStatus",
 			err:          fmt.Errorf("%s: %w", "qwe", outerror.ErrInvalidNewGameStatus),
-			expectedResp: &gamev2.UpdateGameStatusResponse{},
+			expectedResp: &game.UpdateGameStatusResponse{},
 			expectedErr:  status.Error(codes.InvalidArgument, outerror.InvalidNewGameStatusMessage),
 		},
 		{
 			name:         "GameNotFound",
 			err:          fmt.Errorf("%s: %w", "qwe", outerror.ErrGameNotFound),
-			expectedResp: &gamev2.UpdateGameStatusResponse{},
+			expectedResp: &game.UpdateGameStatusResponse{},
 			expectedErr:  status.Error(codes.NotFound, outerror.GameNotFoundMessage),
 		},
 	}

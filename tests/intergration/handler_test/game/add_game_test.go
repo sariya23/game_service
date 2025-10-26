@@ -10,11 +10,11 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/minio/minio-go/v7"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
 	"github.com/sariya23/game_service/tests/utils/random"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -29,7 +29,7 @@ func TestAddGame(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-		request := gamev2.AddGameRequest{Game: gameToAdd}
+		request := game_api.AddGameRequest{Game: gameToAdd}
 
 		response, err := client.GetClient().AddGame(ctx, &request)
 
@@ -40,7 +40,7 @@ func TestAddGame(t *testing.T) {
 		assert.Equal(t, gameToAdd.Title, gameDB.Title)
 		assert.Equal(t, gameToAdd.Description, gameDB.Description)
 		assert.Equal(t, converters.FromProtoDate(gameToAdd.ReleaseDate), gameDB.ReleaseDate)
-		assert.Equal(t, gamev2.GameStatusType_DRAFT, gameDB.GameStatus)
+		assert.Equal(t, game_api.GameStatusType_DRAFT, gameDB.GameStatus)
 		sort.Slice(gameDB.Genres, func(i, j int) bool {
 			return gameDB.Genres[i].GenreID < gameDB.Genres[j].GenreID
 		})
@@ -74,7 +74,7 @@ func TestAddGame(t *testing.T) {
 		gameToAdd.Genres = []string{}
 		gameToAdd.Tags = []string{}
 		gameToAdd.CoverImage = []byte{}
-		request := gamev2.AddGameRequest{Game: gameToAdd}
+		request := game_api.AddGameRequest{Game: gameToAdd}
 
 		response, err := client.GetClient().AddGame(ctx, &request)
 
@@ -85,7 +85,7 @@ func TestAddGame(t *testing.T) {
 		assert.Equal(t, gameToAdd.Title, gameDB.Title)
 		assert.Equal(t, gameToAdd.Description, gameDB.Description)
 		assert.Equal(t, converters.FromProtoDate(gameToAdd.ReleaseDate), gameDB.ReleaseDate)
-		assert.Equal(t, gamev2.GameStatusType_DRAFT, gameDB.GameStatus)
+		assert.Equal(t, game_api.GameStatusType_DRAFT, gameDB.GameStatus)
 		assert.Nil(t, gameDB.Genres)
 		assert.Nil(t, gameDB.Tags)
 		assert.Empty(t, gameDB.ImageURL)
@@ -99,25 +99,25 @@ func TestAddGame(t *testing.T) {
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 		cases := []struct {
 			name      string
-			gameToAdd *gamev2.GameRequest
+			gameToAdd *game_api.GameRequest
 		}{
 			{
 				name: "no title",
-				gameToAdd: func() *gamev2.GameRequest {
+				gameToAdd: func() *game_api.GameRequest {
 					gameToAdd.Title = ""
 					return gameToAdd
 				}(),
 			},
 			{
 				name: "no description",
-				gameToAdd: func() *gamev2.GameRequest {
+				gameToAdd: func() *game_api.GameRequest {
 					gameToAdd.Description = ""
 					return gameToAdd
 				}(),
 			},
 			{
 				name: "no release date",
-				gameToAdd: func() *gamev2.GameRequest {
+				gameToAdd: func() *game_api.GameRequest {
 					gameToAdd.ReleaseDate = nil
 					return gameToAdd
 				}(),
@@ -125,7 +125,7 @@ func TestAddGame(t *testing.T) {
 		}
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {
-				request := gamev2.AddGameRequest{Game: tc.gameToAdd}
+				request := game_api.AddGameRequest{Game: tc.gameToAdd}
 				response, err := client.GetClient().AddGame(ctx, &request)
 				st, _ := status.FromError(err)
 				require.Error(t, err)
@@ -141,12 +141,12 @@ func TestAddGame(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-		request := gamev2.AddGameRequest{Game: gameToAdd}
+		request := game_api.AddGameRequest{Game: gameToAdd}
 		response, err := client.GetClient().AddGame(ctx, &request)
 		require.NoError(t, err)
 		assert.NotZero(t, response.GameId)
 
-		request = gamev2.AddGameRequest{Game: gameToAdd}
+		request = game_api.AddGameRequest{Game: gameToAdd}
 		response, err = client.GetClient().AddGame(ctx, &request)
 
 		st, _ := status.FromError(err)
@@ -161,7 +161,7 @@ func TestAddGame(t *testing.T) {
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 		gameToAdd.Genres = append(gameToAdd.Genres, gofakeit.LetterN(30))
-		request := gamev2.AddGameRequest{Game: gameToAdd}
+		request := game_api.AddGameRequest{Game: gameToAdd}
 
 		response, err := client.GetClient().AddGame(ctx, &request)
 		st, _ := status.FromError(err)
@@ -176,7 +176,7 @@ func TestAddGame(t *testing.T) {
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 		gameToAdd.Tags = append(gameToAdd.Tags, gofakeit.LetterN(30))
-		request := gamev2.AddGameRequest{Game: gameToAdd}
+		request := game_api.AddGameRequest{Game: gameToAdd}
 
 		response, err := client.GetClient().AddGame(ctx, &request)
 		st, _ := status.FromError(err)

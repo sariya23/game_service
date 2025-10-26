@@ -1,12 +1,12 @@
 package converters
 
 import (
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
-	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
-func ToShortGameResponse(game model.ShortGame) *gamev2.GameListResponse_ShortGame {
-	return &gamev2.GameListResponse_ShortGame{
+func ToShortGameResponse(game model.ShortGame) *game_api.GameListResponse_ShortGame {
+	return &game_api.GameListResponse_ShortGame{
 		ID:            game.GameID,
 		Title:         game.Title,
 		Description:   game.Description,

@@ -5,9 +5,9 @@ import (
 	"io"
 	"log/slog"
 
+	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
-	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 type GameReposetory interface {
@@ -16,7 +16,7 @@ type GameReposetory interface {
 	GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error)
 	SaveGame(ctx context.Context, game dto.AddGameService) (int64, error)
 	DaleteGame(ctx context.Context, gameID int64) (*dto.DeletedGame, error)
-	UpdateGameStatus(ctx context.Context, gameID int64, newStatus gamev2.GameStatusType) error
+	UpdateGameStatus(ctx context.Context, gameID int64, newStatus game.GameStatusType) error
 }
 
 type TagRepository interface {

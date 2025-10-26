@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
+	"github.com/sariya23/api_game_service/gen/game"
 )
 
 // Game...
@@ -15,5 +15,5 @@ type Game struct {
 	ImageURL    string
 	Tags        []Tag
 	Genres      []Genre
-	GameStatus  gamev2.GameStatusType
+	GameStatus  game.GameStatusType
 }

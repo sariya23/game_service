@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/mockslog"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/storage/postgresql/gamerepo"
 	"github.com/sariya23/game_service/tests/utils/random"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +32,7 @@ func TestListGame(t *testing.T) {
 			gameToAdd := random.GameToAddService(genreIDs, tagIDs)
 			gameID, err := gameRepo.SaveGame(ctx, gameToAdd)
 			require.NoError(t, err)
-			err = gameRepo.UpdateGameStatus(ctx, gameID, gamev2.GameStatusType_PUBLISH)
+			err = gameRepo.UpdateGameStatus(ctx, gameID, game_api.GameStatusType_PUBLISH)
 			require.NoError(t, err)
 			games = append(games, gameToAdd)
 		}

@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
 	"github.com/sariya23/game_service/tests/utils/ds"
 	"github.com/sariya23/game_service/tests/utils/random"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -30,14 +30,14 @@ func TestGameList(t *testing.T) {
 		gameIDs := make([]int64, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-			request := gamev2.AddGameRequest{Game: gameToAdd}
+			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			require.NoError(t, err)
 			gameIDs = append(gameIDs, responseAdd.GameId)
 			assert.NotZero(t, responseAdd.GameId)
-			dbT.UpdateGameStatus(ctx, responseAdd.GameId, gamev2.GameStatusType_PUBLISH)
+			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
-		req := gamev2.GameListRequest{}
+		req := game_api.GameListRequest{}
 		response, err := client.GetClient().GameList(ctx, &req)
 		require.NoError(t, err)
 		assert.Len(t, response.Games, 10)
@@ -68,12 +68,12 @@ func TestGameList(t *testing.T) {
 		games := make([]model.Game, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-			request := gamev2.AddGameRequest{Game: gameToAdd}
+			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
-			dbT.UpdateGameStatus(ctx, responseAdd.GameId, gamev2.GameStatusType_PUBLISH)
+			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
 		targetYear := ds.PickMostFrequentValue(func() []int32 {
 			years := make([]int32, 0, n)
@@ -104,7 +104,7 @@ func TestGameList(t *testing.T) {
 		expectedGames = expectedGames[:limit]
 		response, err := client.
 			GetClient().
-			GameList(ctx, &gamev2.GameListRequest{Year: targetYear})
+			GameList(ctx, &game_api.GameListRequest{Year: targetYear})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
 		for i, expectedGame := range expectedGames {
@@ -123,12 +123,12 @@ func TestGameList(t *testing.T) {
 		games := make([]model.Game, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-			request := gamev2.AddGameRequest{Game: gameToAdd}
+			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
-			dbT.UpdateGameStatus(ctx, responseAdd.GameId, gamev2.GameStatusType_PUBLISH)
+			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
 
 		targetGenres := random.Sample(func() []string {
@@ -160,7 +160,7 @@ func TestGameList(t *testing.T) {
 		expectedGames = expectedGames[:limit]
 		response, err := client.
 			GetClient().
-			GameList(ctx, &gamev2.GameListRequest{Genres: targetGenres})
+			GameList(ctx, &game_api.GameListRequest{Genres: targetGenres})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
 		for i, expectedGame := range expectedGames {
@@ -179,12 +179,12 @@ func TestGameList(t *testing.T) {
 		games := make([]model.Game, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-			request := gamev2.AddGameRequest{Game: gameToAdd}
+			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
 			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
-			dbT.UpdateGameStatus(ctx, responseAdd.GameId, gamev2.GameStatusType_PUBLISH)
+			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
 
 		targetTags := random.Sample(func() []string {
@@ -216,7 +216,7 @@ func TestGameList(t *testing.T) {
 		expectedGames = expectedGames[:limit]
 		response, err := client.
 			GetClient().
-			GameList(ctx, &gamev2.GameListRequest{Tags: targetTags})
+			GameList(ctx, &game_api.GameListRequest{Tags: targetTags})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
 		for i, expectedGame := range expectedGames {
@@ -235,12 +235,12 @@ func TestGameList(t *testing.T) {
 		games := make([]model.Game, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-			request := gamev2.AddGameRequest{Game: gameToAdd}
+			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
 			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
-			dbT.UpdateGameStatus(ctx, responseAdd.GameId, gamev2.GameStatusType_PUBLISH)
+			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
 
 		targetTags := random.Sample(func() []string {
@@ -286,7 +286,7 @@ func TestGameList(t *testing.T) {
 		expectedGames = expectedGames[:limit]
 		response, err := client.
 			GetClient().
-			GameList(ctx, &gamev2.GameListRequest{Tags: targetTags, Genres: targetGenres, Year: targetYear, Limit: uint32(limit)})
+			GameList(ctx, &game_api.GameListRequest{Tags: targetTags, Genres: targetGenres, Year: targetYear, Limit: uint32(limit)})
 		require.NoError(t, err)
 		assert.Len(t, response.Games, limit)
 		for i, expectedGame := range expectedGames {
@@ -300,7 +300,7 @@ func TestGameList(t *testing.T) {
 		client := clientgrpc.NewGameServiceTestClient()
 		dbT.SetUp(ctx, t, tables...)
 		defer dbT.TearDown(t)
-		response, err := client.GetClient().GameList(ctx, &gamev2.GameListRequest{Year: -gofakeit.Int32()})
+		response, err := client.GetClient().GameList(ctx, &game_api.GameListRequest{Year: -gofakeit.Int32()})
 		st, _ := status.FromError(err)
 		assert.Equal(t, codes.InvalidArgument, st.Code())
 		assert.Nil(t, response)

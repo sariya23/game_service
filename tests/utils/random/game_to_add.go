@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	"github.com/sariya23/game_service/internal/model/dto"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 type GameToAddFields int
@@ -37,8 +37,8 @@ func GameToAddService(genresIDs, tagIDs []int64) dto.AddGameService {
 	return game
 }
 
-func GameToAddRequest(genres, tags []string) *gamev2.GameRequest {
-	var game gamev2.GameRequest
+func GameToAddRequest(genres, tags []string) *game_api.GameRequest {
+	var game game_api.GameRequest
 	game.Title = strings.ToLower(gofakeit.LetterN(20))
 	game.Description = gofakeit.Sentence(50)
 	game.ReleaseDate = converters.ToProtoDate(time.Date(gofakeit.Year(), time.Month(gofakeit.Month()), gofakeit.Day(), 0, 0, 0, 0, time.UTC))

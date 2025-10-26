@@ -1,11 +1,11 @@
 package validators
 
 import (
+	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
-func AddGame(request *gamev2.AddGameRequest) (valid bool, message string) {
+func AddGame(request *game.AddGameRequest) (valid bool, message string) {
 	if request.Game.Title == "" {
 		return false, outerror.TitleRequiredMessage
 	}

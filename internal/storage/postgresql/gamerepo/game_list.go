@@ -6,13 +6,13 @@ import (
 	"log/slog"
 
 	sq "github.com/Masterminds/squirrel"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	gamegenrerepo "github.com/sariya23/game_service/internal/storage/postgresql/game_genre_repo"
 	gametagrepo "github.com/sariya23/game_service/internal/storage/postgresql/game_tag_repo"
 	"github.com/sariya23/game_service/internal/storage/postgresql/genrerepo"
 	"github.com/sariya23/game_service/internal/storage/postgresql/tagrepo"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
@@ -50,7 +50,7 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 	).
 		From("game").
 		Where(sq.Expr(fmt.Sprintf("%s in %s", GameGameIDFieldName, intersectGameID), args...)).
-		Where(sq.Eq{GameGameStatusIDFieldName: gamev2.GameStatusType_PUBLISH})
+		Where(sq.Eq{GameGameStatusIDFieldName: game_api.GameStatusType_PUBLISH})
 
 	yearArgs := make([]interface{}, 0, 1)
 	if filters.ReleaseYear > 0 {

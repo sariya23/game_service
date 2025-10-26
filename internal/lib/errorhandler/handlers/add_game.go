@@ -3,23 +3,23 @@ package handlers
 import (
 	"errors"
 
+	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/outerror"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func AddGame(err error, gameID int64) (*gamev2.AddGameResponse, error) {
+func AddGame(err error, gameID int64) (*game.AddGameResponse, error) {
 	switch {
 	case errors.Is(err, outerror.ErrGameAlreadyExist):
-		return &gamev2.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
+		return &game.AddGameResponse{}, status.Error(codes.AlreadyExists, outerror.GameAlreadyExistMessage)
 	case errors.Is(err, outerror.ErrCannotSaveGameImage):
-		return &gamev2.AddGameResponse{GameId: gameID}, nil
+		return &game.AddGameResponse{GameId: gameID}, nil
 	case errors.Is(err, outerror.ErrGenreNotFound):
-		return &gamev2.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.GenreNotFoundMessage)
+		return &game.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.GenreNotFoundMessage)
 	case errors.Is(err, outerror.ErrTagNotFound):
-		return &gamev2.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.TagNotFoundMessage)
+		return &game.AddGameResponse{}, status.Error(codes.InvalidArgument, outerror.TagNotFoundMessage)
 	default:
-		return &gamev2.AddGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
+		return &game.AddGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
 }

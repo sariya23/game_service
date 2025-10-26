@@ -10,10 +10,10 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/minio/minio-go/v7"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
 	"github.com/sariya23/game_service/tests/utils/random"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -28,10 +28,10 @@ func TestGetGame(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-		responseSave, err := client.GetClient().AddGame(ctx, &gamev2.AddGameRequest{Game: gameToAdd})
+		responseSave, err := client.GetClient().AddGame(ctx, &game_api.AddGameRequest{Game: gameToAdd})
 		require.NoError(t, err)
 		require.NotZero(t, responseSave.GameId)
-		request := gamev2.GetGameRequest{GameId: responseSave.GameId}
+		request := game_api.GetGameRequest{GameId: responseSave.GameId}
 
 		response, err := client.GetClient().GetGame(ctx, &request)
 
@@ -73,7 +73,7 @@ func TestGetGame(t *testing.T) {
 		dbT.SetUp(ctx, t, tables...)
 		defer dbT.TearDown(t)
 		nonExistGameID := gofakeit.Int64()
-		request := gamev2.GetGameRequest{GameId: nonExistGameID}
+		request := game_api.GetGameRequest{GameId: nonExistGameID}
 
 		response, err := client.GetClient().GetGame(ctx, &request)
 		require.Error(t, err)
@@ -87,7 +87,7 @@ func TestGetGame(t *testing.T) {
 		dbT.SetUp(ctx, t, tables...)
 		defer dbT.TearDown(t)
 		nonExistGameID := gofakeit.Uint32()
-		request := gamev2.GetGameRequest{GameId: -int64(nonExistGameID)}
+		request := game_api.GetGameRequest{GameId: -int64(nonExistGameID)}
 
 		response, err := client.GetClient().GetGame(ctx, &request)
 		require.Error(t, err)

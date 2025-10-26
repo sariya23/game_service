@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"log/slog"
 
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/validators"
 	"github.com/sariya23/game_service/internal/outerror"
-	gamev2 "github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 // UpdateGameStatus меняет статус видимости игры.
-func (gameService *GameService) UpdateGameStatus(ctx context.Context, gameID int64, newStatus gamev2.GameStatusType) error {
+func (gameService *GameService) UpdateGameStatus(ctx context.Context, gameID int64, newStatus game_api.GameStatusType) error {
 	const operationPlace = "gameservice.UpdateGameStatus"
 	log := gameService.log.With("operationPlace", operationPlace)
 
-	if _, ok := gamev2.GameStatusType_name[int32(newStatus)]; !ok {
+	if _, ok := game_api.GameStatusType_name[int32(newStatus)]; !ok {
 		log.Warn("pass unknown status", slog.Int64("gameID", gameID), slog.Any("newStatus", newStatus))
 		return fmt.Errorf("%s: %w", operationPlace, outerror.ErrUnknownGameStatus)
 	}

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 )
 
-func (gr *GameRepository) UpdateGameStatus(ctx context.Context, gameID int64, newStatus gamev2.GameStatusType) error {
+func (gr *GameRepository) UpdateGameStatus(ctx context.Context, gameID int64, newStatus game_api.GameStatusType) error {
 	const operationPlace = "postgresql.UpdateGameStatus"
 	log := gr.log.With("operationPlace", operationPlace)
 	queryUpdateStatusQuery := fmt.Sprintf("update game set %s=$1 where %s=$2", GameGameStatusIDFieldName, GameGameIDFieldName)

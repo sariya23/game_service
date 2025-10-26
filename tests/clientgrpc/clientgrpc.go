@@ -5,14 +5,14 @@ import (
 	"path/filepath"
 	"testing"
 
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/config"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type GameServiceTestClient struct {
-	cl gamev2.GameServiceClient
+	cl game_api.GameServiceClient
 }
 
 func NewGameServiceTestClient() *GameServiceTestClient {
@@ -24,14 +24,14 @@ func NewGameServiceTestClient() *GameServiceTestClient {
 	if err != nil {
 		panic(err)
 	}
-	grpcClient := gamev2.NewGameServiceClient(conn)
+	grpcClient := game_api.NewGameServiceClient(conn)
 	if grpcClient == nil {
 		panic(err)
 	}
 	return &GameServiceTestClient{grpcClient}
 }
 
-func (g *GameServiceTestClient) GetClient() gamev2.GameServiceClient {
+func (g *GameServiceTestClient) GetClient() game_api.GameServiceClient {
 	return g.cl
 }
 

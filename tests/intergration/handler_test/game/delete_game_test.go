@@ -8,10 +8,10 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/minio/minio-go/v7"
+	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
 	"github.com/sariya23/game_service/tests/utils/random"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -26,11 +26,11 @@ func TestDeleteGame(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
-		respAddGame, err := client.GetClient().AddGame(ctx, &gamev2.AddGameRequest{Game: gameToAdd})
+		respAddGame, err := client.GetClient().AddGame(ctx, &game_api.AddGameRequest{Game: gameToAdd})
 		require.NoError(t, err)
 		assert.NotZero(t, respAddGame.GameId)
 		game := dbT.GetGameById(ctx, respAddGame.GameId)
-		request := gamev2.DeleteGameRequest{GameId: respAddGame.GameId}
+		request := game_api.DeleteGameRequest{GameId: respAddGame.GameId}
 
 		response, err := client.GetClient().DeleteGame(ctx, &request)
 
@@ -48,7 +48,7 @@ func TestDeleteGame(t *testing.T) {
 		dbT.SetUp(ctx, t, tables...)
 		defer dbT.TearDown(t)
 		gameID := gofakeit.Int64()
-		request := gamev2.DeleteGameRequest{GameId: gameID}
+		request := game_api.DeleteGameRequest{GameId: gameID}
 
 		response, err := client.GetClient().DeleteGame(ctx, &request)
 		st, _ := status.FromError(err)
