@@ -12,12 +12,12 @@ import (
 	"path/filepath"
 
 	"github.com/jackc/pgx/v5"
+	apigame "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/config"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/storage/db"
 	"github.com/sariya23/game_service/internal/storage/postgresql/gamerepo"
-	"github.com/sariya23/proto_api_games/v5/gen/gamev2"
 )
 
 type TestDB struct {
@@ -330,7 +330,7 @@ func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.Game {
 	return &game
 }
 
-func (d *TestDB) UpdateGameStatus(ctx context.Context, gameID int64, newStatus gamev2.GameStatusType) {
+func (d *TestDB) UpdateGameStatus(ctx context.Context, gameID int64, newStatus apigame.GameStatusType) {
 	query := "update game set game_status_id = $1 where game_id = $2"
 	_, err := d.DB.GetPool().Exec(ctx, query, newStatus, gameID)
 	if err != nil {

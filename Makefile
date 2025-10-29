@@ -1,17 +1,10 @@
-ENV ?= local
+ENV ?= dev
 ENV_FILE = ./config/$(ENV).env
 
 # usage: Нужно указать префикс env файла. То есть
 # если используем local.env, то пишем make migrate ENV=local.
 
 include ${ENV_FILE}
-
-
-.PHONY: mock
-mock:
-	find . -name '*_mock.go' -delete
-	mockgen -source internal/service/game/game.go \
-	-destination=internal/service/game/mocks/game.go -package=mock_gameservice
 
 
 # ДЛЯ ТЕСТОВ В ДОКЕРЕ
@@ -27,6 +20,10 @@ test_migrate:
 	@$(POSTGRES_HOST_INNER_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=$(SSL_MODE)" up
 
+.PHONY: test_integrations
+test_integrations:
+	 go test -v -tags=integrations ./tests/...
+
 .PHONY: test_compose_down
 test_compose_down:
 	docker-compose -p test_game_service -f deployments/docker/test/docker-compose.yaml \
@@ -35,7 +32,7 @@ test_compose_down:
 	docker rmi test_game_service-migration || true
 
 
-# ДЛЯ ЛОКАЛЬНОГО ЗАПУСКА
+# ДЛЯ ЗАПУСКА
 .PHONY: service_compose_up
 service_compose_up:
 	docker-compose -p game_service -f deployments/docker/local/docker-compose.yaml  \
@@ -63,11 +60,11 @@ service_compose_down:
 	docker rmi game_service-migration || true
 
 
-# DEBUG
+# DEV
 
 .PHONY: run
 run:
-	go run cmd/main.go --config config/debug.env
+	go run cmd/main.go --config config/dev.env
 
 .PHONY: test
 test:
@@ -77,7 +74,7 @@ test:
 .PHONY: infra
 infra:
 	docker-compose -p game_infra -f deployments/docker/debug/docker-compose.yaml  \
-	--env-file ./config/debug.env up -d
+	--env-file ./config/dev.env up -d
 
 .PHONY: migrate
 migrate:
@@ -85,3 +82,9 @@ migrate:
 	"postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)\
 	@$(POSTGRES_HOST_OUTER_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)\
 	?sslmode=$(SSL_MODE)" up
+
+.PHONY: mock
+mock:
+	find . -name '*_mock.go' -delete
+	mockgen -source internal/service/game/game.go \
+	-destination=internal/service/game/mocks/game.go -package=mock_gameservice
