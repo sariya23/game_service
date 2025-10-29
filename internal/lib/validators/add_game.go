@@ -6,6 +6,9 @@ import (
 )
 
 func AddGame(request *game.AddGameRequest) (valid bool, message string) {
+	if request.Game == nil {
+		return false, outerror.EmptyRequestMessage
+	}
 	if request.Game.Title == "" {
 		return false, outerror.TitleRequiredMessage
 	}

@@ -74,7 +74,6 @@ func (a *App) MustRun() {
 	}
 
 	wg.Wait()
-	a.log.Info("App is running")
 }
 
 func (a *App) Stop(ctx context.Context, cancel context.CancelFunc, sigchan <-chan os.Signal) {

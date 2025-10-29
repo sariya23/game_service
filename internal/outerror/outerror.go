@@ -29,4 +29,5 @@ var (
 	InvalidNewGameStatusMessage       = "Invalid new game status"
 	NegativeGameIDMessage             = "Negative game id"
 	NegativeYearMessage               = "Negative year"
+	EmptyRequestMessage               = "Empty request"
 )
