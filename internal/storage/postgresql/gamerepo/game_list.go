@@ -69,6 +69,8 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 	finalArgs = append(finalArgs, yearArgs...)
 
 	var games []model.ShortGame
+	log.Info(finalSQL)
+	log.Info(fmt.Sprintf("%v", finalArgs))
 	gameRows, err := gr.conn.GetPool().Query(ctx, finalSQL, finalArgs...)
 	if err != nil {
 		log.Error("cannot execute query to get game ids", slog.String("err", err.Error()))
@@ -76,13 +78,13 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 	}
 	defer gameRows.Close()
 	for gameRows.Next() {
-		var game model.ShortGame
+		var gameDB dto.ShortGameDB
 		err = gameRows.Scan(
-			&game.GameID,
-			&game.Title,
-			&game.Description,
-			&game.ReleaseDate,
-			&game.ImageURL,
+			&gameDB.GameID,
+			&gameDB.Title,
+			&gameDB.Description,
+			&gameDB.ReleaseDate,
+			&gameDB.ImageURL,
 		)
 		if err != nil {
 			log.Error("cannot scan game id", slog.String("err", err.Error()))
@@ -92,6 +94,7 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 			log.Error("cannot prepare next row", slog.String("err", err.Error()))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		game := gameDB.ToDomain()
 		games = append(games, game)
 	}
 
