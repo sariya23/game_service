@@ -73,7 +73,7 @@ test:
 
 .PHONY: infra
 infra:
-	docker-compose -p game_infra -f deployments/docker/debug/docker-compose.yaml  \
+	docker-compose -p game_infra -f deployments/docker/dev/docker-compose.yaml  \
 	--env-file ./config/dev.env up -d
 
 .PHONY: migrate

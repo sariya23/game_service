@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/sariya23/game_service/internal/model"
+	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	gamegenrerepo "github.com/sariya23/game_service/internal/storage/postgresql/game_genre_repo"
 	gametagrepo "github.com/sariya23/game_service/internal/storage/postgresql/game_tag_repo"
@@ -48,15 +49,15 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 		tagrepo.TagTagIDFieldName,
 		GameGameIDFieldName,
 	)
-	var game model.Game
+	var gameDB dto.GameDB
 	gameRow := gr.conn.GetPool().QueryRow(ctx, getGameMainInfoQuery, gameID)
 	err := gameRow.Scan(
-		&game.GameID,
-		&game.Title,
-		&game.Description,
-		&game.ReleaseDate,
-		&game.ImageURL,
-		&game.GameStatus,
+		&gameDB.GameID,
+		&gameDB.Title,
+		&gameDB.Description,
+		&gameDB.ReleaseDate,
+		&gameDB.ImageURL,
+		&gameDB.GameStatus,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -67,6 +68,7 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
+	game := gameDB.ToDomain()
 	genreRows, err := gr.conn.GetPool().Query(ctx, getGameGenresQuery, gameID)
 	if err != nil {
 		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err), slog.Int64("gameID", gameID))
