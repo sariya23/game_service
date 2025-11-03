@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	sq "github.com/Masterminds/squirrel"
-	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	gamegenrerepo "github.com/sariya23/game_service/internal/storage/postgresql/game_genre_repo"
@@ -18,62 +16,47 @@ import (
 func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
 	const operationPlace = "postgresql.GetTopGames"
 	log := gr.log.With("operationPlave", operationPlace)
-	gameGenresQuery := sq.Select(GameGameIDFieldName).From("game")
-	gameTagsQuery := sq.Select(GameGameIDFieldName).From("game")
-
-	if t := filters.Tags; len(t) > 0 {
-		gameTagsQuery = sq.Select(
-			gametagrepo.GameTagGameIDFieldName).
-			From("tag").
-			Join(fmt.Sprintf("game_tag using(%s)", tagrepo.TagTagIDFieldName)).
-			Where(sq.Eq{tagrepo.TagTagNameFieldName: t})
-	}
-	if g := filters.Genres; len(g) > 0 {
-		gameGenresQuery = sq.
-			Select(gamegenrerepo.GameGenreGameIDFieldName).
-			From("genre").
-			Join(fmt.Sprintf("game_genre using(%s)", genrerepo.GenreGenreIDFieldName)).
-			Where(sq.Eq{genrerepo.GenreGenreNameFieldName: g})
-	}
-	tagSQL, tagArgs, _ := gameTagsQuery.ToSql()
-	genreSQL, genreArgs, _ := gameGenresQuery.ToSql()
-
-	intersectGameID := fmt.Sprintf("(%s intersect %s)", tagSQL, genreSQL)
-	args := append(tagArgs, genreArgs...)
-
-	filteredGameID := sq.Select(
+	baseQuery := fmt.Sprintf("select %s, %s, %s, %s, %s from game where true",
 		GameGameIDFieldName,
 		GameTitleFieldName,
 		GameDescriptionFieldName,
 		GameReleaseDateFieldName,
 		GameImageURLFieldName,
-	).
-		From("game").
-		Where(sq.Expr(fmt.Sprintf("%s in %s", GameGameIDFieldName, intersectGameID), args...)).
-		Where(sq.Eq{GameGameStatusIDFieldName: game_api.GameStatusType_PUBLISH})
-
-	yearArgs := make([]interface{}, 0, 1)
+	)
+	args := []interface{}{}
+	if len(filters.Tags) > 0 {
+		args = append(args, filters.Tags)
+		baseQuery = baseQuery + fmt.Sprintf(" and %s in (select %s from game_tag join tag using(%s) where %s=any($%d))",
+			GameGameIDFieldName,
+			gametagrepo.GameTagGameIDFieldName,
+			gametagrepo.GameTagTagIDFieldName,
+			tagrepo.TagTagNameFieldName,
+			len(args))
+	}
+	if len(filters.Genres) > 0 {
+		args = append(args, filters.Genres)
+		baseQuery = baseQuery + fmt.Sprintf(" and %s in (select %s from game_genre join genre using(%s) where %s=any($%d))",
+			GameGameIDFieldName,
+			gamegenrerepo.GameGenreGameIDFieldName,
+			gamegenrerepo.GameGenreGenreIDFieldName,
+			genrerepo.GenreGenreNameFieldName,
+			len(args))
+	}
 	if filters.ReleaseYear > 0 {
-		filteredGameID = filteredGameID.
-			Where(fmt.Sprintf("extract(year from %s)=?", GameReleaseDateFieldName))
-		yearArgs = append(yearArgs, filters.ReleaseYear)
+		args = append(args, filters.ReleaseYear)
+		baseQuery = baseQuery + fmt.Sprintf(" and extract(year from %s) = $%d", GameReleaseDateFieldName, len(args))
 	}
-	filteredGameID = filteredGameID.
-		OrderBy(GameTitleFieldName, GameReleaseDateFieldName).
-		Limit(uint64(limit))
-	finalSQL, finalArgs, err := filteredGameID.PlaceholderFormat(sq.Dollar).ToSql()
-	if err != nil {
-		log.Error("cannot translate final query to sql string", slog.String("err", err.Error()))
-		return nil, fmt.Errorf("%s: %w", operationPlace, err)
-	}
-	finalArgs = append(finalArgs, yearArgs...)
-
+	baseQuery = baseQuery + fmt.Sprintf(" order by %s, %s limit %d",
+		GameTitleFieldName,
+		GameReleaseDateFieldName,
+		limit,
+	)
 	var games []model.ShortGame
-	log.Info(finalSQL)
-	log.Info(fmt.Sprintf("%v", finalArgs))
-	gameRows, err := gr.conn.GetPool().Query(ctx, finalSQL, finalArgs...)
+	log.Info(baseQuery)
+	log.Info(fmt.Sprintf("%v", args))
+	gameRows, err := gr.conn.GetPool().Query(ctx, baseQuery, args...)
 	if err != nil {
-		log.Error("cannot execute query to get game ids", slog.String("err", err.Error()))
+		log.Error("cannot execute query to get games", slog.String("err", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer gameRows.Close()
@@ -91,12 +74,11 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		if gameRows.Err() != nil {
-			log.Error("cannot prepare next row", slog.String("err", err.Error()))
+			log.Error("cannot prepare next row", slog.String("err", gameRows.Err().Error()))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		game := gameDB.ToDomain()
 		games = append(games, game)
 	}
-
 	return games, nil
 }
