@@ -17,7 +17,12 @@ func (srvApi *serverAPI) AddGame(
 	ctx context.Context,
 	request *game.AddGameRequest,
 ) (*game.AddGameResponse, error) {
-	srvApi.log.Info("request to handler", slog.String("handler", "AddGame"), slog.Any("request", request))
+	requestID := ctx.Value("x-request-id").(string)
+	srvApi.log.Info("request to handler",
+		slog.String("handler", "AddGame"),
+		slog.Any("request", request),
+		slog.String("requestId", requestID),
+	)
 	if valid, msg := validators.AddGame(request); !valid {
 		return &game.AddGameResponse{}, status.Error(codes.InvalidArgument, msg)
 	}

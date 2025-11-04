@@ -8,6 +8,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sariya23/api_game_service/gen/game"
+	"github.com/sariya23/game_service/internal/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -20,15 +21,22 @@ type GrpcGatewayApp struct {
 }
 
 func NewGrpcGatewayApp(ctx context.Context, log *slog.Logger, grpcPort, httpPort int, grpcHost, httpHost string) *GrpcGatewayApp {
-	mux := runtime.NewServeMux()
+	mux := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
+		if key == "x-request-id" {
+			return key, true
+		}
+		return runtime.DefaultHeaderMatcher(key)
+	}))
+
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	err := game.RegisterGameServiceHandlerFromEndpoint(ctx, mux, fmt.Sprintf("%s:%d", grpcHost, grpcPort), opts)
 	if err != nil {
 		panic(fmt.Sprintf("cannot register game service endpoints: %v", err))
 	}
+	handler := middleware.RequestIdMiddleware(mux)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", httpHost, httpPort),
-		Handler: mux,
+		Handler: handler,
 	}
 
 	return &GrpcGatewayApp{

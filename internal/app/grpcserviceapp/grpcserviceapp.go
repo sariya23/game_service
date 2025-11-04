@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/sariya23/game_service/internal/grpchandlers"
+	"github.com/sariya23/game_service/internal/interceptors"
 	"google.golang.org/grpc"
 )
 
@@ -17,7 +18,7 @@ type GrpcServer struct {
 }
 
 func NewGrpcServer(log *slog.Logger, port int, host string, implementation grpchandlers.GameServicer) *GrpcServer {
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(interceptors.RequestIDInterceptor))
 	grpchandlers.RegisterGrpcHandlers(grpcServer, implementation, log)
 	return &GrpcServer{
 		port:   port,
