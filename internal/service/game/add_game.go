@@ -19,12 +19,16 @@ func (gameService *GameService) AddGame(
 ) (int64, error) {
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
+	log = gameService.log.With("title", gameToAdd.Title)
+	log = gameService.log.With("release_date", gameToAdd.ReleaseDate.String())
+	requestID := ctx.Value("request_id").(string)
+	log = log.With("request_id", requestID)
 	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.Title, int32(gameToAdd.ReleaseDate.Year()))
 	if err == nil {
-		log.Warn(fmt.Sprintf("game with title=%q and release year=%d already exist", gameToAdd.Title, gameToAdd.ReleaseDate.Year()))
+		log.Warn("game already exists", slog.String("title", gameToAdd.Title), slog.String("release_date", gameToAdd.ReleaseDate.String()))
 		return 0, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameAlreadyExist)
 	} else if !errors.Is(err, outerror.ErrGameNotFound) {
-		log.Error(fmt.Sprintf("cannot get game by title=%q and release year=%d", gameToAdd.Title, gameToAdd.ReleaseDate.Year()))
+		log.Error("unexpected error, cannot check game", slog.String("error", err.Error()))
 		return 0, fmt.Errorf("%s:%w", operationPlace, err)
 	}
 	var errSaveImage error
@@ -37,23 +41,24 @@ func (gameService *GameService) AddGame(
 			bytes.NewReader(gameToAdd.CoverImage),
 		)
 		if err != nil {
-			log.Error(fmt.Sprintf("cannot save game cover image (title=%s) in s3; err = %v", gameKey, err))
+			log.Error("failed to save image",
+				slog.String("game_key", gameKey),
+				slog.String("error", err.Error()),
+			)
 			errSaveImage = outerror.ErrCannotSaveGameImage
 		} else {
-			log.Info(fmt.Sprintf("image successfully saved in s3 with key=%s", gameKey))
+			log.Info("image successfully saved in s3", slog.String("game_key", gameKey))
 		}
-	} else {
-		log.Info("no image data in game")
 	}
 	var tagIDs []int64
 	if t := gameToAdd.Tags; len(t) != 0 {
 		tags, err := gameService.tagReposetory.GetTagByNames(ctx, t)
 		if err != nil {
 			if errors.Is(err, outerror.ErrTagNotFound) {
-				log.Warn("tags with this names not found", slog.String("tags", fmt.Sprintf("%#v", t)))
+				log.Warn("tag doesnt exists", slog.Any("tags", t))
 				return 0, fmt.Errorf("%s: %w", operationPlace, outerror.ErrTagNotFound)
 			}
-			log.Error(fmt.Sprintf("cannot get tags, err=%v", err))
+			log.Error("cannot check tags, unexpected error", slog.String("error", err.Error()))
 			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		tagIDs = model.TagIDs(tags)
@@ -63,10 +68,10 @@ func (gameService *GameService) AddGame(
 		genres, err := gameService.genreReposetory.GetGenreByNames(ctx, g)
 		if err != nil {
 			if errors.Is(err, outerror.ErrGenreNotFound) {
-				log.Warn("genres with this names not found", slog.String("genres", fmt.Sprintf("%#v", g)))
+				log.Warn("genre doesnt exists", slog.Any("tags", g))
 				return 0, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGenreNotFound)
 			}
-			log.Error(fmt.Sprintf("cannot get genres, err=%v", err))
+			log.Error("cannot check genres, unexpected error", slog.String("error", err.Error()))
 			return 0, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		genreIDs = model.GenreIDs(genres)
@@ -82,10 +87,9 @@ func (gameService *GameService) AddGame(
 	}
 	gameID, err := gameService.gameRepository.SaveGame(ctx, addGameService)
 	if err != nil {
-		log.Error(fmt.Sprintf("cannot save game: err = %v", fmt.Errorf("%w: %w", errSaveImage, err)))
+		log.Error("unexpected error, cannot save game", slog.String("error", err.Error()))
 		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	// Отправка сообщения в кафку
-	log.Info("game save successfully")
 	return gameID, errSaveImage
 }
