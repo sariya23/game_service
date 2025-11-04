@@ -9,12 +9,17 @@ import (
 
 	"github.com/sariya23/game_service/internal/app/app"
 	"github.com/sariya23/game_service/internal/config"
+	"github.com/sariya23/game_service/internal/lib/logger"
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	cfg := config.MustLoad()
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
+	logLevel := slog.LevelInfo
+	if cfg.Env.EnvType == "test" || cfg.Env.EnvType == "dev" {
+		logLevel = slog.LevelDebug
+	}
+	log := logger.NewLogger(logLevel)
 	log.Info("starting app", slog.String("env", cfg.Env.EnvType))
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
