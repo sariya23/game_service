@@ -18,7 +18,9 @@ import (
 
 func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.Game, error) {
 	const operationPlace = "postgresql.gamerepo.GetGameByID"
+	requestID := ctx.Value("request_id").(string)
 	log := gr.log.With("operationPlace", operationPlace)
+	log = log.With("request_id", requestID)
 	getGameMainInfoQuery := fmt.Sprintf(
 		"select %s, %s, %s, %s, %s, %s from game where %s=$1",
 		GameGameIDFieldName,
@@ -61,17 +63,18 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			log.Warn("game does not exists", slog.Int64("gameID", gameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameNotFound)
 		} else {
-			log.Error(fmt.Sprintf("Uncaught error: %v", err))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 	}
 	game := gameDB.ToDomain()
 	genreRows, err := gr.conn.GetPool().Query(ctx, getGameGenresQuery, gameID)
 	if err != nil {
-		log.Error(fmt.Sprintf("Cannot get genres, uncaught error: %v", err), slog.Int64("gameID", gameID))
+		log.Error("cannot prepare query to get genres, unexpected error",
+			slog.Int64("game_id", gameID),
+			slog.String("err", err.Error()),
+		)
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer genreRows.Close()
@@ -79,11 +82,17 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 		var gameGenre model.Genre
 		err = genreRows.Scan(&gameGenre.GenreName, &gameGenre.GenreID)
 		if err != nil {
-			log.Error(fmt.Sprintf("Cannot scan game genres, uncaught error: %v", err), slog.Int64("gameID", gameID))
+			log.Error("cannot execute sql query to get genre",
+				slog.Int64("game_id", gameID),
+				slog.String("err", err.Error()),
+			)
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		if genreRows.Err() != nil {
-			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Int64("gameID", gameID))
+			log.Error("error while prepare next sql row",
+				slog.Int64("game_id", gameID),
+				slog.String("error", genreRows.Err().Error()),
+			)
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		game.Genres = append(game.Genres, gameGenre)
@@ -91,7 +100,10 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 
 	tagRows, err := gr.conn.GetPool().Query(ctx, getGameTagsQuery, gameID)
 	if err != nil {
-		log.Error(fmt.Sprintf("Cannot get tags, uncaught error: %v", err), slog.Int64("gameID", gameID))
+		log.Error("cannot prepare query to get tags, unexpected error",
+			slog.Int64("game_id", gameID),
+			slog.String("err", err.Error()),
+		)
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	defer tagRows.Close()
@@ -99,15 +111,20 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 		var gameTag model.Tag
 		err = tagRows.Scan(&gameTag.TagName, &gameTag.TagID)
 		if err != nil {
-			log.Error(fmt.Sprintf("Cannot scan game tags, uncaught error: %v", err), slog.Int64("gameID", gameID))
+			log.Error("cannot execute sql query to get tag",
+				slog.Int64("game_id", gameID),
+				slog.String("err", err.Error()),
+			)
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		if tagRows.Err() != nil {
-			log.Error("cannot prepare next row", slog.String("err", err.Error()), slog.Int64("gameID", gameID))
+			log.Error("error while prepare next sql row",
+				slog.Int64("game_id", gameID),
+				slog.String("error", genreRows.Err().Error()),
+			)
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
 		game.Tags = append(game.Tags, gameTag)
 	}
-
 	return &game, nil
 }

@@ -16,13 +16,22 @@ func (srvApi *serverAPI) GetGame(
 	ctx context.Context,
 	request *game_api.GetGameRequest,
 ) (*game_api.GetGameResponse, error) {
-	srvApi.log.Info("request to handler", slog.String("handler", "GetGame"), slog.Any("request", request))
+	requestID := ctx.Value("request_id").(string)
+	log := srvApi.log.With("request_id", requestID)
+	log.Info("request to handler",
+		slog.String("handler", "GetGame"),
+		slog.Any("request", request),
+	)
+
 	if request.GameId < 0 {
+		log.Warn("invalid request, game_id is negative")
 		return &game_api.GetGameResponse{}, status.Error(codes.InvalidArgument, outerror.NegativeGameIDMessage)
 	}
 	game, err := srvApi.gameServicer.GetGame(ctx, request.GetGameId())
 	if err != nil {
+		log.Error("internal error")
 		return errorhandler.GetGame(err)
 	}
+	log.Info("success request")
 	return &game_api.GetGameResponse{Game: converters.ToProtoGame(game)}, nil
 }

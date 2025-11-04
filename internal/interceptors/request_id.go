@@ -11,13 +11,13 @@ import (
 type contextKey string
 
 const (
-	RequestIDKey contextKey = "x-request-id"
+	RequestIDKey = "request_id"
 )
 
 func RequestIDInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	var requestID string
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if ids := md.Get("x-request-id"); len(ids) > 0 {
+		if ids := md.Get(RequestIDKey); len(ids) > 0 {
 			requestID = ids[0]
 		}
 	}
@@ -25,7 +25,7 @@ func RequestIDInterceptor(ctx context.Context, req interface{}, info *grpc.Unary
 		requestID = generate.GenerateRequestID()
 	}
 
-	ctx = context.WithValue(ctx, "x-request-id", requestID)
+	ctx = context.WithValue(ctx, RequestIDKey, requestID)
 	resp, err := handler(ctx, req)
 	return resp, err
 }

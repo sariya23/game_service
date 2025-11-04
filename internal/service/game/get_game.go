@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -14,14 +15,16 @@ func (gameService *GameService) GetGame(
 	gameID int64,
 ) (*model.Game, error) {
 	const operationPlace = "gameservice.GetGame"
+	requestID := ctx.Value("request_id").(string)
 	log := gameService.log.With("operationPlace", operationPlace)
+	log = log.With("request_id", requestID)
 	game, err := gameService.gameRepository.GetGameByID(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
-			log.Warn(fmt.Sprintf("game with id=%d not found", gameID))
+			log.Warn("game not found", slog.Int64("game_id", gameID))
 			return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameNotFound)
 		}
-		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
+		log.Error("unexpected error from repository", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return game, nil
