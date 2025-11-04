@@ -3,6 +3,7 @@ package grpchandlers
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -10,11 +11,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (srvAPI *serverAPI) DeleteGame(
+func (srvApi *serverAPI) DeleteGame(
 	ctx context.Context,
 	request *game.DeleteGameRequest,
 ) (*game.DeleteGameResponse, error) {
-	gameID, err := srvAPI.gameServicer.DeleteGame(ctx, request.GetGameId())
+	srvApi.log.Info("request to handler", slog.String("handler", "DeleteGame"), slog.Any("request", request))
+	gameID, err := srvApi.gameServicer.DeleteGame(ctx, request.GetGameId())
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			return &game.DeleteGameResponse{}, status.Error(codes.NotFound, outerror.GameNotFoundMessage)

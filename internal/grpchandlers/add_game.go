@@ -2,6 +2,7 @@ package grpchandlers
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/converters"
@@ -16,6 +17,7 @@ func (srvApi *serverAPI) AddGame(
 	ctx context.Context,
 	request *game.AddGameRequest,
 ) (*game.AddGameResponse, error) {
+	srvApi.log.Info("request to handler", slog.String("handler", "AddGame"), slog.Any("request", request))
 	if valid, msg := validators.AddGame(request); !valid {
 		return &game.AddGameResponse{}, status.Error(codes.InvalidArgument, msg)
 	}

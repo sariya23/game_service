@@ -2,6 +2,7 @@ package grpchandlers
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
@@ -20,8 +21,9 @@ type GameServicer interface {
 type serverAPI struct {
 	game.UnimplementedGameServiceServer
 	gameServicer GameServicer
+	log          *slog.Logger
 }
 
-func RegisterGrpcHandlers(grpcServer *grpc.Server, gameServicer GameServicer) {
-	game.RegisterGameServiceServer(grpcServer, &serverAPI{gameServicer: gameServicer})
+func RegisterGrpcHandlers(grpcServer *grpc.Server, gameServicer GameServicer, log *slog.Logger) {
+	game.RegisterGameServiceServer(grpcServer, &serverAPI{gameServicer: gameServicer, log: log})
 }

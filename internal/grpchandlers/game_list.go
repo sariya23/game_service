@@ -2,6 +2,7 @@ package grpchandlers
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/converters"
@@ -15,6 +16,7 @@ func (srvApi *serverAPI) GameList(
 	ctx context.Context,
 	request *game.GameListRequest,
 ) (*game.GameListResponse, error) {
+	srvApi.log.Info("request to handler", slog.String("handler", "GameList"), slog.Any("request", request))
 	if request.Year < 0 {
 		return &game.GameListResponse{}, status.Error(codes.InvalidArgument, outerror.NegativeYearMessage)
 	}

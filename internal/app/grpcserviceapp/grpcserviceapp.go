@@ -18,7 +18,7 @@ type GrpcServer struct {
 
 func NewGrpcServer(log *slog.Logger, port int, host string, implementation grpchandlers.GameServicer) *GrpcServer {
 	grpcServer := grpc.NewServer()
-	grpchandlers.RegisterGrpcHandlers(grpcServer, implementation)
+	grpchandlers.RegisterGrpcHandlers(grpcServer, implementation, log)
 	return &GrpcServer{
 		port:   port,
 		host:   host,

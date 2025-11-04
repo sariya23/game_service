@@ -2,6 +2,7 @@ package grpchandlers
 
 import (
 	"context"
+	"log/slog"
 
 	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/lib/converters"
@@ -15,6 +16,7 @@ func (srvApi *serverAPI) GetGame(
 	ctx context.Context,
 	request *game_api.GetGameRequest,
 ) (*game_api.GetGameResponse, error) {
+	srvApi.log.Info("request to handler", slog.String("handler", "GetGame"), slog.Any("request", request))
 	if request.GameId < 0 {
 		return &game_api.GetGameResponse{}, status.Error(codes.InvalidArgument, outerror.NegativeGameIDMessage)
 	}
