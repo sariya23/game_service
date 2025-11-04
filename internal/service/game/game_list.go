@@ -14,13 +14,15 @@ func (gameService *GameService) GameList(
 	limit uint32,
 ) ([]model.ShortGame, error) {
 	const operationPlace = "gameservice.GetTopGames"
+	requestID := ctx.Value("request_id").(string)
 	log := gameService.log.With("operationPlace", operationPlace)
+	log = log.With("request_id", requestID)
 	if limit == 0 {
 		limit = 10
 	}
 	games, err := gameService.gameRepository.GameList(ctx, gameFilters, limit)
 	if err != nil {
-		log.Error(fmt.Sprintf("unexcpected error; err=%v", err))
+		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	return games, nil

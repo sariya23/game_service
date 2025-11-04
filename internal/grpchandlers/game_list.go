@@ -16,8 +16,15 @@ func (srvApi *serverAPI) GameList(
 	ctx context.Context,
 	request *game.GameListRequest,
 ) (*game.GameListResponse, error) {
-	srvApi.log.Info("request to handler", slog.String("handler", "GameList"), slog.Any("request", request))
+	requestID := ctx.Value("request_id").(string)
+	log := srvApi.log.With("request_id", requestID)
+	log.Info("request to handler",
+		slog.String("handler", "AddGame"),
+		slog.Any("request", request),
+	)
+	log.Info("request to handler", slog.String("handler", "GameList"), slog.Any("request", request))
 	if request.Year < 0 {
+		log.Warn("negative year")
 		return &game.GameListResponse{}, status.Error(codes.InvalidArgument, outerror.NegativeYearMessage)
 	}
 	games, err := srvApi.gameServicer.GameList(
@@ -36,5 +43,6 @@ func (srvApi *serverAPI) GameList(
 	for _, g := range games {
 		result = append(result, converters.ToShortGameResponse(g))
 	}
+	log.Info("success get games")
 	return &game.GameListResponse{Games: result}, nil
 }

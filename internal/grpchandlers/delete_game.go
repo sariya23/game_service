@@ -15,7 +15,13 @@ func (srvApi *serverAPI) DeleteGame(
 	ctx context.Context,
 	request *game.DeleteGameRequest,
 ) (*game.DeleteGameResponse, error) {
-	srvApi.log.Info("request to handler", slog.String("handler", "DeleteGame"), slog.Any("request", request))
+	requestID := ctx.Value("request_id").(string)
+	log := srvApi.log.With("request_id", requestID)
+	log.Info("request to handler",
+		slog.String("handler", "AddGame"),
+		slog.Any("request", request),
+	)
+	log.Info("request to handler", slog.String("handler", "DeleteGame"), slog.Any("request", request))
 	gameID, err := srvApi.gameServicer.DeleteGame(ctx, request.GetGameId())
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
@@ -23,5 +29,6 @@ func (srvApi *serverAPI) DeleteGame(
 		}
 		return &game.DeleteGameResponse{}, status.Error(codes.Internal, outerror.InternalMessage)
 	}
+	log.Info("game deleted successfully")
 	return &game.DeleteGameResponse{GameId: gameID}, nil
 }

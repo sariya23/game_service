@@ -22,7 +22,6 @@ func (srvApi *serverAPI) GetGame(
 		slog.String("handler", "GetGame"),
 		slog.Any("request", request),
 	)
-
 	if request.GameId < 0 {
 		log.Warn("invalid request, game_id is negative")
 		return &game_api.GetGameResponse{}, status.Error(codes.InvalidArgument, outerror.NegativeGameIDMessage)

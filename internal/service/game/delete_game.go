@@ -14,7 +14,9 @@ func (gameService *GameService) DeleteGame(
 	gameID int64,
 ) (int64, error) {
 	const operationPlace = "gameservice.DeleteGame"
+	requestID := ctx.Value("request_id").(string)
 	log := gameService.log.With("operationPlace", operationPlace)
+	log = log.With("request_id", requestID)
 	deletedGame, err := gameService.gameRepository.DaleteGame(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
