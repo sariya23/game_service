@@ -278,21 +278,21 @@ func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.Game {
 	queryGame := "select game_id, title, description, release_date, image_url, game_status_id from game where game_id=$1"
 	queryGenre := "select genre_id, genre_name from game join game_genre using(game_id) join genre using(genre_id) where game_id=$1"
 	queryTag := "select tag_id, tag_name from game_tag join game using(game_id) join tag using(tag_id) where game_id=$1"
-	var game model.Game
+	var gameDB dto.GameDB
 	err := d.DB.GetPool().QueryRow(ctx, queryGame, gameID).Scan(
-		&game.GameID,
-		&game.Title,
-		&game.Description,
-		&game.ReleaseDate,
-		&game.ImageURL,
-		&game.GameStatus)
+		&gameDB.GameID,
+		&gameDB.Title,
+		&gameDB.Description,
+		&gameDB.ReleaseDate,
+		&gameDB.ImageURL,
+		&gameDB.GameStatus)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil
 		}
 		panic(err)
 	}
-
+	game := gameDB.ToDomain()
 	rows, err := d.DB.GetPool().Query(ctx, queryGenre, gameID)
 	if err != nil {
 		panic(err)
