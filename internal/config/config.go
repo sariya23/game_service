@@ -26,8 +26,8 @@ type Env struct {
 type Server struct {
 	GrpcServerPort       int    `env:"GRPC_SERVER_PORT"`
 	GRPCServerHost       string `env:"GRPC_SERVER_HOST"`
-	HttpServerPort       int    `env:"HTTP_SERVER_PORT"`
-	HttpServerHost       string `env:"HTTP_SERVER_HOST"`
+	HTTPServerPort       int    `env:"HTTP_SERVER_PORT"`
+	HTTPServerHost       string `env:"HTTP_SERVER_HOST"`
 	ServerTimeoutSeconds int    `env:"SERVER_TIMEOUT_SECONDS"`
 }
 

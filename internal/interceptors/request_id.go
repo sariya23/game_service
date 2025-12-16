@@ -11,13 +11,13 @@ import (
 type contextKey string
 
 const (
-	RequestIDKey = "request_id"
+	RequestIDKey contextKey = "request_id"
 )
 
-func RequestIDInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+func RequestIDInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	var requestID string
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if ids := md.Get(RequestIDKey); len(ids) > 0 {
+		if ids := md.Get("request_id"); len(ids) > 0 {
 			requestID = ids[0]
 		}
 	}

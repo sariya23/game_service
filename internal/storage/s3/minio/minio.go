@@ -26,7 +26,7 @@ func MustPrepareMinio(
 ) *Minio {
 	const operationPlace = "minioclient.MustPrepareMinio"
 	innerLog := log.With("operationPlace", operationPlace)
-	min, err := newMinioClient(log,
+	minioClient, err := newMinioClient(log,
 		minioConfig.MinioHostInner,
 		minioConfig.MinioPort,
 		minioConfig.MinioBucket,
@@ -37,12 +37,12 @@ func MustPrepareMinio(
 	if err != nil {
 		panic(err)
 	}
-	err = min.createBucket(ctx)
+	err = minioClient.createBucket(ctx)
 	if err != nil {
 		panic(err)
 	}
 	innerLog.Info("Minio ready to get connections")
-	return min
+	return minioClient
 }
 
 func newMinioClient(

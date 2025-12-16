@@ -42,7 +42,7 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 		GameGameIDFieldName,
 	)
 	getGameTagsQuery := fmt.Sprintf(`
-	select %s, %s 
+	select %s, %s
 	from game join game_tag using(%s) join tag using(%s)
 	where %s=$1`,
 		tagrepo.TagTagNameFieldName,
@@ -64,9 +64,8 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%s: %w", operationPlace, outerror.ErrGameNotFound)
-		} else {
-			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
+		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	game := gameDB.ToDomain()
 	genreRows, err := gr.conn.GetPool().Query(ctx, getGameGenresQuery, gameID)

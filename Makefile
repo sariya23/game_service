@@ -88,3 +88,7 @@ mock:
 	find . -name '*_mock.go' -delete
 	mockgen -source internal/service/game/game.go \
 	-destination=internal/service/game/mocks/game.go -package=mock_gameservice
+
+.PHONY: lint
+lint:
+	revive ./...
