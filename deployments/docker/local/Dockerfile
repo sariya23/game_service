@@ -27,7 +27,7 @@ FROM golang:1.25-alpine AS migrations
 
 WORKDIR /app
 
-RUN apk add --no-cache postgresql-client git
+RUN apk add --no-cache postgresql-client git make
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
 
