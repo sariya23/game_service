@@ -19,8 +19,8 @@ func (gameService *GameService) AddGame(
 ) (int64, error) {
 	const operationPlace = "gameservice.AddGame"
 	log := gameService.log.With("operationPlace", operationPlace)
-	log = gameService.log.With("title", gameToAdd.Title)
-	log = gameService.log.With("release_date", gameToAdd.ReleaseDate.String())
+	log = log.With("title", gameToAdd.Title)
+	log = log.With("release_date", gameToAdd.ReleaseDate.String())
 	requestID := ctx.Value("request_id").(string)
 	log = log.With("request_id", requestID)
 	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.Title, int32(gameToAdd.ReleaseDate.Year()))

@@ -4,7 +4,8 @@ import (
 	"github.com/sariya23/api_game_service/gen/game"
 )
 
-// GameStatus. Запрещено:
+// GameStatus ...
+// Запрещено:
 // DRAFT -> PUBLISH
 // PUBLISH -> PENDING
 // PUBLISH -> DRAFT

@@ -5,7 +5,6 @@ import (
 	"github.com/sariya23/game_service/internal/model"
 )
 
-// ToGame...
 func ToProtoGame(modelGame *model.Game) *game_api.DomainGame {
 	game := game_api.DomainGame{}
 	game.Title = modelGame.Title

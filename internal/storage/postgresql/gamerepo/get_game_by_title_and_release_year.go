@@ -20,7 +20,7 @@ func (gr *GameRepository) GetGameByTitleAndReleaseYear(ctx context.Context, titl
 	log := gr.log.With("title", title)
 	log = log.With("release_year", releaseYear)
 	requestID := ctx.Value("request_id").(string)
-	log = gr.log.With("operationPlace", operationPlace)
+	log = log.With("operationPlace", operationPlace)
 	log = log.With("requestID", requestID)
 	getGameQuery := fmt.Sprintf("select %s, %s, %s, %s, %s, %s from game where %s=$1 and extract(year from %s)=$2",
 		GameGameIDFieldName,

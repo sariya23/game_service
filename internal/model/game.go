@@ -6,7 +6,6 @@ import (
 	"github.com/sariya23/api_game_service/gen/game"
 )
 
-// Game...
 type Game struct {
 	GameID      int64
 	Title       string
