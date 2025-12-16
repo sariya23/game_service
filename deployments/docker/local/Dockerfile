@@ -32,5 +32,4 @@ RUN apk add --no-cache postgresql-client git make
 RUN go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
 
 COPY migrations ./migrations
-
-ENTRYPOINT ["goose"]
+COPY Makefile ./
