@@ -1,0 +1,73 @@
+services:
+  minio_game_service:
+    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+    command: server /data --console-address ":9001"
+    restart: always
+    networks:
+      - internal
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - minio_data:/data
+
+  game_service_db:
+    image: postgres:16
+    restart: "always"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB} -p ${POSTGRES_PORT}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: -p 5433
+    networks:
+      - intranet
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  game_service_migrations:
+    image: ${MIGRATOR_IMAGE_NAME}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+    depends_on:
+      game_service_db:
+        condition: service_healthy
+    command: sh -c "until pg_isready -h auth_db -p ${POSTGRES_PORT}; do sleep 1; done; make service_migrate_inner ENV=prod"
+    networks:
+      - intranet
+    volumes:
+      - ${CONFIG_PATH}:/app/config/prod.env
+
+  game_service_app:
+    image: ${APP_IMAGE_NAME}
+    restart: "always"
+    ports:
+      - "${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}"
+      - "${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}"
+    depends_on:
+      game_service_db:
+        condition: service_healthy
+    command: ./api --config=${CONFIG_PATH}
+    networks:
+      - intranet
+    volumes:
+      - ${CONFIG_PATH}:/app/config/prod.env
+
+networks:
+  intranet:
+    external: true
+
+volumes:
+  pg_data:
+  minio_data:
