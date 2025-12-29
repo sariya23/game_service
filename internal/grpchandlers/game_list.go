@@ -17,8 +17,8 @@ func (srvApi *serverAPI) GameList(
 	ctx context.Context,
 	request *game.GameListRequest,
 ) (*game.GameListResponse, error) {
-	requestID := ctx.Value("request_id").(string)
-	log := srvApi.log.With(interceptors.RequestIDKey, requestID)
+	requestID := ctx.Value(interceptors.RequestIDKey).(string)
+	log := srvApi.log.With("request_id", requestID)
 	log.Info("request to handler",
 		slog.String("handler", "AddGame"),
 		slog.Any("request", request),
