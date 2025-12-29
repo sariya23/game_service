@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 )
@@ -15,7 +16,7 @@ func (gameService *GameService) GetGame(
 	gameID int64,
 ) (*model.Game, error) {
 	const operationPlace = "gameservice.GetGame"
-	requestID := ctx.Value("request_id").(string)
+	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gameService.log.With("operationPlace", operationPlace)
 	log = log.With("request_id", requestID)
 	game, err := gameService.gameRepository.GetGameByID(ctx, gameID)

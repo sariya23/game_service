@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -21,7 +22,7 @@ func (gameService *GameService) AddGame(
 	log := gameService.log.With("operationPlace", operationPlace)
 	log = log.With("title", gameToAdd.Title)
 	log = log.With("release_date", gameToAdd.ReleaseDate.String())
-	requestID := ctx.Value("request_id").(string)
+	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log = log.With("request_id", requestID)
 	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.Title, int32(gameToAdd.ReleaseDate.Year()))
 	if err == nil {

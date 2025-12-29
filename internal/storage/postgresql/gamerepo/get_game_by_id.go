@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -18,7 +19,7 @@ import (
 
 func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.Game, error) {
 	const operationPlace = "postgresql.gamerepo.GetGameByID"
-	requestID := ctx.Value("request_id").(string)
+	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gr.log.With("operationPlace", operationPlace)
 	log = log.With("request_id", requestID)
 	getGameMainInfoQuery := fmt.Sprintf(
