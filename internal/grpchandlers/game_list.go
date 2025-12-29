@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
+	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -17,7 +18,7 @@ func (srvApi *serverAPI) GameList(
 	request *game.GameListRequest,
 ) (*game.GameListResponse, error) {
 	requestID := ctx.Value("request_id").(string)
-	log := srvApi.log.With("request_id", requestID)
+	log := srvApi.log.With(interceptors.RequestIDKey, requestID)
 	log.Info("request to handler",
 		slog.String("handler", "AddGame"),
 		slog.Any("request", request),
