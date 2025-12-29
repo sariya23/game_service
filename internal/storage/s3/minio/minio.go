@@ -65,6 +65,7 @@ func newMinioClient(
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 	logInner.Info("Minio client ready to get connections")
+	logInner.Info("address", slog.String("address", fmt.Sprintf("%s:%d", host, port)))
 	return &Minio{
 		log:        log,
 		client:     client,
