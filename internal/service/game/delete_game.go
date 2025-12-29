@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 )
@@ -14,7 +15,7 @@ func (gameService *GameService) DeleteGame(
 	gameID int64,
 ) (int64, error) {
 	const operationPlace = "gameservice.DeleteGame"
-	requestID := ctx.Value("request_id").(string)
+	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gameService.log.With("operationPlace", operationPlace)
 	log = log.With("request_id", requestID)
 	deletedGame, err := gameService.gameRepository.DaleteGame(ctx, gameID)

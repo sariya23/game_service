@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	game_api "github.com/sariya23/api_game_service/gen/game"
+	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	errorhandler "github.com/sariya23/game_service/internal/lib/errorhandler/handlers"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -16,7 +17,7 @@ func (srvApi *serverAPI) GetGame(
 	ctx context.Context,
 	request *game_api.GetGameRequest,
 ) (*game_api.GetGameResponse, error) {
-	requestID := ctx.Value("request_id").(string)
+	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := srvApi.log.With("request_id", requestID)
 	log.Info("request to handler",
 		slog.String("handler", "GetGame"),
