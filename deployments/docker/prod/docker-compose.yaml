@@ -43,7 +43,7 @@ services:
     depends_on:
       game_service_db:
         condition: service_healthy
-    command: sh -c "until pg_isready -h auth_db -p ${POSTGRES_PORT}; do sleep 1; done; make service_migrate_inner ENV=prod"
+    command: sh -c "until pg_isready -h game_service_db -p ${POSTGRES_PORT}; do sleep 1; done; make service_migrate_inner ENV=prod"
     networks:
       - intranet
     volumes:
