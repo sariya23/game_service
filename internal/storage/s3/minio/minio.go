@@ -76,6 +76,7 @@ func (m Minio) createBucket(ctx context.Context) error {
 	const operationPlace = "minioclient.CreateBucket"
 	log := m.log.With("operationPlace", operationPlace)
 	err := m.client.MakeBucket(ctx, m.BucketName, minio.MakeBucketOptions{})
+	log.Info("bucket name", slog.String("bucketName", m.BucketName))
 	if err != nil {
 		exists, errBucketExists := m.client.BucketExists(ctx, m.BucketName)
 		if errBucketExists == nil && exists {
