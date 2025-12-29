@@ -57,8 +57,9 @@ func newMinioClient(
 	const operationPlace = "minioclient.NewMinioClient"
 	logInner := log.With("operationPlace", operationPlace)
 	client, err := minio.New(fmt.Sprintf("%s:%d", host, port), &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-		Secure: useSSL,
+		Creds:        credentials.NewStaticV4(accessKey, secretKey, ""),
+		Secure:       useSSL,
+		BucketLookup: minio.BucketLookupPath,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
