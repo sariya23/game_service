@@ -132,4 +132,5 @@ jobs:
             --env-file ./config/prod.env \
             up -d game_service_app
             
-            docker image prune -f
+            docker container prune -f
+            docker image prune -f -a
