@@ -10,7 +10,7 @@ include ${ENV_FILE}
 # ДЛЯ ТЕСТОВ В ДОКЕРЕ
 .PHONY: test_compose_up
 test_compose_up:
-	docker-compose -p test_game_service -f deployments/docker/test/docker-compose.yaml  \
+	docker compose -p test_game_service -f deployments/docker/test/docker-compose.yaml  \
 	--env-file ./config/test.env up -d
 
 .PHONY: test_migrate
@@ -26,7 +26,7 @@ test_integrations:
 
 .PHONY: test_compose_down
 test_compose_down:
-	docker-compose -p test_game_service -f deployments/docker/test/docker-compose.yaml \
+	docker compose -p test_game_service -f deployments/docker/test/docker-compose.yaml \
 	--env-file ./config/test.env rm -fvs
 	docker rmi test_game_service-app || true
 	docker rmi test_game_service-migration || true
@@ -35,7 +35,7 @@ test_compose_down:
 # ДЛЯ ЗАПУСКА
 .PHONY: service_compose_up
 service_compose_up:
-	docker-compose -p game_service -f deployments/docker/local/docker-compose.yaml  \
+	docker compose -p game_service -f deployments/docker/local/docker-compose.yaml  \
 	--env-file ./config/local.env up -d
 
 .PHONY: service_migrate_inner
@@ -54,7 +54,7 @@ service_migrate_outer:
 
 .PHONY: service_compose_down
 service_compose_down:
-	docker-compose -p game_service -f deployments/docker/local/docker-compose.yaml \
+	docker compose -p game_service -f deployments/docker/local/docker-compose.yaml \
 	--env-file ./config/local.env rm -fvs
 	docker rmi game_service-app || true
 	docker rmi game_service-migration || true
@@ -73,7 +73,7 @@ test:
 
 .PHONY: infra
 infra:
-	docker-compose -p game_infra -f deployments/docker/dev/docker-compose.yaml  \
+	docker compose -p game_infra -f deployments/docker/dev/docker-compose.yaml  \
 	--env-file ./config/dev.env up -d
 
 .PHONY: migrate
