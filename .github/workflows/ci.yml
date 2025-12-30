@@ -73,15 +73,15 @@ jobs:
       - name: Build app image
         run: |
           docker buildx build --platform linux/amd64 \
-          -t sariya10/game_service:${{ github.sha }} --target app \
-          -t sariya10/game_service:v${VERSION} \
+          -t ${{ secrets.APP_IMAGE_NAME }}:${{ github.sha }} --target app \
+          -t ${{ secrets.APP_IMAGE_NAME }}v${VERSION} \
           -f deployments/docker/prod/app.Dockerfile --push .
 
       - name: Build migrations image
         run: |
           docker buildx build --platform linux/amd64 \
-          -t sariya10/game_service_migrations:${{ github.sha }} --target migrations \
-          -t sariya10/game_service_migrations:v${VERSION} \
+          -t ${{ secrets.MIGRATIONS_IMAGE_NAME }}:${{ github.sha }} --target migrations \
+          -t ${{ secrets.MIGRATIONS_IMAGE_NAME }}:v${VERSION} \
           -f deployments/docker/prod/migrator.Dockerfile --push .
 
       - name: Set image tag output
@@ -115,12 +115,11 @@ jobs:
             set -euo pipefail
             cd ~/deploy_game_service
             IMAGE_TAG=${{ needs.build.outputs.image_tag }}
-            echo "Using IMAGE_TAG=$IMAGE_TAG"
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            docker pull sariya10/game_service:${IMAGE_TAG}
-            docker pull sariya10/game_service_migrations:${IMAGE_TAG}
-            sed -i "s|^APP_IMAGE_NAME=.*|APP_IMAGE_NAME=sariya10/game_service:${IMAGE_TAG}|" config/prod.env
-            sed -i "s|^MIGRATOR_IMAGE_NAME=.*|MIGRATOR_IMAGE_NAME=sariya10/game_service_migrations:${IMAGE_TAG}|" config/prod.env
+            docker pull ${{ secrets.APP_IMAGE_NAME }}:${IMAGE_TAG}
+            docker pull ${{ secrets.MIGRATIONS_IMAGE_NAME }}:${IMAGE_TAG}
+            sed -i "s|^APP_IMAGE_NAME=.*|APP_IMAGE_NAME=${{ secrets.APP_IMAGE_NAME }}:${IMAGE_TAG}|" config/prod.env
+            sed -i "s|^MIGRATOR_IMAGE_NAME=.*|MIGRATOR_IMAGE_NAME=${{ secrets.MIGRATIONS_IMAGE_NAME }}:${IMAGE_TAG}|" config/prod.env
             
             docker compose -p game_service \
             -f docker-compose.yaml \
