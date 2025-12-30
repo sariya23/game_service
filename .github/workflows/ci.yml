@@ -48,6 +48,46 @@ jobs:
       - name: Run unit tests
         run: go test -v ./...
 
+  integration-tests:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create Docker network
+        run: docker network create intranet || true
+
+      - name: Start test infrastructure
+        run: |
+          make test_compose_up
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for game_service_app to be ready..."
+          timeout 180 bash -c 'until docker ps --filter "name=test_game_service-game_app" --format "{{.Status}}" | grep -q "healthy"; do sleep 2; done' || true
+          sleep 10
+
+      - name: Run integration tests
+        run: |
+          make test_integrations
+
+      - name: Cleanup
+        if: ${{ always() }}
+        run: |
+          make test_compose_down || true
+          docker network rm intranet || true
+
   build:
     runs-on: ubuntu-latest
     needs: test
