@@ -60,9 +60,9 @@ services:
   game_service_app:
     image: ${APP_IMAGE_NAME}
     restart: "always"
-    ports:
-      - "${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}"
-      - "${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}"
+    expose:
+      - "${GRPC_SERVER_PORT}"
+      - "${HTTP_SERVER_PORT}"
     depends_on:
       game_service_db:
         condition: service_healthy
