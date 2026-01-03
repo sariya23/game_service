@@ -29,6 +29,7 @@ type Server struct {
 	HTTPServerPort       int    `env:"HTTP_SERVER_PORT"`
 	HTTPServerHost       string `env:"HTTP_SERVER_HOST"`
 	ServerTimeoutSeconds int    `env:"SERVER_TIMEOUT_SECONDS"`
+	AllowedOrigins       string `env:"ALLOWED_ORIGINS"`
 }
 
 type Postgres struct {
