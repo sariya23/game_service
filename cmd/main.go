@@ -15,11 +15,7 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	cfg := config.MustLoad()
-	logLevel := slog.LevelInfo
-	if cfg.Env.EnvType == "test" || cfg.Env.EnvType == "dev" {
-		logLevel = slog.LevelDebug
-	}
-	log := logger.NewLogger(logLevel)
+	log := setUpLogger(cfg)
 	log.Info("starting app", slog.String("env", cfg.Env.EnvType))
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -34,4 +30,12 @@ func main() {
 	log.Info("service is ready to recieve requests")
 	<-ctx.Done()
 	log.Info("service stopped gracefully")
+}
+
+func setUpLogger(cfg *config.Config) *slog.Logger {
+	logLevel := slog.LevelDebug
+	if cfg.Env.EnvType == "prod" {
+		logLevel = slog.LevelInfo
+	}
+	return logger.NewLogger(logLevel)
 }

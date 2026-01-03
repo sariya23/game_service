@@ -44,7 +44,7 @@ func NewApp(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 	s3Client := minioclient.MustPrepareMinio(ctx, log, cfg.Minio, false)
 	gameService := gameservice.NewGameService(log, gameRepo, tagRepo, genreRepo, s3Client)
 	grpcApp := grpcserviceapp.NewGrpcServer(log, cfg.Server.GrpcServerPort, cfg.Server.GRPCServerHost, gameService)
-	gwApp := grcpgatewayapp.NewGrpcGatewayApp(ctx, log, cfg.Server.GrpcServerPort, cfg.Server.HTTPServerPort, cfg.Server.GRPCServerHost, cfg.Server.HTTPServerHost)
+	gwApp := grcpgatewayapp.NewGrpcGatewayApp(ctx, log, cfg.Server.GrpcServerPort, cfg.Server.HTTPServerPort, cfg.Server.GRPCServerHost, cfg.Server.HTTPServerHost, cfg.Server.AllowedOrigins)
 	return &App{
 		Config:         cfg,
 		Db:             db,
