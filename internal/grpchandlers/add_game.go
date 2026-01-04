@@ -5,9 +5,9 @@ import (
 	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
-	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/lib/converters"
 	errorhandler "github.com/sariya23/game_service/internal/lib/errorhandler/handlers"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/lib/validators"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"google.golang.org/grpc/codes"
@@ -18,8 +18,7 @@ func (srvApi *serverAPI) AddGame(
 	ctx context.Context,
 	request *game.AddGameRequest,
 ) (*game.AddGameResponse, error) {
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
-	log := srvApi.log.With("request_id", requestID)
+	log := logger.EnrichRequestID(ctx, srvApi.log)
 	log.Info("request to handler",
 		slog.String("handler", "AddGame"),
 		slog.Any("request", request),

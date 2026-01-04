@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 )
 
 func (gs *GameStatusRepository) GetGameStatusByName(ctx context.Context, statusName string) (*model.GameStatus, error) {
 	const operationPlace = "postgresql.GetGameStatusByName"
 	log := gs.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 
 	getStatusQuery := fmt.Sprintf("select %s, %s from %s where name=$1",
 		GameStatusGameStatusIDFieldName,

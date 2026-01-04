@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	gamegenrerepo "github.com/sariya23/game_service/internal/storage/postgresql/game_genre_repo"
@@ -13,15 +14,16 @@ import (
 	"github.com/sariya23/game_service/internal/storage/postgresql/tagrepo"
 )
 
-func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error) {
+func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGameNoImageURL, error) {
 	const operationPlace = "postgresql.GetTopGames"
 	log := gr.log.With("operationPlave", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	baseQuery := fmt.Sprintf("select %s, %s, %s, %s, %s from game where true",
 		GameGameIDFieldName,
 		GameTitleFieldName,
 		GameDescriptionFieldName,
 		GameReleaseDateFieldName,
-		GameImageURLFieldName,
+		GameImageKeyFieldName,
 	)
 	args := []interface{}{}
 	if len(filters.Tags) > 0 {
@@ -51,9 +53,7 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 		GameReleaseDateFieldName,
 		limit,
 	)
-	var games []model.ShortGame
-	log.Info(baseQuery)
-	log.Info(fmt.Sprintf("%v", args))
+	var games []model.ShortGameNoImageURL
 	gameRows, err := gr.conn.GetPool().Query(ctx, baseQuery, args...)
 	if err != nil {
 		log.Error("cannot execute query to get games", slog.String("err", err.Error()))
@@ -67,7 +67,7 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 			&gameDB.Title,
 			&gameDB.Description,
 			&gameDB.ReleaseDate,
-			&gameDB.ImageURL,
+			&gameDB.ImageKey,
 		)
 		if err != nil {
 			log.Error("cannot scan game id", slog.String("err", err.Error()))
@@ -77,8 +77,8 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 			log.Error("cannot prepare next row", slog.String("err", gameRows.Err().Error()))
 			return nil, fmt.Errorf("%s: %w", operationPlace, err)
 		}
-		game := gameDB.ToDomain()
-		games = append(games, game)
+		shortGameNoImageURL := gameDB.ToShortGameNoImageURL()
+		games = append(games, shortGameNoImageURL)
 	}
 	return games, nil
 }

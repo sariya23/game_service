@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 )
@@ -12,6 +13,7 @@ import (
 func (tr *TagRepository) GetTagByNames(ctx context.Context, tags []string) ([]model.Tag, error) {
 	const operationPlace = "postgresql.GetTags"
 	log := tr.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	getTagsQuery := fmt.Sprintf("select %s, %s from tag where %s=any($1)", TagTagIDFieldName, TagTagNameFieldName, TagTagNameFieldName)
 	tagRows, err := tr.conn.GetPool().Query(ctx, getTagsQuery, tags)
 	if err != nil {

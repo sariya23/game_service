@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -22,8 +22,7 @@ func (gameService *GameService) AddGame(
 	log := gameService.log.With("operationPlace", operationPlace)
 	log = log.With("title", gameToAdd.Title)
 	log = log.With("release_date", gameToAdd.ReleaseDate.String())
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
-	log = log.With("request_id", requestID)
+	log = logger.EnrichRequestID(ctx, log)
 	_, err := gameService.gameRepository.GetGameByTitleAndReleaseYear(ctx, gameToAdd.Title, int32(gameToAdd.ReleaseDate.Year()))
 	if err == nil {
 		log.Warn("game already exists", slog.String("title", gameToAdd.Title), slog.String("release_date", gameToAdd.ReleaseDate.String()))
@@ -33,10 +32,10 @@ func (gameService *GameService) AddGame(
 		return 0, fmt.Errorf("%s:%w", operationPlace, err)
 	}
 	var errSaveImage error
-	var imageURL string
+	var imageKey string
 	if len(gameToAdd.CoverImage) != 0 {
 		gameKey := minioclient.GameKey(gameToAdd.Title, gameToAdd.ReleaseDate.Year())
-		imageURL, err = gameService.s3Storager.SaveObject(
+		imageKey, err = gameService.s3Storager.SaveObject(
 			ctx,
 			gameKey,
 			bytes.NewReader(gameToAdd.CoverImage),
@@ -84,7 +83,7 @@ func (gameService *GameService) AddGame(
 		Description: gameToAdd.Description,
 		TagIDs:      tagIDs,
 		GenreIDs:    genreIDs,
-		ImageURL:    imageURL,
+		ImageKey:    imageKey,
 	}
 	gameID, err := gameService.gameRepository.SaveGame(ctx, addGameService)
 	if err != nil {

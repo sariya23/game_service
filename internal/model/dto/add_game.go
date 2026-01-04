@@ -18,6 +18,6 @@ type AddGameService struct {
 	GenreIDs    []int64
 	Description string
 	ReleaseDate time.Time
-	ImageURL    string
+	ImageKey    string
 	TagIDs      []int64
 }

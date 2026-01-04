@@ -6,27 +6,29 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model/dto"
 )
 
 func (gr *GameRepository) SaveGame(ctx context.Context, game dto.AddGameService) (int64, error) {
 	const operationPlace = "postgresql.gamerepo.SaveGame"
 	log := gr.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	saveGameArgs := pgx.NamedArgs{
 		"title":        game.Title,
 		"description":  game.Description,
 		"release_date": game.ReleaseDate,
-		"image_url":    game.ImageURL,
+		"image_key":    game.ImageKey,
 	}
 	saveMainGameInfoQuery := fmt.Sprintf(`
 		insert into game (%s, %s, %s, %s) values 
-		(@title, @description, @release_date, @image_url)
+		(@title, @description, @release_date, @image_key)
 		returning %s
 	`,
 		GameTitleFieldName,
 		GameDescriptionFieldName,
 		GameReleaseDateFieldName,
-		GameImageURLFieldName,
+		GameImageKeyFieldName,
 		GameGameIDFieldName)
 	addTagsForGameQuery := "insert into game_tag values ($1, $2)"
 	addGenresForGameQuery := "insert into game_genre values ($1, $2)"

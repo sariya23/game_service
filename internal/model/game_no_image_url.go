@@ -1,33 +1,31 @@
-package dto
+package model
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/sariya23/api_game_service/gen/game"
-	"github.com/sariya23/game_service/internal/model"
 )
 
-type GameDB struct {
+type GameNoImageURL struct {
 	GameID      int64
 	Title       string
 	Description string
 	ReleaseDate time.Time
-	ImageKey    sql.NullString
+	ImageKey    string
+	Tags        []Tag
+	Genres      []Genre
 	GameStatus  game.GameStatusType
 }
 
-func (g GameDB) ToGameNoImageURL() model.GameNoImageURL {
-	var imgKey string
-	if g.ImageKey.Valid {
-		imgKey = g.ImageKey.String
-	}
-	return model.GameNoImageURL{
+func (g GameNoImageURL) ToDomain(imageURL string) Game {
+	return Game{
 		GameID:      g.GameID,
 		Title:       g.Title,
 		Description: g.Description,
 		ReleaseDate: g.ReleaseDate,
+		ImageURL:    imageURL,
+		Tags:        g.Tags,
+		Genres:      g.Genres,
 		GameStatus:  g.GameStatus,
-		ImageKey:    imgKey,
 	}
 }

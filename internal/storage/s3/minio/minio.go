@@ -6,16 +6,19 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sariya23/game_service/internal/config"
+	"github.com/sariya23/game_service/internal/lib/logger"
 )
 
 type Minio struct {
-	log        *slog.Logger
-	client     *minio.Client
-	BucketName string
+	log                 *slog.Logger
+	client              *minio.Client
+	presignedURLExpires time.Duration
+	BucketName          string
 }
 
 func MustPrepareMinio(
@@ -42,6 +45,7 @@ func MustPrepareMinio(
 		panic(err)
 	}
 	innerLog.Info("Minio ready to get connections")
+	minioClient.presignedURLExpires = time.Duration(minioConfig.ExpiresUrlHours) * time.Hour
 	return minioClient
 }
 
@@ -93,6 +97,7 @@ func (m Minio) createBucket(ctx context.Context) error {
 func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (string, error) {
 	const operationPlace = "minioclient.SaveObject"
 	log := m.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(data)
 	if err != nil {
@@ -116,6 +121,7 @@ func (m Minio) SaveObject(ctx context.Context, name string, data io.Reader) (str
 func (m Minio) DeleteObject(ctx context.Context, name string) error {
 	const operationPlace = "minioclient.GetObject"
 	log := m.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	err := m.client.RemoveObject(ctx, m.BucketName, name, minio.RemoveObjectOptions{})
 	if err != nil {
 		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
@@ -126,4 +132,21 @@ func (m Minio) DeleteObject(ctx context.Context, name string) error {
 
 func GameKey(gameTitle string, gameReleaseYear int) string {
 	return fmt.Sprintf("%s_%d", gameTitle, gameReleaseYear)
+}
+
+func (m Minio) GeneratePresignedURL(ctx context.Context, objectName string) (string, error) {
+	const operationPlace = "storage.s3.minio.GeneratePresignedURL"
+	log := m.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
+	if objectName == "" {
+		log.Info("objectName is empty")
+		return "", nil
+	}
+	presignedURL, err := m.client.PresignedGetObject(ctx, m.BucketName, objectName, m.presignedURLExpires, nil)
+	if err != nil {
+		log.Error(fmt.Sprintf("failed to generate presigned URL: %v", err))
+		return "", fmt.Errorf("%s: %w", operationPlace, err)
+	}
+
+	return presignedURL.String(), nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 )
 
@@ -11,6 +12,7 @@ import (
 func (gr *GenreRepository) GetGenres(ctx context.Context) ([]model.Genre, error) {
 	const operationPlace = "postgresql.GetGenres"
 	log := gr.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	getGenreQuery := fmt.Sprintf("select %s, %s from genre", GenreGenreIDFieldName, GenreGenreNameFieldName)
 	genreRows, err := gr.conn.GetPool().Query(ctx, getGenreQuery)
 	if err != nil {

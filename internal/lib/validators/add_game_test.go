@@ -54,7 +54,7 @@ func TestAddGame_validation(t *testing.T) {
 				Tags:        nil,
 			}},
 			expectedValid:   false,
-			expectedMessage: outerror.ReleaseYearRequiredMessage,
+			expectedMessage: outerror.ReleaseDateRequiredMessage,
 		},
 		{
 			name: "no year",
@@ -67,7 +67,7 @@ func TestAddGame_validation(t *testing.T) {
 				Tags:        nil,
 			}},
 			expectedValid:   false,
-			expectedMessage: outerror.ReleaseYearRequiredMessage,
+			expectedMessage: outerror.ReleaseDateRequiredMessage,
 		},
 		{
 			name: "no month",
@@ -80,7 +80,7 @@ func TestAddGame_validation(t *testing.T) {
 				Tags:        nil,
 			}},
 			expectedValid:   false,
-			expectedMessage: outerror.ReleaseYearRequiredMessage,
+			expectedMessage: outerror.ReleaseDateRequiredMessage,
 		},
 		{
 			name: "no day",
@@ -93,7 +93,7 @@ func TestAddGame_validation(t *testing.T) {
 				Tags:        nil,
 			}},
 			expectedValid:   false,
-			expectedMessage: outerror.ReleaseYearRequiredMessage,
+			expectedMessage: outerror.ReleaseDateRequiredMessage,
 		},
 		{
 			name: "valid",

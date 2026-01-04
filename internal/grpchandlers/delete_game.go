@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/outerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,8 +16,7 @@ func (srvApi *serverAPI) DeleteGame(
 	ctx context.Context,
 	request *game.DeleteGameRequest,
 ) (*game.DeleteGameResponse, error) {
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
-	log := srvApi.log.With("request_id", requestID)
+	log := logger.EnrichRequestID(ctx, srvApi.log)
 	log.Info("request to handler",
 		slog.String("handler", "AddGame"),
 		slog.Any("request", request),

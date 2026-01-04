@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 )
@@ -16,10 +16,9 @@ func (gameService *GameService) GetGame(
 	gameID int64,
 ) (*model.Game, error) {
 	const operationPlace = "gameservice.GetGame"
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gameService.log.With("operationPlace", operationPlace)
-	log = log.With("request_id", requestID)
-	game, err := gameService.gameRepository.GetGameByID(ctx, gameID)
+	log = logger.EnrichRequestID(ctx, log)
+	gameNoImageURL, err := gameService.gameRepository.GetGameByID(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {
 			log.Warn("game not found", slog.Int64("game_id", gameID))
@@ -28,5 +27,10 @@ func (gameService *GameService) GetGame(
 		log.Error("unexpected error from repository", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	return game, nil
+	imageURL, err := gameService.s3Storager.GeneratePresignedURL(ctx, gameNoImageURL.ImageKey)
+	if err != nil {
+		log.Warn("failed to generate presigned URL for image", slog.String("error", err.Error()))
+	}
+	game := gameNoImageURL.ToDomain(imageURL)
+	return &game, nil
 }
