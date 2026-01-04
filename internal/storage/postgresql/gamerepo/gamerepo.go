@@ -11,7 +11,7 @@ const (
 	GameTitleFieldName        = "title"
 	GameDescriptionFieldName  = "description"
 	GameReleaseDateFieldName  = "release_date"
-	GameImageURLFieldName     = "image_url"
+	GameImageURLFieldName     = "image_key"
 	GameGameStatusIDFieldName = "game_status_id"
 )
 

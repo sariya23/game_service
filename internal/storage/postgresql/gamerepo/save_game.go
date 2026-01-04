@@ -16,11 +16,11 @@ func (gr *GameRepository) SaveGame(ctx context.Context, game dto.AddGameService)
 		"title":        game.Title,
 		"description":  game.Description,
 		"release_date": game.ReleaseDate,
-		"image_url":    game.ImageURL,
+		"image_key":    game.ImageURL,
 	}
 	saveMainGameInfoQuery := fmt.Sprintf(`
 		insert into game (%s, %s, %s, %s) values 
-		(@title, @description, @release_date, @image_url)
+		(@title, @description, @release_date, @image_key)
 		returning %s
 	`,
 		GameTitleFieldName,
