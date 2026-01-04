@@ -57,7 +57,7 @@ func TestAddGame(t *testing.T) {
 			return gameDB.Tags[i].TagID < gameDB.Tags[j].TagID
 		})
 		assert.Equal(t, tagsExpected, gameDB.Tags)
-		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, gameDB.ImageKey, minio.GetObjectOptions{})
+		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, gameDB.ImageURL, minio.GetObjectOptions{})
 		require.NoError(t, err)
 		defer reader.Close()
 		imageData, err := io.ReadAll(reader)
@@ -88,7 +88,7 @@ func TestAddGame(t *testing.T) {
 		assert.Equal(t, game_api.GameStatusType_DRAFT, gameDB.GameStatus)
 		assert.Nil(t, gameDB.Genres)
 		assert.Nil(t, gameDB.Tags)
-		assert.Empty(t, gameDB.ImageKey)
+		assert.Empty(t, gameDB.ImageURL)
 	})
 	t.Run("Если не переданы обязательные поля, игра не создается", func(t *testing.T) {
 		ctx := context.Background()
