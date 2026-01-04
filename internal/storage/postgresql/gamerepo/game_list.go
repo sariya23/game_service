@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	gamegenrerepo "github.com/sariya23/game_service/internal/storage/postgresql/game_genre_repo"
@@ -16,6 +17,7 @@ import (
 func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGameNoImageURL, error) {
 	const operationPlace = "postgresql.GetTopGames"
 	log := gr.log.With("operationPlave", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	baseQuery := fmt.Sprintf("select %s, %s, %s, %s, %s from game where true",
 		GameGameIDFieldName,
 		GameTitleFieldName,

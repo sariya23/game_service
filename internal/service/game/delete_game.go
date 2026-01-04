@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/outerror"
 	minioclient "github.com/sariya23/game_service/internal/storage/s3/minio"
 )
@@ -15,9 +15,8 @@ func (gameService *GameService) DeleteGame(
 	gameID int64,
 ) (int64, error) {
 	const operationPlace = "gameservice.DeleteGame"
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gameService.log.With("operationPlace", operationPlace)
-	log = log.With("request_id", requestID)
+	log = logger.EnrichRequestID(ctx, log)
 	deletedGame, err := gameService.gameRepository.DaleteGame(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {

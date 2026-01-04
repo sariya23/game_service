@@ -6,12 +6,14 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model/dto"
 )
 
 func (gr *GameRepository) SaveGame(ctx context.Context, game dto.AddGameService) (int64, error) {
 	const operationPlace = "postgresql.gamerepo.SaveGame"
 	log := gr.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	saveGameArgs := pgx.NamedArgs{
 		"title":        game.Title,
 		"description":  game.Description,

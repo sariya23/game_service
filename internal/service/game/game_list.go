@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 )
@@ -15,9 +15,8 @@ func (gameService *GameService) GameList(
 	limit uint32,
 ) ([]model.ShortGame, error) {
 	const operationPlace = "gameservice.GetTopGames"
-	requestID, _ := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gameService.log.With("operationPlace", operationPlace)
-	log = log.With("request_id", requestID)
+	log = logger.EnrichRequestID(ctx, log)
 	if limit == 0 {
 		limit = 10
 	}
@@ -32,7 +31,6 @@ func (gameService *GameService) GameList(
 		imageURL, err := gameService.s3Storager.GeneratePresignedURL(ctx, g.ImageKey)
 		if err != nil {
 			log.Warn(fmt.Sprintf("unexpected error while generate URL; err=%v", err))
-			continue
 		}
 		shortGame := g.ToShortGame(imageURL)
 		games = append(games, shortGame)

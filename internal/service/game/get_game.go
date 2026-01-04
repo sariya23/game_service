@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 )
@@ -16,9 +16,8 @@ func (gameService *GameService) GetGame(
 	gameID int64,
 ) (*model.Game, error) {
 	const operationPlace = "gameservice.GetGame"
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gameService.log.With("operationPlace", operationPlace)
-	log = log.With("request_id", requestID)
+	log = logger.EnrichRequestID(ctx, log)
 	gameNoImageURL, err := gameService.gameRepository.GetGameByID(ctx, gameID)
 	if err != nil {
 		if errors.Is(err, outerror.ErrGameNotFound) {

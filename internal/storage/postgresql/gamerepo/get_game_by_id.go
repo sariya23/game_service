@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
@@ -19,9 +19,8 @@ import (
 
 func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.GameNoImageURL, error) {
 	const operationPlace = "postgresql.gamerepo.GetGameByID"
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gr.log.With("operationPlace", operationPlace)
-	log = log.With("request_id", requestID)
+	log = logger.EnrichRequestID(ctx, log)
 	getGameMainInfoQuery := fmt.Sprintf(
 		"select %s, %s, %s, %s, %s, %s from game where %s=$1",
 		GameGameIDFieldName,

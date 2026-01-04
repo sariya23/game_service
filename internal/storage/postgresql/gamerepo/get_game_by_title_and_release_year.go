@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/sariya23/game_service/internal/interceptors"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/internal/outerror"
 	gamegenrerepo "github.com/sariya23/game_service/internal/storage/postgresql/game_genre_repo"
@@ -20,9 +20,8 @@ func (gr *GameRepository) GetGameByTitleAndReleaseYear(ctx context.Context, titl
 	const operationPlace = "postgresql.gamerepo.GetGameByTitleAndReleaseYear"
 	log := gr.log.With("title", title)
 	log = log.With("release_year", releaseYear)
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log = log.With("operationPlace", operationPlace)
-	log = log.With("requestID", requestID)
+	log = logger.EnrichRequestID(ctx, log)
 	getGameQuery := fmt.Sprintf("select %s, %s, %s, %s, %s, %s from game where %s=$1 and extract(year from %s)=$2",
 		GameGameIDFieldName,
 		GameTitleFieldName,

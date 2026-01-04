@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/sariya23/api_game_service/gen/game"
-	"github.com/sariya23/game_service/internal/interceptors"
 	"github.com/sariya23/game_service/internal/lib/converters"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 	"google.golang.org/grpc/codes"
@@ -17,13 +17,11 @@ func (srvApi *serverAPI) GameList(
 	ctx context.Context,
 	request *game.GameListRequest,
 ) (*game.GameListResponse, error) {
-	requestID := ctx.Value(interceptors.RequestIDKey).(string)
-	log := srvApi.log.With("request_id", requestID)
+	log := logger.EnrichRequestID(ctx, srvApi.log)
 	log.Info("request to handler",
-		slog.String("handler", "AddGame"),
+		slog.String("handler", "GameList"),
 		slog.Any("request", request),
 	)
-	log.Info("request to handler", slog.String("handler", "GameList"), slog.Any("request", request))
 	if request.Year < 0 {
 		log.Warn("negative year")
 		return &game.GameListResponse{}, status.Error(codes.InvalidArgument, outerror.NegativeYearMessage)

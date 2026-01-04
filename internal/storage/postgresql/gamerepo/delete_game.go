@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/sariya23/game_service/internal/lib/logger"
 	"github.com/sariya23/game_service/internal/model/dto"
 	"github.com/sariya23/game_service/internal/outerror"
 )
@@ -14,6 +15,7 @@ import (
 func (gr *GameRepository) DaleteGame(ctx context.Context, gameID int64) (*dto.DeletedGame, error) {
 	const operationPlace = "postgresql.DeleteGame"
 	log := gr.log.With("operationPlace", operationPlace)
+	log = logger.EnrichRequestID(ctx, log)
 	deleteGameQuery := fmt.Sprintf(
 		"delete from game where %s=$1 returning %s, extract(year from %s), %s",
 		GameGameIDFieldName,

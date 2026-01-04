@@ -16,10 +16,10 @@ func AddGame(request *game.AddGameRequest) (valid bool, message string) {
 		return false, outerror.DescriptionRequiredMessage
 	}
 	if request.Game.ReleaseDate == nil {
-		return false, outerror.ReleaseYearRequiredMessage
+		return false, outerror.ReleaseDateRequiredMessage
 	}
 	if request.Game.ReleaseDate.Year == 0 || request.Game.ReleaseDate.Month == 0 || request.Game.ReleaseDate.Day == 0 {
-		return false, outerror.ReleaseYearRequiredMessage
+		return false, outerror.ReleaseDateRequiredMessage
 	}
 	return true, ""
 }
