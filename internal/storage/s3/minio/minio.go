@@ -30,7 +30,7 @@ func MustPrepareMinio(
 	const operationPlace = "minioclient.MustPrepareMinio"
 	innerLog := log.With("operationPlace", operationPlace)
 	minioClient, err := newMinioClient(log,
-		minioConfig.MinioHostInner,
+		minioConfig.MinioHostOuter,
 		minioConfig.MinioPort,
 		minioConfig.MinioBucket,
 		minioConfig.MinioUser,
@@ -147,6 +147,5 @@ func (m Minio) GeneratePresignedURL(ctx context.Context, objectName string) (str
 		log.Error(fmt.Sprintf("failed to generate presigned URL: %v", err))
 		return "", fmt.Errorf("%s: %w", operationPlace, err)
 	}
-
 	return presignedURL.String(), nil
 }
