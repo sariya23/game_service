@@ -284,7 +284,7 @@ func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.Game {
 		&gameDB.Title,
 		&gameDB.Description,
 		&gameDB.ReleaseDate,
-		&gameDB.ImageURL,
+		&gameDB.ImageKey,
 		&gameDB.GameStatus)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

@@ -67,7 +67,7 @@ func (gr *GameRepository) GameList(ctx context.Context, filters dto.GameFilters,
 			&gameDB.Title,
 			&gameDB.Description,
 			&gameDB.ReleaseDate,
-			&gameDB.ImageURL,
+			&gameDB.ImageKey,
 		)
 		if err != nil {
 			log.Error("cannot scan game id", slog.String("err", err.Error()))

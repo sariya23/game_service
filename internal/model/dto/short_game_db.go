@@ -11,13 +11,13 @@ type ShortGameDB struct {
 	GameID             int64
 	Title, Description string
 	ReleaseDate        time.Time
-	ImageURL           sql.NullString
+	ImageKey           sql.NullString
 }
 
 func (s *ShortGameDB) ToDomain() model.ShortGame {
 	var imgURL string
-	if s.ImageURL.Valid {
-		imgURL = s.ImageURL.String
+	if s.ImageKey.Valid {
+		imgURL = s.ImageKey.String
 	}
 	return model.ShortGame{
 		GameID:      s.GameID,
