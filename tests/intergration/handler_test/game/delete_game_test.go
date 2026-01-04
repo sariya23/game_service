@@ -5,6 +5,7 @@ package game_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/minio/minio-go/v7"
@@ -29,7 +30,10 @@ func TestDeleteGame(t *testing.T) {
 		respAddGame, err := client.GetClient().AddGame(ctx, &game_api.AddGameRequest{Game: gameToAdd})
 		require.NoError(t, err)
 		assert.NotZero(t, respAddGame.GameId)
-		game := dbT.GetGameById(ctx, respAddGame.GameId)
+		gameNoImageURL := dbT.GetGameById(ctx, respAddGame.GameId)
+		imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+		require.NoError(t, err)
+		game := gameNoImageURL.ToDomain(imageURL.String())
 		request := game_api.DeleteGameRequest{GameId: respAddGame.GameId}
 
 		response, err := client.GetClient().DeleteGame(ctx, &request)

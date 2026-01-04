@@ -7,6 +7,7 @@ import (
 	"io"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/minio/minio-go/v7"
@@ -35,7 +36,11 @@ func TestAddGame(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.NotZero(t, response.GameId)
-		gameDB := dbT.GetGameById(ctx, response.GameId)
+		gameNoImageURL := dbT.GetGameById(ctx, response.GameId)
+		imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+		require.NoError(t, err)
+
+		gameDB := gameNoImageURL.ToDomain(imageURL.String())
 
 		assert.Equal(t, gameToAdd.Title, gameDB.Title)
 		assert.Equal(t, gameToAdd.Description, gameDB.Description)
@@ -80,7 +85,11 @@ func TestAddGame(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.NotZero(t, response.GameId)
-		gameDB := dbT.GetGameById(ctx, response.GameId)
+		gameNoImageURL := dbT.GetGameById(ctx, response.GameId)
+		imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+		require.NoError(t, err)
+
+		gameDB := gameNoImageURL.ToDomain(imageURL.String())
 
 		assert.Equal(t, gameToAdd.Title, gameDB.Title)
 		assert.Equal(t, gameToAdd.Description, gameDB.Description)

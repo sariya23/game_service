@@ -65,7 +65,7 @@ func (d *TestDB) InsertGame(ctx context.Context, game dto.AddGameService) int64 
 		gamerepo.GameTitleFieldName,
 		gamerepo.GameDescriptionFieldName,
 		gamerepo.GameReleaseDateFieldName,
-		gamerepo.GameImageURLFieldName,
+		gamerepo.GameImageKeyFieldName,
 		gamerepo.GameGameStatusIDFieldName,
 	)
 	var id int64
@@ -274,7 +274,7 @@ func (d *TestDB) GetGameTagByGameID(ctx context.Context, gameID int64) []model.G
 	return gameTags
 }
 
-func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.Game {
+func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.GameNoImageURL {
 	queryGame := "select game_id, title, description, release_date, image_key, game_status_id from game where game_id=$1"
 	queryGenre := "select genre_id, genre_name from game join game_genre using(game_id) join genre using(genre_id) where game_id=$1"
 	queryTag := "select tag_id, tag_name from game_tag join game using(game_id) join tag using(tag_id) where game_id=$1"
@@ -292,7 +292,7 @@ func (d *TestDB) GetGameById(ctx context.Context, gameID int64) *model.Game {
 		}
 		panic(err)
 	}
-	game := gameDB.ToDomain()
+	game := gameDB.ToGameNoImageURL()
 	rows, err := d.DB.GetPool().Query(ctx, queryGenre, gameID)
 	if err != nil {
 		panic(err)

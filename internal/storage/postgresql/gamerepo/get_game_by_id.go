@@ -17,7 +17,7 @@ import (
 	"github.com/sariya23/game_service/internal/storage/postgresql/tagrepo"
 )
 
-func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.Game, error) {
+func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model.GameNoImageURL, error) {
 	const operationPlace = "postgresql.gamerepo.GetGameByID"
 	requestID := ctx.Value(interceptors.RequestIDKey).(string)
 	log := gr.log.With("operationPlace", operationPlace)
@@ -28,7 +28,7 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 		GameTitleFieldName,
 		GameDescriptionFieldName,
 		GameReleaseDateFieldName,
-		GameImageURLFieldName,
+		GameImageKeyFieldName,
 		GameGameStatusIDFieldName,
 		GameGameIDFieldName,
 	)
@@ -68,7 +68,7 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 		}
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	game := gameDB.ToDomain()
+	game := gameDB.ToGameNoImageURL()
 	genreRows, err := gr.conn.GetPool().Query(ctx, getGameGenresQuery, gameID)
 	if err != nil {
 		log.Error("cannot prepare query to get genres, unexpected error",

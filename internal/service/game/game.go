@@ -12,8 +12,8 @@ import (
 
 type GameReposetory interface {
 	GetGameByTitleAndReleaseYear(ctx context.Context, title string, releaseYear int32) (*model.Game, error)
-	GetGameByID(ctx context.Context, gameID int64) (*model.Game, error)
-	GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGame, error)
+	GetGameByID(ctx context.Context, gameID int64) (*model.GameNoImageURL, error)
+	GameList(ctx context.Context, filters dto.GameFilters, limit uint32) ([]model.ShortGameNoImageURL, error)
 	SaveGame(ctx context.Context, game dto.AddGameService) (int64, error)
 	DaleteGame(ctx context.Context, gameID int64) (*dto.DeletedGame, error)
 	UpdateGameStatus(ctx context.Context, gameID int64, newStatus game.GameStatusType) error
@@ -30,6 +30,7 @@ type GenreRepository interface {
 type S3Storager interface {
 	SaveObject(ctx context.Context, name string, data io.Reader) (string, error)
 	DeleteObject(ctx context.Context, name string) error
+	GeneratePresignedURL(ctx context.Context, objectName string) (string, error)
 }
 
 type GameService struct {

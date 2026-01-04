@@ -28,7 +28,7 @@ func (gr *GameRepository) GetGameByTitleAndReleaseYear(ctx context.Context, titl
 		GameTitleFieldName,
 		GameDescriptionFieldName,
 		GameReleaseDateFieldName,
-		GameImageURLFieldName,
+		GameImageKeyFieldName,
 		GameGameStatusIDFieldName,
 		GameTitleFieldName,
 		GameReleaseDateFieldName,

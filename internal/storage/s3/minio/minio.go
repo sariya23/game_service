@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -13,9 +14,10 @@ import (
 )
 
 type Minio struct {
-	log        *slog.Logger
-	client     *minio.Client
-	BucketName string
+	log                 *slog.Logger
+	client              *minio.Client
+	presignedURLExpires time.Duration
+	BucketName          string
 }
 
 func MustPrepareMinio(
@@ -126,4 +128,16 @@ func (m Minio) DeleteObject(ctx context.Context, name string) error {
 
 func GameKey(gameTitle string, gameReleaseYear int) string {
 	return fmt.Sprintf("%s_%d", gameTitle, gameReleaseYear)
+}
+
+func (m Minio) GeneratePresignedURL(ctx context.Context, objectName string) (string, error) {
+	const operationPlace = "storage.s3.minio.GeneratePresignedURL"
+	log := m.log.With("operationPlace", operationPlace)
+	presignedURL, err := m.client.PresignedGetObject(ctx, m.BucketName, objectName, m.presignedURLExpires, nil)
+	if err != nil {
+		log.Error(fmt.Sprintf("failed to generate presigned URL: %v", err))
+		return "", fmt.Errorf("%s: %w", operationPlace, err)
+	}
+
+	return presignedURL.String(), nil
 }

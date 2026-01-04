@@ -14,16 +14,16 @@ type ShortGameDB struct {
 	ImageKey           sql.NullString
 }
 
-func (s *ShortGameDB) ToDomain() model.ShortGame {
-	var imgURL string
-	if s.ImageKey.Valid {
-		imgURL = s.ImageKey.String
+func (sh ShortGameDB) ToShortGameNoImageURL() model.ShortGameNoImageURL {
+	var imgKey string
+	if sh.ImageKey.Valid {
+		imgKey = sh.ImageKey.String
 	}
-	return model.ShortGame{
-		GameID:      s.GameID,
-		Title:       s.Title,
-		Description: s.Description,
-		ReleaseDate: s.ReleaseDate,
-		ImageURL:    imgURL,
+	return model.ShortGameNoImageURL{
+		GameID:      sh.GameID,
+		ImageKey:    imgKey,
+		Description: sh.Description,
+		ReleaseDate: sh.ReleaseDate,
+		Title:       sh.Title,
 	}
 }

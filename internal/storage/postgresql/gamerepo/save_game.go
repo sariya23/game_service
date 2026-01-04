@@ -26,7 +26,7 @@ func (gr *GameRepository) SaveGame(ctx context.Context, game dto.AddGameService)
 		GameTitleFieldName,
 		GameDescriptionFieldName,
 		GameReleaseDateFieldName,
-		GameImageURLFieldName,
+		GameImageKeyFieldName,
 		GameGameIDFieldName)
 	addTagsForGameQuery := "insert into game_tag values ($1, $2)"
 	addGenresForGameQuery := "insert into game_genre values ($1, $2)"

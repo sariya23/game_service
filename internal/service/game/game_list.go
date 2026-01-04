@@ -21,10 +21,22 @@ func (gameService *GameService) GameList(
 	if limit == 0 {
 		limit = 10
 	}
-	games, err := gameService.gameRepository.GameList(ctx, gameFilters, limit)
+	gamesNoImageURL, err := gameService.gameRepository.GameList(ctx, gameFilters, limit)
 	if err != nil {
 		log.Error(fmt.Sprintf("unexpected error; err=%v", err))
 		return nil, fmt.Errorf("%s: %w", operationPlace, err)
 	}
+
+	games := make([]model.ShortGame, 0, len(gamesNoImageURL))
+	for _, g := range gamesNoImageURL {
+		imageURL, err := gameService.s3Storager.GeneratePresignedURL(ctx, g.ImageKey)
+		if err != nil {
+			log.Warn(fmt.Sprintf("unexpected error while generate URL; err=%v", err))
+			continue
+		}
+		shortGame := g.ToShortGame(imageURL)
+		games = append(games, shortGame)
+	}
+
 	return games, nil
 }

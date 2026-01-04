@@ -6,6 +6,7 @@ import (
 	"context"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	game_api "github.com/sariya23/api_game_service/gen/game"
@@ -43,7 +44,11 @@ func TestGameList(t *testing.T) {
 		assert.Len(t, response.Games, 10)
 		expectedGames := make([]model.Game, 0, n)
 		for _, gameID := range gameIDs {
-			expectedGames = append(expectedGames, *dbT.GetGameById(ctx, gameID))
+			gameNoImageURL := dbT.GetGameById(ctx, gameID)
+			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+			require.NoError(t, err)
+			gameDB := gameNoImageURL.ToDomain(imageURL.String())
+			expectedGames = append(expectedGames, gameDB)
 		}
 		sort.Slice(expectedGames, func(i, j int) bool {
 			if expectedGames[i].Title != expectedGames[j].Title {
@@ -70,7 +75,10 @@ func TestGameList(t *testing.T) {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
-			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
+			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
+			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+			require.NoError(t, err)
+			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
@@ -125,7 +133,10 @@ func TestGameList(t *testing.T) {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
-			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
+			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
+			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+			require.NoError(t, err)
+			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
@@ -181,9 +192,12 @@ func TestGameList(t *testing.T) {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
+			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
+			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+			require.NoError(t, err)
+			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
-			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
 
@@ -237,9 +251,12 @@ func TestGameList(t *testing.T) {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
+			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
+			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+			require.NoError(t, err)
+			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
-			games = append(games, *dbT.GetGameById(ctx, responseAdd.GameId))
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
 
