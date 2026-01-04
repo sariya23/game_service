@@ -4,8 +4,9 @@ services:
     command: server --console-address ":9001" /data/
     # Порт не пробрасываем наружу - доступ только внутри Docker сети
     expose:
-      - ${MINIO_PORT}   # API 
-      - ${MINIO_PORT_CONSOLE}  # Консоль 
+      - ${MINIO_PORT} 
+    ports:  
+      - "${MINIO_PORT_CONSOLE}:${MINIO_PORT_CONSOLE}" 
     environment:
       MINIO_ROOT_USER: ${MINIO_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}

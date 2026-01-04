@@ -43,13 +43,15 @@ type Postgres struct {
 }
 
 type Minio struct {
-	MinioUser       string `env:"MINIO_USER"`
-	MinioPassword   string `env:"MINIO_PASSWORD"`
-	MinioPort       int    `env:"MINIO_PORT"`
-	MinioHostOuter  string `env:"MINIO_HOST_OUTER_HOST"`
-	MinioHostInner  string `env:"MINIO_HOST_INNER_HOST"`
-	MinioBucket     string `env:"MINIO_BUCKET"`
-	ExpiresUrlHours int    `env:"EXPIRES_URL_HOURS"`
+	MinioUser           string `env:"MINIO_USER"`
+	MinioPassword       string `env:"MINIO_PASSWORD"`
+	MinioPort           int    `env:"MINIO_PORT"`
+	MinioHostOuter      string `env:"MINIO_HOST_OUTER_HOST"`
+	MinioHostInner      string `env:"MINIO_HOST_INNER_HOST"`
+	MinioBucket         string `env:"MINIO_BUCKET"`
+	ExpiresUrlHours     int    `env:"EXPIRES_URL_HOURS"`
+	PresignedHost       string `env:"PRESIGNED_HOST"`
+	PresignedHostScheme string `env:"PRESIGNED_HOST_SCHEME"`
 }
 
 // MustLoad - загрузка данных из .env в конфиг.

@@ -18,6 +18,8 @@ type Minio struct {
 	log                 *slog.Logger
 	client              *minio.Client
 	presignedURLExpires time.Duration
+	presignedHost       string
+	presignedHostScheme string
 	BucketName          string
 }
 
@@ -46,6 +48,8 @@ func MustPrepareMinio(
 	}
 	innerLog.Info("Minio ready to get connections")
 	minioClient.presignedURLExpires = time.Duration(minioConfig.ExpiresUrlHours) * time.Hour
+	minioClient.presignedHost = minioConfig.PresignedHost
+	minioClient.presignedHostScheme = minioConfig.PresignedHostScheme
 	return minioClient
 }
 
@@ -147,6 +151,9 @@ func (m Minio) GeneratePresignedURL(ctx context.Context, objectName string) (str
 		log.Error(fmt.Sprintf("failed to generate presigned URL: %v", err))
 		return "", fmt.Errorf("%s: %w", operationPlace, err)
 	}
-
+	presignedURL.Scheme = m.presignedHostScheme
+	presignedURL.Host = m.presignedHost
+	presignedURL.Path = "/s3" + presignedURL.Path
+	log.Info("presigned URL generated", slog.String("presignedURL", presignedURL.String()))
 	return presignedURL.String(), nil
 }
