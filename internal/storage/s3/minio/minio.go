@@ -44,6 +44,7 @@ func MustPrepareMinio(
 		panic(err)
 	}
 	innerLog.Info("Minio ready to get connections")
+	minioClient.presignedURLExpires = time.Duration(minioConfig.ExpiresUrlHours) * time.Hour
 	return minioClient
 }
 

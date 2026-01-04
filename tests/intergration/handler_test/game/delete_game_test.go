@@ -5,7 +5,6 @@ package game_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/minio/minio-go/v7"
@@ -31,9 +30,7 @@ func TestDeleteGame(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotZero(t, respAddGame.GameId)
 		gameNoImageURL := dbT.GetGameById(ctx, respAddGame.GameId)
-		imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
-		require.NoError(t, err)
-		game := gameNoImageURL.ToDomain(imageURL.String())
+		
 		request := game_api.DeleteGameRequest{GameId: respAddGame.GameId}
 
 		response, err := client.GetClient().DeleteGame(ctx, &request)
@@ -43,7 +40,7 @@ func TestDeleteGame(t *testing.T) {
 		assert.Len(t, dbT.GetGameGenreByGameID(ctx, respAddGame.GameId), 0)
 		assert.Len(t, dbT.GetGameTagByGameID(ctx, respAddGame.GameId), 0)
 		assert.Nil(t, dbT.GetGameById(ctx, respAddGame.GameId))
-		_, err = minioT.GetClient().StatObject(ctx, minioT.BucketName, game.ImageURL, minio.GetObjectOptions{})
+		_, err = minioT.GetClient().StatObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, minio.GetObjectOptions{})
 		require.Equal(t, "The specified key does not exist.", err.Error())
 	})
 	t.Run("Удаление несуществующей игры, возвращается ошибка", func(t *testing.T) {

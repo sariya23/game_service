@@ -32,3 +32,7 @@ func NewMinioTestClient() *MinioTestClient {
 func (c *MinioTestClient) GetClient() *minio.Client {
 	return c.cl
 }
+
+func GameKey(gameTitle string, gameReleaseYear int) string {
+	return fmt.Sprintf("%s_%d", gameTitle, gameReleaseYear)
+}

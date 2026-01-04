@@ -13,6 +13,7 @@ import (
 	game_api "github.com/sariya23/api_game_service/gen/game"
 	"github.com/sariya23/game_service/internal/model"
 	"github.com/sariya23/game_service/tests/clientgrpc"
+	"github.com/sariya23/game_service/tests/clientminio"
 	"github.com/sariya23/game_service/tests/utils/random"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,7 @@ func TestGetGame(t *testing.T) {
 		assert.Equal(t, gameToAdd.Title, response.GetGame().Title)
 		assert.Equal(t, gameToAdd.Description, response.GetGame().Description)
 		assert.Equal(t, gameToAdd.ReleaseDate.String(), response.GetGame().ReleaseDate.String())
-		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, response.Game.CoverImageUrl, minio.GetObjectOptions{})
+		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, clientminio.GameKey(gameToAdd.Title, int(gameToAdd.ReleaseDate.Year)), minio.GetObjectOptions{})
 		require.NoError(t, err)
 		defer reader.Close()
 		imageData, err := io.ReadAll(reader)

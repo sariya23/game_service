@@ -6,7 +6,6 @@ import (
 	"context"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	game_api "github.com/sariya23/api_game_service/gen/game"
@@ -42,13 +41,10 @@ func TestGameList(t *testing.T) {
 		response, err := client.GetClient().GameList(ctx, &req)
 		require.NoError(t, err)
 		assert.Len(t, response.Games, 10)
-		expectedGames := make([]model.Game, 0, n)
+		expectedGames := make([]model.GameNoImageURL, 0, n)
 		for _, gameID := range gameIDs {
 			gameNoImageURL := dbT.GetGameById(ctx, gameID)
-			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
-			require.NoError(t, err)
-			gameDB := gameNoImageURL.ToDomain(imageURL.String())
-			expectedGames = append(expectedGames, gameDB)
+			expectedGames = append(expectedGames, *gameNoImageURL)
 		}
 		sort.Slice(expectedGames, func(i, j int) bool {
 			if expectedGames[i].Title != expectedGames[j].Title {
@@ -60,7 +56,7 @@ func TestGameList(t *testing.T) {
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
-			assert.Equal(t, expectedGame.ImageURL, response.Games[i].CoverImageUrl)
+			assert.Contains(t, response.Games[i].CoverImageUrl, expectedGame.ImageKey)
 		}
 	})
 	t.Run("Список игр, фильтрация по годам, дефолтный лимит", func(t *testing.T) {
@@ -70,16 +66,14 @@ func TestGameList(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		n := gofakeit.Number(12, 20)
-		games := make([]model.Game, 0, n)
+		games := make([]model.GameNoImageURL, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
+			require.NoError(t, err)
 			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
-			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
-			require.NoError(t, err)
-			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
-			require.NoError(t, err)
+			games = append(games, *gameNoImageURL)
 			assert.NotZero(t, responseAdd.GameId)
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
 		}
@@ -90,8 +84,8 @@ func TestGameList(t *testing.T) {
 			}
 			return years
 		}())
-		expectedGames := func() []model.Game {
-			var res []model.Game
+		expectedGames := func() []model.GameNoImageURL {
+			var res []model.GameNoImageURL
 			for _, game := range games {
 				if game.ReleaseDate.Year() == int(targetYear) {
 					res = append(res, game)
@@ -118,7 +112,7 @@ func TestGameList(t *testing.T) {
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
-			assert.Equal(t, expectedGame.ImageURL, response.Games[i].CoverImageUrl)
+			assert.Contains(t, response.Games[i].CoverImageUrl, expectedGame.ImageKey)
 		}
 	})
 	t.Run("Список игр, фильтрация по жанрам, дефолтный лимит", func(t *testing.T) {
@@ -128,15 +122,13 @@ func TestGameList(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		n := gofakeit.Number(12, 20)
-		games := make([]model.Game, 0, n)
+		games := make([]model.GameNoImageURL, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
-			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
-			require.NoError(t, err)
-			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
+			games = append(games, *gameNoImageURL)
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
@@ -149,8 +141,8 @@ func TestGameList(t *testing.T) {
 			}
 			return res
 		}(), 3)
-		expectedGames := func() []model.Game {
-			var res []model.Game
+		expectedGames := func() []model.GameNoImageURL {
+			var res []model.GameNoImageURL
 			for _, game := range games {
 				if len(ds.Intersection(model.GenreNames(game.Genres), targetGenres)) > 0 {
 					res = append(res, game)
@@ -177,7 +169,7 @@ func TestGameList(t *testing.T) {
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
-			assert.Equal(t, expectedGame.ImageURL, response.Games[i].CoverImageUrl)
+			assert.Contains(t, response.Games[i].CoverImageUrl, expectedGame.ImageKey)
 		}
 	})
 	t.Run("Список игр, фильтрация по тэгам, дефолтный лимит", func(t *testing.T) {
@@ -187,15 +179,13 @@ func TestGameList(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		n := gofakeit.Number(12, 20)
-		games := make([]model.Game, 0, n)
+		games := make([]model.GameNoImageURL, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
-			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
-			require.NoError(t, err)
-			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
+			games = append(games, *gameNoImageURL)
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
@@ -208,8 +198,8 @@ func TestGameList(t *testing.T) {
 			}
 			return res
 		}(), 3)
-		expectedGames := func() []model.Game {
-			var res []model.Game
+		expectedGames := func() []model.GameNoImageURL {
+			var res []model.GameNoImageURL
 			for _, game := range games {
 				if len(ds.Intersection(model.TagNames(game.Tags), targetTags)) > 0 {
 					res = append(res, game)
@@ -236,7 +226,7 @@ func TestGameList(t *testing.T) {
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
-			assert.Equal(t, expectedGame.ImageURL, response.Games[i].CoverImageUrl)
+			assert.Contains(t, response.Games[i].CoverImageUrl, expectedGame.ImageKey)
 		}
 	})
 	t.Run("Список игр, все поля", func(t *testing.T) {
@@ -246,15 +236,13 @@ func TestGameList(t *testing.T) {
 		defer dbT.TearDown(t)
 		genres, tags := dbT.GetGenres(ctx), dbT.GetTags(ctx)
 		n := gofakeit.Number(20, 40)
-		games := make([]model.Game, 0, n)
+		games := make([]model.GameNoImageURL, 0, n)
 		for range n {
 			gameToAdd := random.GameToAddRequest(model.GenreNames(genres), model.TagNames(tags))
 			request := game_api.AddGameRequest{Game: gameToAdd}
 			responseAdd, err := client.GetClient().AddGame(ctx, &request)
 			gameNoImageURL := dbT.GetGameById(ctx, responseAdd.GameId)
-			imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
-			require.NoError(t, err)
-			games = append(games, gameNoImageURL.ToDomain(imageURL.String()))
+			games = append(games, *gameNoImageURL)
 			require.NoError(t, err)
 			assert.NotZero(t, responseAdd.GameId)
 			dbT.UpdateGameStatus(ctx, responseAdd.GameId, game_api.GameStatusType_PUBLISH)
@@ -281,8 +269,8 @@ func TestGameList(t *testing.T) {
 			}
 			return years
 		}())
-		expectedGames := func() []model.Game {
-			var res []model.Game
+		expectedGames := func() []model.GameNoImageURL {
+			var res []model.GameNoImageURL
 			for _, game := range games {
 				if len(ds.Intersection(model.TagNames(game.Tags), targetTags)) > 0 && len(ds.Intersection(model.GenreNames(game.Genres), targetGenres)) > 0 && game.ReleaseDate.Year() == int(targetYear) {
 					res = append(res, game)
@@ -309,7 +297,7 @@ func TestGameList(t *testing.T) {
 		for i, expectedGame := range expectedGames {
 			assert.Equal(t, expectedGame.Title, response.Games[i].Title)
 			assert.Equal(t, expectedGame.Description, response.Games[i].Description)
-			assert.Equal(t, expectedGame.ImageURL, response.Games[i].CoverImageUrl)
+			assert.Contains(t, response.Games[i].CoverImageUrl, expectedGame.ImageKey)
 		}
 	})
 	t.Run("Отрицательный год", func(t *testing.T) {

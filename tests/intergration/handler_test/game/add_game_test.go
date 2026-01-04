@@ -62,7 +62,7 @@ func TestAddGame(t *testing.T) {
 			return gameDB.Tags[i].TagID < gameDB.Tags[j].TagID
 		})
 		assert.Equal(t, tagsExpected, gameDB.Tags)
-		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, gameDB.ImageURL, minio.GetObjectOptions{})
+		reader, err := minioT.GetClient().GetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, minio.GetObjectOptions{})
 		require.NoError(t, err)
 		defer reader.Close()
 		imageData, err := io.ReadAll(reader)
@@ -86,10 +86,10 @@ func TestAddGame(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotZero(t, response.GameId)
 		gameNoImageURL := dbT.GetGameById(ctx, response.GameId)
-		imageURL, err := minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
-		require.NoError(t, err)
+		_, err = minioT.GetClient().PresignedGetObject(ctx, minioT.BucketName, gameNoImageURL.ImageKey, time.Minute, nil)
+		require.Contains(t, err.Error(), "Object name cannot be empty")
 
-		gameDB := gameNoImageURL.ToDomain(imageURL.String())
+		gameDB := gameNoImageURL.ToDomain("")
 
 		assert.Equal(t, gameToAdd.Title, gameDB.Title)
 		assert.Equal(t, gameToAdd.Description, gameDB.Description)
