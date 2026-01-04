@@ -69,7 +69,7 @@ func (d *TestDB) InsertGame(ctx context.Context, game dto.AddGameService) int64 
 		gamerepo.GameGameStatusIDFieldName,
 	)
 	var id int64
-	err := d.DB.GetPool().QueryRow(ctx, query, game.Title, game.Description, game.ReleaseDate, game.ImageURL, 2).Scan(&id)
+	err := d.DB.GetPool().QueryRow(ctx, query, game.Title, game.Description, game.ReleaseDate, game.ImageKey, 2).Scan(&id)
 	if err != nil {
 		panic(err)
 	}

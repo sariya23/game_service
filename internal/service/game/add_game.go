@@ -33,10 +33,10 @@ func (gameService *GameService) AddGame(
 		return 0, fmt.Errorf("%s:%w", operationPlace, err)
 	}
 	var errSaveImage error
-	var imageURL string
+	var imageKey string
 	if len(gameToAdd.CoverImage) != 0 {
 		gameKey := minioclient.GameKey(gameToAdd.Title, gameToAdd.ReleaseDate.Year())
-		imageURL, err = gameService.s3Storager.SaveObject(
+		imageKey, err = gameService.s3Storager.SaveObject(
 			ctx,
 			gameKey,
 			bytes.NewReader(gameToAdd.CoverImage),
@@ -84,7 +84,7 @@ func (gameService *GameService) AddGame(
 		Description: gameToAdd.Description,
 		TagIDs:      tagIDs,
 		GenreIDs:    genreIDs,
-		ImageURL:    imageURL,
+		ImageKey:    imageKey,
 	}
 	gameID, err := gameService.gameRepository.SaveGame(ctx, addGameService)
 	if err != nil {
