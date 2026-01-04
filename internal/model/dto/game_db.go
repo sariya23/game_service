@@ -13,14 +13,14 @@ type GameDB struct {
 	Title       string
 	Description string
 	ReleaseDate time.Time
-	ImageURL    sql.NullString
+	ImageKey    sql.NullString
 	GameStatus  game.GameStatusType
 }
 
 func (g GameDB) ToDomain() model.Game {
 	var imgURL string
-	if g.ImageURL.Valid {
-		imgURL = g.ImageURL.String
+	if g.ImageKey.Valid {
+		imgURL = g.ImageKey.String
 	}
 	return model.Game{
 		GameID:      g.GameID,

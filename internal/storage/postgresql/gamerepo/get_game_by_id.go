@@ -59,7 +59,7 @@ func (gr *GameRepository) GetGameByID(ctx context.Context, gameID int64) (*model
 		&gameDB.Title,
 		&gameDB.Description,
 		&gameDB.ReleaseDate,
-		&gameDB.ImageURL,
+		&gameDB.ImageKey,
 		&gameDB.GameStatus,
 	)
 	if err != nil {
